@@ -1,0 +1,74 @@
+# Use root/example as user/password credentials
+services:
+  app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: kpolo-backend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo
+    environment:
+      MONGO_URI: "mongodb://root:example@mongo:27017/"
+
+  mongo:
+    image: mongo
+    restart: always
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+
+  mongo-express:
+    image: mongo-express
+    depends_on:
+      - mongo
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
+
+  debug_app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: my-node-app
+    ports:
+      - "3001:3000"
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: run dev
+    depends_on:
+      - mongo
+    environment:
+      MONGO_URI: "mongodb://root:example@mongo:27017/"
+    profiles:
+      - debug
+
+  production_app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: my-node-app
+    ports:
+      - "3002:3000"
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: run start
+    depends_on:
+      - mongo
+    environment:
+      MONGO_URI: "mongodb://root:example@mongo:27017/"
+    profiles:
+      - prod
+volumes:
+  mongo-data:
