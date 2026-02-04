@@ -18,7 +18,7 @@ services:
     ports:
       - 27017:27017
     volumes:
-      - mongo-data:/data/db
+      - mongo-data-bachelor:/data/db
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
@@ -35,40 +35,5 @@ services:
       ME_CONFIG_MONGODB_ADMINPASSWORD: example
       ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
 
-  debug_app:
-    build:
-      context: ./
-      dockerfile: Dockerfile
-    image: my-node-app
-    ports:
-      - "3001:3000"
-    working_dir: /app
-    volumes:
-      - ./:/app
-    command: run dev
-    depends_on:
-      - mongo
-    environment:
-      MONGO_URI: "mongodb://root:example@mongo:27017/"
-    profiles:
-      - debug
-
-  production_app:
-    build:
-      context: ./
-      dockerfile: Dockerfile
-    image: my-node-app
-    ports:
-      - "3002:3000"
-    working_dir: /app
-    volumes:
-      - ./:/app
-    command: run start
-    depends_on:
-      - mongo
-    environment:
-      MONGO_URI: "mongodb://root:example@mongo:27017/"
-    profiles:
-      - prod
 volumes:
-  mongo-data:
+  mongo-data-bachelor:
