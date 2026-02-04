@@ -1,0 +1,26 @@
+{
+  "name": "kpolo-backend",
+  "version": "1.0.0",
+  "description": "backend for k-polo webapp",
+  "homepage": "https://github.com/TacoKarl/kpolo#readme",
+  "bugs": {
+    "url": "https://github.com/TacoKarl/kpolo/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TacoKarl/kpolo.git"
+  },
+  "license": "ISC",
+  "author": "Oliver Bjørn, Thomas Bové, Thor McQuaid",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "@tsconfig/node24": "^24.0.4",
+    "@types/node": "^25.2.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}
