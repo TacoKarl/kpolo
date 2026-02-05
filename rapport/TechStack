@@ -1,0 +1,20 @@
+Der er forskellige tech stacks man kan vælge at gå med til en full stack webapp.
+- Mern stack
+    - MongoDB, Express.js, React og Node.js. 
+    - Denne stack er meget populær, stor community
+    - MongoDB er en dokumentbaseret database, lidt mindre optimalt til relationelle forhold i en db
+    - Express og Node modtages der undervisning i, hvilket taler for denne stack.
+- Lamp stack
+    - Linux, Apache, MySQL, PHP
+    - Stacken er veldokumenteret og stabil
+    - MySQL er en relationel database som er godt til hold og statistikker
+    - PHP er mindre moderne
+- Porn stack
+    - Pheonix, Oracle, React, Nginx
+    - Oracle er enterprise-grade relationel db
+    - Nginx er robust og god til reverse proxy, load balancing m.m.
+    - Pheonix har real-time funktioner indbygget hvilket gør det godt til live score fx
+- Pern stack
+    - Meget ligesom MERN stack
+    - PostgreSQL er en relationel database, som vil være mere optimalt til relationelle forhold
+    - Kan bruge typescript for ekstra sikkerhed
