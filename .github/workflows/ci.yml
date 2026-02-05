@@ -47,7 +47,7 @@ jobs:
         working-directory: rapport/latex_rapport
       - name: Upload PDF as artifact
         if: steps.check.outputs.changed != ''
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Rapport-PDF
           path: rapport/latex_rapport/main.pdf
