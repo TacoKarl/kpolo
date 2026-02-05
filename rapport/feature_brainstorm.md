@@ -1,0 +1,30 @@
+No ordering:
+
+- Plan tournaments
+- Save tournament results
+- View live score during tournament
+- Special interface to update live score
+- Create and view teams
+- Secure access
+- Event calendar
+- Water temperature/quality view/map
+- Mailed notifications
+- Tournament arranger interface
+- News dashboard
+- Player profiles
+- Club registration
+- Member status
+- Club pages
+- Past event page with pictures & results
+- Live-streaming
+- MMR-system
+- Result statistics per team/player
+- Camera HW module
+- User groups including: 
+  - sys admin
+  - arranger
+  - club admin
+  - trainer
+  - athlete
+  - club member
+  - guest (non-member)

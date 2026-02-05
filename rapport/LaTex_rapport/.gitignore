@@ -1,0 +1,32 @@
+# Ignore LaTeX build files
+*.aux
+*.bbl
+*.blg
+*.brf
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.nav
+*.snm
+*.vrb
+*.xdv
+*.dvi
+*.pdf
+
+# Ignore editor backup files
+*~
+*.bak
+*.swp
+*.swo
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+
+# Keep only .tex files
+!*.tex
