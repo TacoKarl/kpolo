@@ -15,9 +15,15 @@ jobs:
   frontend:
     name: frontend
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: echo "frontend"
   backend:
     name: backend
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: echo "backend"
   rapport:
     name: rapport
     runs-on: ubuntu-latest
