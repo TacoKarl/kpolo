@@ -41,7 +41,7 @@ jobs:
           echo "changed=$CHANGED" >> $GITHUB_OUTPUT
       - name: Install LaTeX
         if: steps.check.outputs.changed != ''
-        run: sudo apt-get update && sudo apt-get install -y texlive-full
+        run: sudo apt-get update && sudo apt-get install -y texlive-latex-base texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended biber make
       - name: Compile LaTeX
         if: steps.check.outputs.changed != ''
         run: |
