@@ -1,1 +1,45 @@
+name: CI
+
+on:
+  push:
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+      - 'rapport/**'
+  pull_request:
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+      - 'rapport/**'
+jobs:
+  frontend:
+    name: frontend
+    runs-on: ubuntu-latest
+  backend:
+    name: backend
+    runs-on: ubuntu-latest
+  rapport:
+    name: rapport
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check for changes in rapport
+        id: check
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch origin ${{ github.base_ref }}
+            CHANGED=$(git diff --name-only origin/${{ github.base_ref }} HEAD | grep '^rapport/')
+          else
+            CHANGED=$(git diff --name-only HEAD~1 HEAD | grep '^rapport/')
+          fi
+          echo "changed=$CHANGED" >> $GITHUB_OUTPUT
+      - name: Install LaTeX
+        if: steps.check.outputs.changed != ''
+        run: sudo apt-get update && sudo apt-get install -y texlive-full
+      - name: Compile LaTeX
+        if: steps.check.outputs.changed != ''
+        run: |
+          pdflatex -interaction=nonstopmode main.tex
+          pdflatex -interaction=nonstopmode main.tex
+        working-directory: rapport/latex_rapport
 
