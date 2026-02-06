@@ -33,9 +33,13 @@ jobs:
         id: check
         if: github.event_name == 'pull_request'
         run: |
-          git fetch origin ${{ github.base_ref }}
-          CHANGED=$(git diff --name-only origin/${{ github.base_ref }} HEAD | grep '^rapport/')
-          echo "changed=$CHANGED" >> $GITHUB_OUTPUT
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch origin ${{ github.base_ref }}
+            CHANGED=$(git diff --name-only origin/${{ github.base_ref }} HEAD | grep '^rapport/' || true)
+          else
+            CHANGED=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^rapport/' || true)
+          fi
+            echo "changed=$CHANGED" >> $GITHUB_OUTPUT
       - name: Install LaTeX
         if: github.event_name != 'pull_request' || steps.check.outputs.changed != ''
         run: sudo apt-get update && sudo apt-get install -y texlive-latex-base texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended biber make
