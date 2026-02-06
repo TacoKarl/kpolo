@@ -2,6 +2,7 @@ name: CI
 
 on:
   push:
+    branches: [ main ]
     paths:
       - 'frontend/**'
       - 'backend/**'
@@ -11,6 +12,10 @@ on:
       - 'frontend/**'
       - 'backend/**'
       - 'rapport/**'
+    types:
+      - opened
+      - synchronize
+      - reopened
 jobs:
   frontend:
     name: frontend
@@ -29,30 +34,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Check for changes in rapport
-        id: check
-        if: github.event_name == 'pull_request'
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            git fetch origin ${{ github.base_ref }}
-            CHANGED=$(git diff --name-only origin/${{ github.base_ref }} HEAD | grep '^rapport/' || true)
-          else
-            CHANGED=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^rapport/' || true)
-          fi
-            echo "changed=$CHANGED" >> $GITHUB_OUTPUT
       - name: Install LaTeX
-        if: github.event_name != 'pull_request' || steps.check.outputs.changed != ''
         run: sudo apt-get update && sudo apt-get install -y texlive-latex-base texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended biber make
       - name: Compile LaTeX
-        if: github.event_name != 'pull_request' || steps.check.outputs.changed != ''
+        working-directory: rapport/latex_rapport
         run: |
           pdflatex -interaction=nonstopmode main.tex
           pdflatex -interaction=nonstopmode main.tex
-        working-directory: rapport/latex_rapport
       - name: Upload PDF as artifact
-        if: steps.check.outputs.changed != ''
         uses: actions/upload-artifact@v4
         with:
           name: Rapport-PDF
           path: rapport/latex_rapport/main.pdf
+          retention-days: 30
 
