@@ -37,7 +37,7 @@ jobs:
       - name: Install LaTeX
         run: sudo apt-get update && sudo apt-get install -y texlive-latex-base texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended biber make
       - name: Compile LaTeX
-        working-directory: rapport/latex_rapport
+        working-directory: rapport/latex-rapport
         run: |
           pdflatex -interaction=nonstopmode main.tex
           pdflatex -interaction=nonstopmode main.tex
@@ -45,6 +45,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Rapport-PDF
-          path: rapport/latex_rapport/main.pdf
+          path: rapport/latex-rapport/main.pdf
           retention-days: 30
 
