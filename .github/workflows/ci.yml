@@ -74,6 +74,8 @@ jobs:
         working-directory: rapport/latex-rapport
         run: |
           pdflatex -interaction=nonstopmode main.tex
+          biber main
+          pdflatex -interaction=nonstopmode main.tex
           pdflatex -interaction=nonstopmode main.tex
       - name: Upload PDF as artifact
         uses: actions/upload-artifact@v4

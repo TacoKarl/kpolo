@@ -1,5 +1,9 @@
 \documentclass{article}
 \usepackage[utf8]{inputenc}
+\usepackage[backend=biber,style=authoryear]{biblatex}
+
+\addbibresource{bibliography/bibliography.bib}
+
 
 \title{My First LaTeX Document}
 \author{Thomas og alle hans venner}
@@ -19,6 +23,8 @@
     nu tester vi lige igen
 
     \input{Dokumenter/valg-af-db}
+
+    \printbibliography
 
 
 \end{document}
