@@ -1,0 +1,59 @@
+%! Author = oliver
+%! Date = 12/02/2026
+
+\title{Valg af DB}
+% Document
+\section{Valg af DB}
+
+    Til valg af vores database er der to valg. SQL eller NoSQL. Her er der mange forskellige implementationer af disse,
+    hvor de mest kendte er MongoDB til NoSQL og PostgreSQL til SQL, og det er dem vi vil vælge imellem. Der er fordele og
+    ulemper med begge.
+
+    \subsection{MongoDB}
+
+    MongoDB er en NoSQL dokumentdatabase, som lagrer data i JSON-lignende dokumenter (BSON).
+    I stedet for tabeller og relationer arbejder man med collections og indlejrede dokumenter.
+    Det betyder, at datastrukturen er fleksibel og ikke kræver et fast defineret skema.
+
+    En fordel ved MongoDB er, at den er velegnet til applikationer med hurtigt skiftende
+    datastrukturer eller store mængder ustruktureret data. Den kan være nem at skalere
+    horisontalt og giver høj performance ved simple læse- og skriveoperationer.
+
+    Ulempen ved MongoDB i denne kontekst er manglen på stærke relationer mellem data.
+    I en applikation med mange relationer – såsom spillere, hold, turneringer, kampe og resultater –
+    kan det blive komplekst at håndtere relationer og sikre dataintegritet.
+    Der findes ikke samme niveau af indbygget referentiel integritet som i relationelle databaser,
+    hvilket kan føre til inkonsistent data, hvis det ikke håndteres korrekt i applikationslaget.
+
+    \subsection{PostgreSQL}
+
+    PostgreSQL er en relationel SQL-database, som organiserer data i tabeller med
+    definerede relationer mellem dem. Den understøtter ACID-egenskaber, fremmednøgler,
+    transaktioner og avancerede forespørgsler via SQL.
+
+    Fordelen ved PostgreSQL i denne webapplikation er den stærke håndtering af relationer.
+    En kajakpolo-applikation indeholder mange naturlige relationer, eksempelvis:
+
+    \begin{itemize}
+        \item En spiller tilhører et hold
+        \item Et hold deltager i en turnering
+        \item En turnering består af flere kampe
+        \item En kamp har to hold og et resultat
+        \item Brugere kan have forskellige roller (spiller, arrangør, administrator)
+    \end{itemize}
+
+    Disse relationer kan modelleres direkte med primær- og fremmednøgler,
+    hvilket sikrer dataintegritet og konsistens. PostgreSQL understøtter desuden
+    komplekse joins, hvilket gør det effektivt at hente relateret data, f.eks.
+    alle kampe i en turnering eller alle spillere på et bestemt hold.
+
+    Da systemet kræver struktureret data med klare relationer og høj konsistens,
+    er en relationel database det mest hensigtsmæssige valg.
+
+    \subsection{Konklusion}
+
+    På baggrund af systemets krav om stærke relationer, dataintegritet og
+    struktureret data vælges PostgreSQL som database.
+    En relationel model passer naturligt til domænet med hold, spillere,
+    turneringer og kampe, og PostgreSQL giver robuste værktøjer til at
+    håndtere disse relationer effektivt.
