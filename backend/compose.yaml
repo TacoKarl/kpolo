@@ -1,6 +1,7 @@
 # Use root/example as user/password credentials
 services:
   app:
+    container_name: api
     build:
       context: ./
       dockerfile: Dockerfile
@@ -8,32 +9,35 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - mongo
+      - postgres
     environment:
-      MONGO_URI: "mongodb://root:example@mongo:27017/"
+      DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}"
+      PORT: ${PORT}
 
-  mongo:
-    image: mongo
+
+  pgAdmin:
+    image: dpage/pgadmin4
     restart: always
+    container_name: pgadmin
     ports:
-      - 27017:27017
-    volumes:
-      - mongo-data-bachelor:/data/db
+      - "3030:80"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
-
-  mongo-express:
-    image: mongo-express
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     depends_on:
-      - mongo
+      - postgres
+
+  postgres:
+    image: postgres:17.2-alpine
+    container_name: postgres-kpolo
     restart: always
     ports:
-      - 8081:8081
+      - "5432:5432"
+    volumes:
+      - postgres-kpolo:/var/lib/postgresql/data
     environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: root
-      ME_CONFIG_MONGODB_ADMINPASSWORD: example
-      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
-
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
 volumes:
-  mongo-data-bachelor:
+  postgres-kpolo:
