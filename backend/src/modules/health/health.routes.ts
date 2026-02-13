@@ -2,11 +2,11 @@ import { Router } from 'express';
 import { pool } from "../../db/pool.js";
 
 const router = Router();
-router.get("/health", (req, res) => {
+router.get("/", (req, res) => {
   res.json({ status: "ok" });
 });
 
-router.get("/db-test", async (req, res) => {
+router.get("/ready", async (req, res) => {
   try {
     const result = await pool.query("SELECT NOW()");
     res.json({
