@@ -10,6 +10,7 @@ RUN npm install
 COPY src src
 COPY tsconfig.json .
 
+RUN npm run build
 
 ARG PORT_ARG=3000
 ENV PORT=$PORT_ARG

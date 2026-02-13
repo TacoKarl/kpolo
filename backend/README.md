@@ -11,6 +11,18 @@ men en SQL database. Postgres er valgt da den følger ACID-principper meget stri
 
 ## API
 
+CREATE TABLE public.users
+(
+id serial NOT NULL,
+email text NOT NULL UNIQUE,
+password_hash text NOT NULL,
+role text[] DEFAULT ARRAY['user'],
+PRIMARY KEY (id)
+);
+
+ALTER TABLE IF EXISTS public.users
+OWNER to postgres;
+
 ## ER-Diagram
 
 Vores backend er designet med dette ER-Diagram.
