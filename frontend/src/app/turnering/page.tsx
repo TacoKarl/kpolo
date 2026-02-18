@@ -3,7 +3,7 @@
 import {useEffect, useState} from "react";
 
 
-export default function TurneringPage ({ params }) {
+export default function TurneringPage () {
     // const [kampe, setKampe] = useState<Kamp[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
