@@ -6,8 +6,8 @@ export default function Home() {
       <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
         <Image
           className="light:invert"
-          src="/bear-in-kajak.svg" //TODO: Kajak Bjørn
-          alt="Kajakpolo  Bjørn logo"
+          src="/bear-in-kajak.svg"
+          alt="Kajakpolo Bjørn logo"
           width={500}
           height={500}
           priority
