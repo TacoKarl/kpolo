@@ -11,7 +11,7 @@ export default function Home() {
               priority
             />
           <h1 className="max-w-xs text-3xl leading-10 tracking-tight text-black dark:text-zinc-50">
-            Kajakpolo er en sportsgren, bestående af to hold der ror i kajak, mens de prøver at score mål med en bold.
+            Kajakpolo er en holdsport på vandet, hvor to fem-mandshold i hver deres kajak forsøger at score mål mod hinanden med en bold i et hængende mål cirka to meter over vandoverfladen
           </h1>
         </div>
   );
