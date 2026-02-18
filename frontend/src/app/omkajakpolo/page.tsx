@@ -10,8 +10,8 @@ export default function Home() {
               height={500}
               priority
             />
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            Kajakpolo er en sport
+          <h1 className="max-w-xs text-3xl leading-10 tracking-tight text-black dark:text-zinc-50">
+            Kajakpolo er en sportsgren, bestående af to hold der ror i kajak, mens de prøver at score mål med en bold.
           </h1>
         </div>
   );
