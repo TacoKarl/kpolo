@@ -4,6 +4,8 @@ dotenv.config();
 
 import cors from "cors";
 import { ApolloServer } from "@apollo/server";
+import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
+import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin/landingPage/default";
 import { expressMiddleware } from "@as-integrations/express5";
 
 import { pool } from "./db/pool.js";
@@ -30,9 +32,14 @@ app.use(
 app.use("/health", healthRoutes);
 
 // Apollo Server
-const apollo = new ApolloServer<GraphQLContext>({
+const apollo = new ApolloServer({
     typeDefs,
     resolvers,
+    plugins: [
+        process.env.NODE_ENV === 'production'
+            ? ApolloServerPluginLandingPageDisabled()
+            : ApolloServerPluginLandingPageLocalDefault(),
+    ],
 });
 
 await apollo.start();
