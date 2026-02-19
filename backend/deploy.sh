@@ -13,7 +13,7 @@ if [ "$LOCAL" != "$REMOTE" ]; then
 	podman compose up -d --build api
 	curl -H "Content-Type: application/json" \
 		-X POST \
-		-d "{\"content\@: \"Backend deployed!\"}" \
+		-d "{\"content\": \"Backend deployed!\"}" \
 		"$DISCORD_WEBHOOK"
 else
 	echo "No changes"
