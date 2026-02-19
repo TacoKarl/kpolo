@@ -13,7 +13,7 @@ export default function Navbar() {
     // setUser({ name: "Robie Diangson", avatarUrl: null });
   }, []);
 
-  const getInitials = (name) => {
+  const getInitials = (name: string) => {
     const parts = name.trim().split(' ');
     if (parts.length === 1) return parts[0][0].toUpperCase();
     const first = parts[0][0];
