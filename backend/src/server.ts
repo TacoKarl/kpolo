@@ -4,7 +4,7 @@ dotenv.config();
 
 import cors from "cors";
 import { ApolloServer } from "@apollo/server";
-import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';y
+import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
 import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin/landingPage/default";
 import { expressMiddleware } from "@as-integrations/express5";
 
