@@ -5,7 +5,10 @@ import {useEffect, useState} from "react";
 
 export default function Navbar() {
 
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<{
+    name: string;
+    avatarUrl: string | null;
+  } | null>(null);
 
   useEffect(() => {
     // Her kan du hente brugerdata fra fx session eller API
