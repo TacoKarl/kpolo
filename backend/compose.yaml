@@ -1,6 +1,6 @@
 # Use root/example as user/password credentials
 services:
-  app:
+  api:
     container_name: api
     build:
       context: ./
