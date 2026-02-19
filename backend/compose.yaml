@@ -34,7 +34,7 @@ services:
     container_name: postgres-kpolo
     restart: always
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres-kpolo:/var/lib/postgresql/data
     environment:
