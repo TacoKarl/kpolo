@@ -13,7 +13,7 @@ export default function Navbar() {
   useEffect(() => {
     // Her kan du hente brugerdata fra fx session eller API
     // Eksempel:
-    // setUser({ name: "Robie Diangson", avatarUrl: null });
+    // setUser({ name: "John Doe", avatarUrl: null });
   }, []);
 
   const getInitials = (name: string) => {
