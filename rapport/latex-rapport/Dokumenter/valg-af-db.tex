@@ -1,15 +1,10 @@
-%! Author = oliver
-%! Date = 12/02/2026
-
-\title{Valg af DB}
-% Document
-\section{Valg af DB}
+\subsection{Valg af DB}
 
     Til valg af vores database er der to valg. SQL eller NoSQL. Her er der mange forskellige implementationer af disse,
     hvor de mest kendte er MongoDB til NoSQL og PostgreSQL til SQL, og det er dem vi vil vælge imellem. Der er fordele og
     ulemper med begge.
 
-    \subsection{MongoDB}
+    \subsubsection{MongoDB}
 
     MongoDB er en NoSQL dokumentdatabase, som lagrer data i JSON-lignende dokumenter (BSON).
     I stedet for tabeller og relationer arbejder man med collections og indlejrede dokumenter.
@@ -25,10 +20,11 @@
     Der findes ikke samme niveau af indbygget referentiel integritet som i relationelle databaser,
     hvilket kan føre til inkonsistent data, hvis det ikke håndteres korrekt i applikationslaget.
 
-    \subsection{PostgreSQL}
+    \subsubsection{PostgreSQL}
 
     PostgreSQL er en relationel SQL-database, som organiserer data i tabeller med
-    definerede relationer mellem dem \cite{postgres_docs2026}. Den understøtter ACID-egenskaber, fremmednøgler,
+    definerede relationer mellem dem~\cite{postgres_docs2026}.
+    Den understøtter ACID-egenskaber, fremmednøgler,
     transaktioner og avancerede forespørgsler via SQL.
 
     Fordelen ved PostgreSQL i denne webapplikation er den stærke håndtering af relationer.
@@ -50,7 +46,7 @@
     Da systemet kræver struktureret data med klare relationer og høj konsistens,
     er en relationel database det mest hensigtsmæssige valg.
 
-    \subsection{Konklusion}
+    \subsubsection{Konklusion}
 
     På baggrund af systemets krav om stærke relationer, dataintegritet og
     struktureret data vælges PostgreSQL som database.
