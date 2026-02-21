@@ -67,8 +67,8 @@ export default function LoginPage() {
                 />
                 <button
                     type="submit"
-                    className="bg-blue-600 text-white p-2 rounded-md disabled:hover:bg-gray-400 hover:bg-blue-700 transition cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed"
                     disabled={!verified}
+                    className="bg-blue-600 text-white p-2 rounded-md disabled:hover:bg-gray-400 hover:bg-blue-700 transition cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                     Login
                 </button>
