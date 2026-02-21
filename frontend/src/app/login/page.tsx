@@ -1,10 +1,38 @@
 'use client';
 
-import {useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [verified, setVerified] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+    const widgetIdRef = useRef<string | null>(null);
+
+    const handleVerify = useCallback(() => {
+        setVerified(true);
+    }, []);
+
+    const handleError = useCallback(() => {
+        setVerified(false);
+    }, []);
+
+    useEffect(() => {
+        if (!ref.current) return;
+        if (!window.turnstile) return;
+
+        widgetIdRef.current = window.turnstile.render(ref.current, {
+            sitekey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!,
+            callback: handleVerify,
+            'error-callback': handleError,
+        });
+
+        return () => {
+            if (window.turnstile && widgetIdRef.current) {
+                window.turnstile.remove(widgetIdRef.current);
+            }
+        };
+    }, [handleError, handleVerify]);
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -37,18 +65,19 @@ export default function LoginPage() {
                     className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                 />
-
                 <button
                     type="submit"
                     className="bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 transition cursor-pointer"
+                    disabled={!verified}
                 >
                     Login
                 </button>
-
+                <div ref={ref}></div>
                 <p className="text-center text-gray-500 text-sm mt-2">
                     Don&apos;t have an account? Ask your club manager
                 </p>
             </form>
+
         </div>
     )
 }
