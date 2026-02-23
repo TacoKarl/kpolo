@@ -3,9 +3,10 @@
 import {useCallback, useEffect, useRef, useState} from "react";
 
 export default function LoginPage() {
+    const isDev = process.env.NODE_ENV === 'development';
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [verified, setVerified] = useState(false);
+    const [verified, setVerified] = useState(isDev);
     const ref = useRef<HTMLDivElement>(null);
     const widgetIdRef = useRef<string | null>(null);
 
@@ -18,6 +19,7 @@ export default function LoginPage() {
     }, []);
 
     useEffect(() => {
+        if (isDev) return;
         if (!ref.current) return;
         if (!window.turnstile) return;
 
@@ -72,7 +74,7 @@ export default function LoginPage() {
                 >
                     Login
                 </button>
-                <div ref={ref}></div>
+                {!isDev &&<div ref={ref}></div>}
                 <p className="text-center text-gray-500 text-sm mt-2">
                     Don&apos;t have an account? Ask your club manager
                 </p>

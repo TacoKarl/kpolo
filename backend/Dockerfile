@@ -7,6 +7,8 @@ COPY package*.json .
 
 RUN npm install
 
+COPY prisma prisma
+
 COPY src src
 COPY tsconfig.json .
 
