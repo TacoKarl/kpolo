@@ -1,3 +1,5 @@
+% Den her fil er importeret i en section.
+% brug derfor \subscetion til din første section
 \subsection{Valg af DB}
 
     Til valg af vores database er der to valg. SQL eller NoSQL. Her er der mange forskellige implementationer af disse,
@@ -20,12 +22,15 @@
     Der findes ikke samme niveau af indbygget referentiel integritet som i relationelle databaser,
     hvilket kan føre til inkonsistent data, hvis det ikke håndteres korrekt i applikationslaget.
 
+    Skal der senere tilføjes log beskeder vil MongoDB være en mulig kandidat til at løse dette,
+    da logs ikke behøves en fast struktur og dermed vil passe bedre til en NoSQL database frem for
+    en SQL database.
+
     \subsubsection{PostgreSQL}
 
     PostgreSQL er en relationel SQL-database, som organiserer data i tabeller med
     definerede relationer mellem dem~\cite{postgres_docs2026}.
-    Den understøtter ACID-egenskaber, fremmednøgler,
-    transaktioner og avancerede forespørgsler via SQL.
+    Den understøtter ACID-egenskaber, Foreign keys, transaktioner og avancerede forespørgsler via SQL.
 
     Fordelen ved PostgreSQL i denne webapplikation er den stærke håndtering af relationer.
     En kajakpolo-applikation indeholder mange naturlige relationer, eksempelvis:
@@ -38,7 +43,7 @@
         \item Brugere kan have forskellige roller (spiller, arrangør, administrator)
     \end{itemize}
 
-    Disse relationer kan modelleres direkte med primær- og fremmednøgler,
+    Disse relationer kan modelleres direkte med PRIMARY- og FOREIGN keys,
     hvilket sikrer dataintegritet og konsistens. PostgreSQL understøtter desuden
     komplekse joins, hvilket gør det effektivt at hente relateret data, f.eks.
     alle kampe i en turnering eller alle spillere på et bestemt hold.
@@ -48,8 +53,6 @@
 
     \subsubsection{Konklusion}
 
-    På baggrund af systemets krav om stærke relationer, dataintegritet og
-    struktureret data vælges PostgreSQL som database.
-    En relationel model passer naturligt til domænet med hold, spillere,
-    turneringer og kampe, og PostgreSQL giver robuste værktøjer til at
-    håndtere disse relationer effektivt.
+    På baggrund af systemets krav om stærke relationer, dataintegritet og struktureret data vælges PostgreSQL som database.
+    En relationel model passer naturligt til domænet med hold, spillere, turneringer og kampe, og PostgreSQL giver robuste
+    værktøjer til at håndtere disse relationer effektivt.
