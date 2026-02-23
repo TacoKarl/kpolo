@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Club {
+  id                Int     @id @default(autoincrement())
+  name              String
+  user_manager_id   Int     @unique
+  city              String?
+  address           String?
+  members           User[]  @relation("ClubMemberships")
+  teams             Team[]
+
+  manager           User    @relation("ClubManager", fields: [user_manager_id], references: [id])
+}
+
+model Role {
+  id       Int     @id @default(autoincrement())
+  role     String
+  users    User[]
+}
+
+
+model User {
+  id                Int        @id @default(autoincrement())
+  name              String
+  email             String     @unique
+  password_hash     String
+  club_id           Int?
+  roles             Role[]
+  teams             TeamMembership[]
+  managed_clubs     Club? @relation("ClubManager")
+
+  club              Club? @relation("ClubMemberships", fields: [club_id], references: [id])
+}
+
+model Team {
+  id              Int        @id @default(autoincrement())
+  club_id         Int
+  name            String
+  members         TeamMembership[]
+  matchesAsTeam1  Match[] @relation("MatchTeam1")
+  matchesAsTeam2  Match[] @relation("MatchTeam2")
+  matchesWon      Match[] @relation("MatchWinnerTeam")
+
+  club            Club @relation(fields: [club_id], references: [id])
+}
+
+model TeamMembership {
+  id          Int        @id @default(autoincrement())
+  team_id     Int
+  user_id     Int
+  from_date   DateTime
+  to_date     DateTime?
+
+  team        Team @relation(fields: [team_id], references: [id])
+  user        User @relation(fields: [user_id], references: [id])
+}
+
+model Tournament {
+  id          Int        @id @default(autoincrement())
+  season      String
+  name        String
+  matches     Match[]
+}
+
+model Match {
+  id                Int        @id @default(autoincrement())
+  tournament_id     Int
+  team1_id          Int
+  team1_score       Int?
+  team2_id          Int
+  team2_score       Int?
+  winner_team_id    Int?
+  match_date        DateTime
+
+  tournament        Tournament @relation(fields: [tournament_id], references: [id])
+  team1             Team @relation("MatchTeam1", fields: [team1_id], references: [id])
+  team2             Team @relation("MatchTeam2", fields: [team2_id], references: [id])
+  winner_team       Team? @relation("MatchWinnerTeam", fields: [winner_team_id], references: [id])
+}
