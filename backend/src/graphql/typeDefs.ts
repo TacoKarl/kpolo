@@ -9,7 +9,7 @@ export const typeDefs = gql`
   type Mutation {
     add(a: Int!, b: Int!): Int!
     login(email: String!, password: String!): LoginResponse!
-    register(email: String!, password: String!): RegisterResponse!
+    register(email: String!, name: String!, password: String!): RegisterResponse!
   }
   type LoginResponse {
     token: String!

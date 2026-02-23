@@ -2,13 +2,10 @@
 'use client';
 import Link from 'next/link';
 import {useEffect, useState} from "react";
+import { useUser} from "@/app/context/UserContext";
 
 export default function Navbar() {
-
-  const [user, setUser] = useState<{
-    name: string;
-    avatarUrl: string | null;
-  } | null>(null);
+    const { user } = useUser();
 
   useEffect(() => {
     // Her kan du hente brugerdata fra fx session eller API

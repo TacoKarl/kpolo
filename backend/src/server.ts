@@ -41,7 +41,6 @@ app.use(
 
 // Health stays as-is
 app.use("/health", healthRoutes);
-
 // Apollo Server
 const apollo = new ApolloServer({
     typeDefs,
@@ -71,6 +70,7 @@ pool.connect()
     });
 
 app.listen(port, () => {
+    console.log(`Server running in ${isDev ? 'dev' : 'prod'} mode`);
     console.log(`Backend kører på http://localhost:${port}`);
     console.log(`GraphQL (Apollo) er klar på http://localhost:${port}/graphql`);
 });
