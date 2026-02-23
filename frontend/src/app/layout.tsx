@@ -29,6 +29,7 @@ export default function RootLayout({
   return (
     <html lang="en">
     <head>
+      <title>Kajakpolo Danmark</title>
       <link rel="preconnect" href="https://challenges.cloudflare.com"/>
     </head>
       <body

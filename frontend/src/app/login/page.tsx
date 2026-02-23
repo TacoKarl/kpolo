@@ -2,7 +2,6 @@
 
 import {useCallback, useEffect, useRef, useState} from "react";
 import { useUser } from "@/app/context/UserContext";
-import {is} from "@babel/types";
 
 export default function LoginPage() {
     const isDev = process.env.NODE_ENV === 'development';
@@ -111,6 +110,11 @@ export default function LoginPage() {
                     className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                 />
+                {error && (
+                    <p className="text-sm text-red-600 text-center">
+                        {error.message}
+                    </p>
+                )}
                 <button
                     type="submit"
                     disabled={!verified}
