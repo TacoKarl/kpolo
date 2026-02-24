@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "./components/navbar";
 import Footer from "./components/footer";
 import Script from "next/script";
+import { UserProvider } from "@/app/context/UserContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,13 +29,16 @@ export default function RootLayout({
   return (
     <html lang="en">
     <head>
+      <title>Kajakpolo Danmark</title>
       <link rel="preconnect" href="https://challenges.cloudflare.com"/>
     </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+      <UserProvider>
         <Navbar />
         {children}
+      </UserProvider>
         <Footer />
         <Script
             src="https://challenges.cloudflare.com/turnstile/v0/api.js"

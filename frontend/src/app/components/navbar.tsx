@@ -1,14 +1,12 @@
 // app/components/Navbar.jsx
 'use client';
 import Link from 'next/link';
-import {useEffect, useState} from "react";
+import { useEffect } from "react";
+import { useUser} from "@/app/context/UserContext";
+import Image from "next/image";
 
 export default function Navbar() {
-
-  const [user, setUser] = useState<{
-    name: string;
-    avatarUrl: string | null;
-  } | null>(null);
+    const { user } = useUser();
 
   useEffect(() => {
     // Her kan du hente brugerdata fra fx session eller API
@@ -41,7 +39,12 @@ export default function Navbar() {
         {user ? (
             <Link href="/profil" className="flex items-center gap-2 bg-gray-700 rounded-full text-white">
               {user.avatarUrl ? (
-                  <img src={user.avatarUrl} alt="Profilbillede" className="w-8 h-8 rounded-full" />
+                  <Image
+                      src={user.avatarUrl}
+                      alt="Profilbillede"
+                      width={32}
+                      height={32}
+                      className="rounded-full" />
               ) : (
                   <span className="w-8 h-8 rounded-full bg-gray-500 flex items-center justify-center">
                   {getInitials(user.name)}

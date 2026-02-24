@@ -12,10 +12,16 @@ import { pool } from "./db/pool.js";
 import healthRoutes from "./modules/health/health.routes.js";
 
 import { typeDefs } from "./graphql/typeDefs.js";
-import { resolvers, type GraphQLContext } from "./graphql/resolvers.js";
+import { resolvers } from "./graphql/resolvers.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+const isDev = process.env.NODE_ENV === "development";
+
+const allowedOrigins = isDev
+    ? ["http://localhost:3000", "http://localhost:3001"]
+    : ["https://olros.online"];
 
 // Usual middleware
 app.use(express.json());
@@ -24,21 +30,25 @@ app.use(express.json());
 // e.g. "http://localhost:3001" or "http://localhost:5173"
 app.use(
     cors({
-        origin: "*",
+        origin: (requestOrigin, callback) => {
+            // Tillad request uden origin, fx bruno
+            if (!requestOrigin || allowedOrigins.includes(requestOrigin)) return callback(null, true);
+                callback(new Error(`CORS Policy: origin ${requestOrigin} not allowed`));
+        },
+        credentials: true, // Brug af cookies/session
     })
 );
 
 // Health stays as-is
 app.use("/health", healthRoutes);
-
 // Apollo Server
 const apollo = new ApolloServer({
     typeDefs,
     resolvers,
     plugins: [
-        process.env.NODE_ENV === 'production'
-            ? ApolloServerPluginLandingPageDisabled()
-            : ApolloServerPluginLandingPageLocalDefault(),
+        isDev
+            ? ApolloServerPluginLandingPageLocalDefault()
+            : ApolloServerPluginLandingPageDisabled()
     ],
 });
 
@@ -60,6 +70,7 @@ pool.connect()
     });
 
 app.listen(port, () => {
+    console.log(`Server running in ${isDev ? 'dev' : 'prod'} mode`);
     console.log(`Backend kører på http://localhost:${port}`);
     console.log(`GraphQL (Apollo) er klar på http://localhost:${port}/graphql`);
 });
