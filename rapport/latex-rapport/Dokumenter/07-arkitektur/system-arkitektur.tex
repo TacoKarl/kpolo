@@ -36,7 +36,7 @@ Applikationslaget består af en Node.js-server implementeret med Express og Grap
 GraphQL fungerer som API-lag, hvor resolvers håndterer queries og mutationer
 og kommunikerer med service-laget, der implementerer forretnings-logikken.
 
-Den interne arkitektur i applikationen følger en opdeling mellem resolvers, services og dataadgang ,
+Den interne arkitektur i applikationen følger en opdeling mellem resolvers, services og dataadgang,
 hvilket understøtter modularitet og testbarhed. Middleware anvendes til håndtering af autentifikation,
 logging og centraliseret fejlbehandling
 
@@ -51,7 +51,7 @@ via JWT. Dermed sikres, at selv hvis endpointet tilgås uden for browseren, kan 
 Databasen består af en PostgreSQL-database, hvor datastrukturen er modelleret som vist på Figur~\ref{fig:ER-diagram}.
 Databasen er normaliseret til tredje normalform (3NF) for at minimere redundans og sikre konsistens.
 
-Dataintegritet opretholdes gennem anvendelse af primær- og fremmed-nøgler, unikke constraints, samt
+Dataintegritet opretholdes gennem anvendelse af PRIMARY- og FOREIGN-nøgler, unikke constraints, samt
 not-null-begrænsninger. Databasen er isoleret fra klientadgang og kan udelukkende tilgås via applikationslaget.
 
 PostgreSQL kører i en container på backend-serveren og tilgås via en dedikeret dataforbindelse fra API'et.
