@@ -38,7 +38,7 @@ og kommunikerer med service-laget, der implementerer forretnings-logikken.
 
 Den interne arkitektur i applikationen følger en opdeling mellem resolvers, services og dataadgang,
 hvilket understøtter modularitet og testbarhed. Middleware anvendes til håndtering af autentifikation,
-logging og centraliseret fejlbehandling
+logging og centraliseret fejlbehandling.
 
 Api'en eksponeres lokalt på port 3000 og gøres offentligt tilgængelig vha. cloudflare tunnels~(\cite{cloudflare_tunnels}).
 Denne løsning muliggør sikker eksponering af specifikke services uden at åbne hele serverens netværksporte.
@@ -65,7 +65,7 @@ Api'et eksponeres via Cloudflare Tunnels, hvilket reducerer angrebsfladen ved ku
 services frem for hele serverens netværksporte.
 
 Al kommunikation foregår over HTTPS for at forhindre aflytning og man-in-the-middle-angreb. Autentifikation
-håndteres ved brug af JSON Web Tokens og brugeradgangskoder lagres udelukkende som salted hashes genereret med \textit{bcrypt}
+håndteres ved brug af JSON Web Tokens og brugeradgangskoder lagres udelukkende som salted hashes genereret med \textit{bcrypt}.
 
 \subsection{Kvalitetsattributter}
 
