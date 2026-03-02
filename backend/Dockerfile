@@ -8,10 +8,12 @@ COPY package*.json .
 RUN npm install
 
 COPY prisma prisma
+COPY prisma.config.ts .
 
 COPY src src
 COPY tsconfig.json .
 
+RUN npx prisma generate
 RUN npm run build
 
 ARG PORT_ARG=3000
