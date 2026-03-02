@@ -25,3 +25,5 @@ NextJS: https://nextjs.org/
 Boehm and turner chart: https://www.cs3240.org/modules/process/the-polar-chart/
 
 Cloudflare Tunnel: https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/
+
+Security risk assessment: https://owasp.org/Top10/2025/

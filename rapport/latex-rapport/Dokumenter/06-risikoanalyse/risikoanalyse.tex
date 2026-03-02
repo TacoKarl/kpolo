@@ -1,1 +1,129 @@
-\section{Risiko analyse}
+\section{Risiko-analyse}\label{sec:risiko-analyse}
+
+Dette afsnit har til formål at identificere og analysere de væsentligste risici forbundet med at
+udvikle Kajakpolo Danmarks managementplatform.
+Risici vurderes ud fra sandsynlighed og potentielle konsekvens for projektets tidsplan og funktionalitet.
+Punkterne i dette afsnit er informeret af OWASP:2025~(\cite{owasptop10:2025}), overvejelser omkring udviklingsproces baseret på gruppens viden og erfaringer med samme, samt den europæiske GDPR-lovgivning (\cite{GDPR}).
+
+Da udviklingen af systemet gennemføres ved anvendelse af en agil udviklingsmetode, er risikovurderingen også udviklet iterativt
+ud fra egen analyse og løbende feedback fra interessenter.
+
+\subsection{Risikoområder}\label{subsec:risikoomrader}
+\subsubsection{Uklare krav}
+En central risiko er uklare eller ændrede krav, da interessenterne strækker sig over både nationalt- klub- og enkeltbruger niveau.
+Projektet arbejder med to hoved-interessenter i form af en kontakt fra Kajakpolo Danmarks bestyrelse samt projektgruppens egen Oliver Rosenkilde,
+der er menigt medlem af Aarhus' Kajakpolo-klub.
+De skal vurdere applikationen på vegne af den fulde bredde af interessenter, hvilket kan medføre blinde vinkler når de skal repræsentere så bredt.
+
+
+\subsubsection{Teknisk gæld}
+Med projektets agile tilgang er der risiko for at introducere teknisk gæld, hvis hurtige løsninger prioriteres for at nå sprint-mål.
+Over tid kan det påvirke systemets vedligeholdbarhed og funktion.
+Vi håndterer det ved at afsætte tid i sprintplanlægningen til at refaktorere, og gennem vores proces med at gennemse hinandens pull requests, hvor vedligeholdbarhed og konformitet til designprincip er i fokus.
+
+\subsubsection{Projektorganisation}
+Ethvert projekt har organisatoriske risici. I vores tilfælde, hvor gruppen består af kun 3 medlemmer, kan sygdom eller andre forpligtelser for bare ét medlem have en betydelig indvirkning på projektets fremdrift.
+Det kan føre til forsinkelser i udviklingen og øget arbejdsbyrde for de resterende medlemmer, hvilket kan påvirke både tidsplanen og kvaliteten af det endelige produkt.
+Der bør tages højde for dette ved at have en fleksibel tidsplan og en klar kommunikationsstrategi, så alle medlemmer er opmærksomme på projektets status og kan tilpasse sig ændringer i arbejdsbyrden.
+Desuden bør udviklingsopgaverne fordeles jævnt, og der bør etableres konventioner for den kollaborative udvikling, så det er nemmere for andre at overtage opgaver ved behov.
+
+\begin{itemize}
+    \item \textbf{Uklare krav}
+    \begin{itemize}
+        \item[R1] Interessenter leverer utilstrækkelig eller modstridende feedback, hvilket vanskeliggør prioritering af opgaver i backlog'en.
+        \item[R2] Begrænset repræsentation af interessenter medfører, at væsentlige krav først identificeres sent i projektforløbet.
+    \end{itemize}
+
+    \item \textbf{Teknisk gæld}
+    \begin{itemize}
+        \item[R3] Tidsmæssigt pres i sprint fører til, at refaktorering nedprioriteres i projektarbejdet.
+        \item[R4] Uens teknisk niveau i projektgruppen medfører inkonsistent kodekvalitet og ekstra tid til code reviews.
+    \end{itemize}
+
+
+    \item \textbf{Projektorganisation}
+    \begin{itemize}
+        \item[R5] Et gruppemedlem bliver langtidssygemeldt, hvilket reducerer udviklingskapaciteten og forsinker projektet i.f.t. tidsplanen.
+        \item[R6] Samtidig arbejdsbelastning fra andre fag reducerer den effektive arbejdstid i projektgruppen.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Risikomatrix}\label{subsec:risikomatrix}
+Sandsynlighed og konsekvensgrad vurderes på en skala fra 1 til 3, hvor 1 er lav og 3 er høj.
+En risikomatrix anvendes til at prioritere risici i udviklingsprocessen.
+Farverne i risikomatrixen anvendes til at visualisere risikoniveauet, 
+hvor grøn angiver lav risiko, gul angiver middel risiko, og rød angiver høj risiko.
+
+\begin{table}[h]
+    \centering
+    \caption{5×5 risikomatrix}
+    \label{tab:risikomatrix55}
+    \begin{tabular}{|c|c|c|c|c|c|}
+        \hline
+         & \multicolumn{5}{|c|}{\textbf{Konsekvensgrad}} \\
+        \hline
+        \textbf{Sandsynlighed}
+        & \textbf{Ubetydelig (1)}
+        & \textbf{Lav (2)}
+        & \textbf{Moderat (3)}
+        & \textbf{Alvorlig (4)}
+        & \textbf{Kritisk (5)} \\
+        \hline
+        \textbf{Meget lav (1)}
+        & \cellcolor{green!40} 1
+        & \cellcolor{green!40} 2
+        & \cellcolor{green!40} 3
+        & \cellcolor{yellow!40} 4
+        & \cellcolor{yellow!40} 5 \\
+        \hline
+        \textbf{Lav (2)}
+        & \cellcolor{green!40} 2
+        & \cellcolor{green!40} 4
+        & \cellcolor{yellow!40} 6
+        & \cellcolor{yellow!40} 8
+        & \cellcolor{red!40} 10 \\
+        \hline
+        \textbf{Middel (3)}
+        & \cellcolor{green!40} 3
+        & \cellcolor{yellow!40} 6
+        & \cellcolor{yellow!40} 9 (R1)
+        & \cellcolor{red!40} 12
+        & \cellcolor{red!40} 15 \\
+        \hline
+        \textbf{Høj (4)}
+        & \cellcolor{yellow!40} 4
+        & \cellcolor{yellow!40} 8
+        & \cellcolor{red!40} 12
+        & \cellcolor{red!40} 16
+        & \cellcolor{red!40} 20 \\
+        \hline
+        \textbf{Meget høj (5)}
+        & \cellcolor{yellow!40} 5
+        & \cellcolor{red!40} 10
+        & \cellcolor{red!40} 15
+        & \cellcolor{red!40} 20
+        & \cellcolor{red!40} 25 \\
+        \hline
+    \end{tabular}
+\end{table}
+
+
+\section{Yderligere applikationsniveau risici}\label{sec:yderligere-risici}
+Disse punkter er ikke relateret til risici i forbinde med udviklingsprocessen, men snarere risici forbundet med selve applikationen, dens succes og sælgbarhed som produkt.
+Disse punkter indgår ikke i risikomatricen 
+
+\subsubsection{Rolle- \& rettighedsstyring}
+En anden væsentlig risiko er fejl i rolle- og rettighedsstyring, da platformen understøtter flere brugerroller med rettigheder der er både identitetsbaserede
+og delvist overlappende.
+Fejl her kan føre til manglende eller uautoriseret adgang til funktionaliteter.
+Risikoen reduceres ved at implementere rollebaseret adgangskontrol (login) tidligt i udviklingen som en del af MVP og validere denne løbende gennem tests efter hver iteration.
+
+\subsubsection{Datasikkerhed \& håndtering af persondata}
+Datasikkerhed udgør ligeledes en risiko, da systemet potentielt behandler følsomme oplysninger om dets brugere.
+Her er det afgørende, at der i processen laves en vurdering på baggrund af GDPR, og i den agile proces håndteres dette ved at indarbejde sikkerhed som en del af hvert sprint, så sikkerhedskrav implementeres inkrementelt frem for som en afsluttende aktivitet.
+
+\subsubsection{Brugeroplevelse \& adoption}
+Endelig er det meningen at applikationen skal levere en service, der overgår eksisterende løsninger i forhold til brugbarhed og lethed.
+Brugerne har forskellig teknisk erfaring, hvor særligt gæster og almene medlemmer gerne skal være i stand til at navigere applikationen uden ekstern hjælp.
+Hvis systemet opleves som komplekst kan det føre til lav anvendelse og ultimativt fravalg.
+Denne risiko reduceres ved at stille eksplicitte krav til brugervenlighed, at føre løbende brugertests og få feedback fra interessenten i forbindelse med sprint reviews.
