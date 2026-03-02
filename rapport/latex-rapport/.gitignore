@@ -17,6 +17,8 @@
 *.xdv
 *.dvi
 *.pdf
+*.bcf
+*.run.xml
 
 # Ignore editor backup files
 *~
