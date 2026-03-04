@@ -1,0 +1,32 @@
+meta {
+  name: login
+  type: graphql
+  seq: 2
+}
+
+post {
+  url: kajakpolo.olros.online/graphql
+  body: graphql
+  auth: inherit
+}
+
+body:graphql {
+  mutation Login($email: String!, $password: String!) {
+    login(email: $email, password: $password) {
+      name
+      token
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+    "email": "olros.dev@proton.me",
+    "password": "Test1234"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
