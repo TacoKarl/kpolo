@@ -1,9 +1,23 @@
 "use client";
 import { useId, useState } from "react";
 import { Triangle } from "../components/ui/Triangle";
+import { useQuery } from "@apollo/client/react";
+import { gql } from "@apollo/client/core";
+
+const GET_TOURNAMENTS = gql`
+    query GetTournaments {
+        tournaments {
+            id
+            name
+            season
+        }
+    }
+`;
+
 type ActiveTab = "turneringer" | "events";
 
 export default function Page() {
+    const { loading, error, data } = useQuery(GET_TOURNAMENTS);
     const tabsId = useId();
     const turneringerTabId = `${tabsId}-tab-turneringer`;
     const eventsTabId = `${tabsId}-tab-events`;
@@ -98,11 +112,15 @@ export default function Page() {
                                 id="panel-turneringerFuture"
                                 className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-zinc-800 dark:border-zinc-800 dark:bg-black dark:text-zinc-200"
                             >
-                                <ul>
-                                    <li>DT2026</li>
-                                    <li>VT2026</li>
-                                    <li>osv...</li>
-                                </ul>
+                                {loading && <p>Indlæser...</p>}
+                                {error && <p>Fejl ved indlæsning af turneringer: {error.message}</p>}
+                                {data && (
+                                    <ul>
+                                        {data.tournaments.map((t: any) => (
+                                            <li key={t.id}>{t.season} - {t.name}</li>
+                                        ))}
+                                    </ul>
+                                )}
                             </div>
                         )}
                         <button
