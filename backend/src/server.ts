@@ -21,7 +21,7 @@ const isDev = process.env.NODE_ENV === "development";
 
 const allowedOrigins = isDev
     ? ["http://localhost:3000", "http://localhost:3001"]
-    : ["https://olros.online"];
+    : ["https://olros.online", "https://www.olros.online"];
 
 // Usual middleware
 app.use(express.json());
