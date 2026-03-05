@@ -1,0 +1,43 @@
+%! Author = oliver
+%! Date = 26/02/2026
+
+% Preamble
+\documentclass[11pt]{article}
+
+% Packages
+\usepackage{amsmath}
+
+% Document
+\begin{document}
+
+    \section{Projektafgrænsning}
+
+    Projektet fokuserer på udviklingen af en webbaseret applikation med kernefunktionalitet inden for registrering,
+    administration og visning af kampdata med understøttelse af realtidsopdateringer.
+
+    Følgende områder er bevidst afgrænset fra projektets scope.
+
+    \subsection{Funktionel afgrænsning}
+    Avancerede funktioner såsom tredjepartsintegrationer, betalingsløsninger
+    og mobilapplikation er ikke implementeret. Fokus har været på at udvikle
+    en stabil og gennemarbejdet kernefunktionalitet frem for et bredt funktionsomfang.
+
+    Implementation af livestream kampe er også valgt fra.
+
+    \subsection{Teknisk afgrænsning}
+    Systemet er implementeret som en monolitisk applikation. En microservice-
+    arkitektur samt container-orchestrering (f.eks. Kubernetes) er fravalgt,
+    da systemets kompleksitet ikke nødvendiggør denne infrastruktur.
+    Der er ikke implementeret horisontal skalering eller load balancing.
+
+    \subsection{Sikkerhedsmæssig afgrænsning}
+    Projektet omfatter grundlæggende sikkerhedsforanstaltninger såsom HTTPS,
+    JWT-baseret autentifikation og password hashing. Der er ikke gennemført
+    formel penetration testing eller sikkerhedscertificering.
+
+    Afgrænsningerne er foretaget for at sikre et realistisk projektomfang
+    inden for den givne tidsramme samt for at fokusere på arkitektur,
+    backend-udvikling og database-design.
+
+
+\end{document}
