@@ -3,6 +3,14 @@
 import {gql} from "@apollo/client";
 import { GetClubsData, Club } from "../types/graphql";
 import {useQuery} from "@apollo/client/react";
+import Link from "next/link";
+
+type ClubPreview = {
+    id: string
+    name: string
+    city: string
+    address: string
+}
 
 const GET_CLUBS = gql`
     query GetClubs {
@@ -27,7 +35,7 @@ export default function clubsPage () {
     // TODO: Når databasen er sat op, hent data derfra i stedet for dummy data
 
 
-    const dummyClubs: Club[] = [
+    const dummyClubs: ClubPreview[] = [
         { id: "1", name: "Aarhus Kajakklub", city: "Aarhus", address: "Åboulevarden 15" },
         { id: "2", name: "Odense Kajakklub", city: "Odense", address: "Flakhaven 7" },
         { id: "3", name: "Fredericia Vandklub", city: "Fredericia", address: "Vestre Ringvej 10" },
@@ -37,9 +45,9 @@ export default function clubsPage () {
         { id: "7", name: "Silkeborg Kajakklub", city: "Silkeborg", address: "Østergade 3" },
     ];
 
-    const jyllandClubs = dummyClubs.filter(c => getRegion(c) === "Jylland") ?? [];
-    const fynClubs = dummyClubs.filter(c => getRegion(c) === "Fyn") ?? [];
-    const sjællandClubs = dummyClubs.filter(c => getRegion(c) === "Sjælland") ?? [];
+    const jyllandClubs = dummyClubs.filter(c => getRegionPreview(c) === "Jylland") ?? [];
+    const fynClubs = dummyClubs.filter(c => getRegionPreview(c) === "Fyn") ?? [];
+    const sjællandClubs = dummyClubs.filter(c => getRegionPreview(c) === "Sjælland") ?? [];
 
     // if (loading) return <p>Loading...</p>;
     // if (error) return <p>Error: {error.message}</p>;
@@ -56,7 +64,11 @@ export default function clubsPage () {
                         <ul className="mt-4 space-y-2">
                             {jyllandClubs.map(club => (
                                 <li key={club.id}>
-                                    {club.name} – {club.city}<br/>{club.address}
+                                    <Link href={`/clubs/${club.id}`}>{club.name}</Link> – {club.city}
+                                    <br/>
+                                    {club.address}
+                                    <br/>
+                                    Find mere info her: <a href="https://www.example.dk">www.example.dk</a>
                                 </li>
                             ))}
                         </ul>
@@ -67,7 +79,11 @@ export default function clubsPage () {
                         <ul className="mt-4 space-y-2">
                             {fynClubs.map(club => (
                                 <li key={club.id}>
-                                    {club.name} – {club.city}<br/>{club.address}
+                                    <Link href={`/clubs/${club.id}`}>{club.name}</Link> – {club.city}
+                                    <br/>
+                                    {club.address}
+                                    <br/>
+                                    Find mere info her: <a href="https://www.example.dk">www.example.dk</a>
                                 </li>
                             ))}
                         </ul>
@@ -78,7 +94,11 @@ export default function clubsPage () {
                         <ul className="mt-4 space-y-2">
                             {sjællandClubs.map(club => (
                                 <li key={club.id}>
-                                    {club.name} – {club.city}<br/>{club.address}
+                                    <Link href={`/clubs/${club.id}`}>{club.name}</Link> – {club.city}
+                                    <br/>
+                                    {club.address}
+                                    <br/>
+                                    Find mere info her: <a href="https://www.example.dk">www.example.dk</a>
                                 </li>
                             ))}
                         </ul>
@@ -90,6 +110,15 @@ export default function clubsPage () {
 }
 
 function getRegion(club: Club): "Jylland" | "Fyn" | "Sjælland" {
+    const city = club.city.toLowerCase();
+
+    // Eksempel på simpel filtrering – tilpas til jeres byer
+    if (["aarhus", "fredericia", "silkeborg"].includes(city)) return "Jylland";
+    if (["odense", "svendborg"].includes(city)) return "Fyn";
+    return "Sjælland";
+}
+
+function getRegionPreview(club: ClubPreview): "Jylland" | "Fyn" | "Sjælland" {
     const city = club.city.toLowerCase();
 
     // Eksempel på simpel filtrering – tilpas til jeres byer

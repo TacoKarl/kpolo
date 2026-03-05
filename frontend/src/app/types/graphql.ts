@@ -19,6 +19,10 @@ export interface Club {
     teams: Team [];
 }
 
+export interface GetClubData {
+    club: Club;
+}
+
 export interface GetClubsData {
     clubs: Club[];
 }
