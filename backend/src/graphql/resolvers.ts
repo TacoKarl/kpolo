@@ -21,6 +21,9 @@ export const resolvers = {
             const result = await ctx.pool.query("SELECT NOW() AS now");
             return result.rows[0].now;
         },
+        tournaments: async () => {
+            return prisma.tournament.findMany();
+        },
     },
     Mutation: {
         add: (_parent: unknown, args: { a: number; b: number }) => args.a + args.b,

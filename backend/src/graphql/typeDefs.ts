@@ -4,6 +4,13 @@ export const typeDefs = gql`
   type Query {
     hello: String!
     dbTime: String!
+    tournaments: [Tournament!]!
+  }
+
+  type Tournament {
+    id: Int!
+    name: String!
+    season: String!
   }
 
   type Mutation {

@@ -2,10 +2,9 @@
 import { useId, useState } from "react";
 import { Triangle } from "../components/ui/Triangle";
 import { useQuery } from "@apollo/client/react";
-import { gql } from "@apollo/client/core";
-import { GetTournamentsData, Tournament } from "../types/graphql";
+import { graphql as gql } from "../../generated";
 
-const GET_TOURNAMENTS = gql`
+const GET_TOURNAMENTS = gql(`
     query GetTournaments {
         tournaments {
             id
@@ -13,12 +12,12 @@ const GET_TOURNAMENTS = gql`
             season
         }
     }
-`;
+`);
 
 type ActiveTab = "turneringer" | "events";
 
 export default function Page() {
-    const { loading, error, data } = useQuery<GetTournamentsData>(GET_TOURNAMENTS);
+    const { loading, error, data } = useQuery(GET_TOURNAMENTS);
     const tabsId = useId();
     const turneringerTabId = `${tabsId}-tab-turneringer`;
     const eventsTabId = `${tabsId}-tab-events`;
@@ -117,7 +116,7 @@ export default function Page() {
                                 {error && <p>Fejl ved indlæsning af turneringer: {error.message}</p>}
                                 {data && (
                                     <ul>
-                                        {data.tournaments.map((t: Tournament) => (
+                                        {data.tournaments.map((t) => (
                                             <li key={t.id}>{t.season} - {t.name}</li>
                                         ))}
                                     </ul>
