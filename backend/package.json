@@ -19,7 +19,11 @@
     "prestart": "npx prisma generate",
     "build": "tsc && cp -r src/generated dist/generated",
     "dev": "nodemon --watch 'src' --ext ts,json --exec 'npx tsc && node dist/server.js'",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "seed": "tsx src/seed.ts"
+  },
+  "prisma": {
+    "seed": "tsx src/prisma/seed.ts"
   },
   "devDependencies": {
     "@tsconfig/node24": "^24.0.4",
