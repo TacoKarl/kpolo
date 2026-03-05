@@ -21,7 +21,7 @@ services:
 
   pgAdmin:
     image: docker.io/dpage/pgadmin4
-    restart: always
+    restart: unless-stopped
     container_name: pgadmin
     ports:
       - "3030:80"
@@ -36,7 +36,7 @@ services:
   postgres:
     image: docker.io/library/postgres:18-alpine
     container_name: postgres-kpolo
-    restart: always
+    restart: unless-stopped
     ports:
       - "5433:5432"
     volumes:

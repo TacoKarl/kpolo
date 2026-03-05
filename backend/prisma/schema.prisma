@@ -21,7 +21,7 @@ model Club {
 
 model Role {
   id    Int    @id @default(autoincrement())
-  role  String
+  role  String @unique
   users User[]
 }
 
