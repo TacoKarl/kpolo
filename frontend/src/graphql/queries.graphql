@@ -1,0 +1,29 @@
+# graphql/queries.graphql
+
+query GetTournaments {
+    tournaments {
+        id
+        name
+        season
+    }
+}
+
+query GetClubs {
+    clubs {
+        id
+        name
+        city
+        address
+        contact_info
+        website
+    }
+}
+
+query GetClub($id: ID!) {
+    club(id: $id) {
+        id
+        name
+        city
+        address
+    }
+}

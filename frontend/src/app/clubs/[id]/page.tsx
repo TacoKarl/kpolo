@@ -1,39 +1,23 @@
-'use client'; // hvis du skal bruge Apollo eller client-side fetching
+'use client';
 
 import { useParams } from 'next/navigation';
-import { gql } from '@apollo/client';
-import {useQuery} from "@apollo/client/react";
-import { GetClubData } from '../../types/graphql'; // tilpas type
-
-const GET_CLUB = gql`
-    query GetClub($id: ID!) {
-        club(id: $id) {
-            id
-            name
-            city
-            address
-        }
-    }
-`;
+import { useGetClubQuery } from '@/generated/graphql';
 
 export default function ClubPage() {
     const { id } = useParams();
-
-    // Client-side fetch med Apollo
-    const { loading, error, data } = useQuery<GetClubData>(GET_CLUB, {
-        variables: { id },
-    });
+    const { data, loading, error } = useGetClubQuery({ variables: { id: id as string } });
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p>Error: {error.message}</p>;
 
     const club = data?.club;
+    if (!club) return <p>Club not found</p>;
 
     return (
-        <div className="p-8">
-            <h1 className="text-3xl font-bold">{club?.name}</h1>
-            <p>By: {club?.city}</p>
-            <p>Adresse: {club?.address}</p>
+        <div>
+            <h1>{club.name}</h1>
+            <p>City: {club.city}</p>
+            <p>Address: {club.address}</p>
         </div>
     );
 }
