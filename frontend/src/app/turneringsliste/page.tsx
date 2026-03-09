@@ -1,12 +1,13 @@
 'use client';
 import { useId, useState } from "react";
 import { Triangle } from "../components/ui/Triangle";
-import { useGetTournamentsQuery } from "@/generated/graphql"; // <- generated hook
+import { useQuery } from "@apollo/client/react";
+import { GetTournamentsDocument } from "@/generated/graphql";
 
 type ActiveTab = "turneringer" | "events";
 
 export default function Page() {
-    const { data, loading, error } = useGetTournamentsQuery(); // <- fully typed hook
+    const { data, loading, error } = useQuery(GetTournamentsDocument); // <- fully typed hook
 
     const tabsId = useId();
     const turneringerTabId = `${tabsId}-tab-turneringer`;

@@ -1,13 +1,12 @@
-import { gql } from '@apollo/client';
-import * as Apollo from '@apollo/client';
+/* eslint-disable */
+import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 export type Maybe<T> = T | null;
-export type InputMaybe<T> = Maybe<T>;
+export type InputMaybe<T> = T | null | undefined;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
 export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
 export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
-const defaultOptions = {} as const;
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: { input: string; output: string; }
@@ -106,91 +105,6 @@ export type GetClubQueryVariables = Exact<{
 export type GetClubQuery = { __typename?: 'Query', club?: { __typename?: 'Club', id: string, name: string, city: string, address: string } | null };
 
 
-export const GetTournamentsDocument = gql`
-    query GetTournaments {
-  tournaments {
-    id
-    name
-    season
-  }
-}
-    `;
-export function useGetTournamentsQuery(baseOptions?: Apollo.QueryHookOptions<GetTournamentsQuery, GetTournamentsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetTournamentsQuery, GetTournamentsQueryVariables>(GetTournamentsDocument, options);
-      }
-export function useGetTournamentsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetTournamentsQuery, GetTournamentsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetTournamentsQuery, GetTournamentsQueryVariables>(GetTournamentsDocument, options);
-        }
-// @ts-ignore
-export function useGetTournamentsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetTournamentsQuery, GetTournamentsQueryVariables>): Apollo.UseSuspenseQueryResult<GetTournamentsQuery, GetTournamentsQueryVariables>;
-export function useGetTournamentsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetTournamentsQuery, GetTournamentsQueryVariables>): Apollo.UseSuspenseQueryResult<GetTournamentsQuery | undefined, GetTournamentsQueryVariables>;
-export function useGetTournamentsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetTournamentsQuery, GetTournamentsQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<GetTournamentsQuery, GetTournamentsQueryVariables>(GetTournamentsDocument, options);
-        }
-export type GetTournamentsQueryHookResult = ReturnType<typeof useGetTournamentsQuery>;
-export type GetTournamentsLazyQueryHookResult = ReturnType<typeof useGetTournamentsLazyQuery>;
-export type GetTournamentsSuspenseQueryHookResult = ReturnType<typeof useGetTournamentsSuspenseQuery>;
-export type GetTournamentsQueryResult = Apollo.QueryResult<GetTournamentsQuery, GetTournamentsQueryVariables>;
-export const GetClubsDocument = gql`
-    query GetClubs {
-  clubs {
-    id
-    name
-    city
-    address
-    contact_info
-    website
-  }
-}
-    `;
-export function useGetClubsQuery(baseOptions?: Apollo.QueryHookOptions<GetClubsQuery, GetClubsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetClubsQuery, GetClubsQueryVariables>(GetClubsDocument, options);
-      }
-export function useGetClubsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetClubsQuery, GetClubsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetClubsQuery, GetClubsQueryVariables>(GetClubsDocument, options);
-        }
-// @ts-ignore
-export function useGetClubsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetClubsQuery, GetClubsQueryVariables>): Apollo.UseSuspenseQueryResult<GetClubsQuery, GetClubsQueryVariables>;
-export function useGetClubsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetClubsQuery, GetClubsQueryVariables>): Apollo.UseSuspenseQueryResult<GetClubsQuery | undefined, GetClubsQueryVariables>;
-export function useGetClubsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetClubsQuery, GetClubsQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<GetClubsQuery, GetClubsQueryVariables>(GetClubsDocument, options);
-        }
-export type GetClubsQueryHookResult = ReturnType<typeof useGetClubsQuery>;
-export type GetClubsLazyQueryHookResult = ReturnType<typeof useGetClubsLazyQuery>;
-export type GetClubsSuspenseQueryHookResult = ReturnType<typeof useGetClubsSuspenseQuery>;
-export type GetClubsQueryResult = Apollo.QueryResult<GetClubsQuery, GetClubsQueryVariables>;
-export const GetClubDocument = gql`
-    query GetClub($id: ID!) {
-  club(id: $id) {
-    id
-    name
-    city
-    address
-  }
-}
-    `;
-export function useGetClubQuery(baseOptions: Apollo.QueryHookOptions<GetClubQuery, GetClubQueryVariables> & ({ variables: GetClubQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetClubQuery, GetClubQueryVariables>(GetClubDocument, options);
-      }
-export function useGetClubLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetClubQuery, GetClubQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetClubQuery, GetClubQueryVariables>(GetClubDocument, options);
-        }
-// @ts-ignore
-export function useGetClubSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetClubQuery, GetClubQueryVariables>): Apollo.UseSuspenseQueryResult<GetClubQuery, GetClubQueryVariables>;
-export function useGetClubSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetClubQuery, GetClubQueryVariables>): Apollo.UseSuspenseQueryResult<GetClubQuery | undefined, GetClubQueryVariables>;
-export function useGetClubSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetClubQuery, GetClubQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<GetClubQuery, GetClubQueryVariables>(GetClubDocument, options);
-        }
-export type GetClubQueryHookResult = ReturnType<typeof useGetClubQuery>;
-export type GetClubLazyQueryHookResult = ReturnType<typeof useGetClubLazyQuery>;
-export type GetClubSuspenseQueryHookResult = ReturnType<typeof useGetClubSuspenseQuery>;
-export type GetClubQueryResult = Apollo.QueryResult<GetClubQuery, GetClubQueryVariables>;
+export const GetTournamentsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetTournaments"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"tournaments"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"season"}}]}}]}}]} as unknown as DocumentNode<GetTournamentsQuery, GetTournamentsQueryVariables>;
+export const GetClubsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetClubs"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"clubs"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"address"}},{"kind":"Field","name":{"kind":"Name","value":"contact_info"}},{"kind":"Field","name":{"kind":"Name","value":"website"}}]}}]}}]} as unknown as DocumentNode<GetClubsQuery, GetClubsQueryVariables>;
+export const GetClubDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetClub"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"club"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"address"}}]}}]}}]} as unknown as DocumentNode<GetClubQuery, GetClubQueryVariables>;

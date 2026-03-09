@@ -1,11 +1,16 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useGetClubQuery } from '@/generated/graphql';
+import { useQuery } from "@apollo/client/react";
+import { GetClubDocument } from "@/generated/graphql";
 
 export default function ClubPage() {
-    const { id } = useParams();
-    const { data, loading, error } = useGetClubQuery({ variables: { id: id as string } });
+    const params = useParams();
+    const id = params.id as string;
+
+    const { data, loading, error } = useQuery(GetClubDocument, {
+        variables: { id }
+    });
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p>Error: {error.message}</p>;
