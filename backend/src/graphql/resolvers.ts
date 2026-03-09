@@ -14,7 +14,7 @@ export type GraphQLContext = {
     pool: Pool;
 };
 
-export const resolvers = {
+const resolvers = {
     Query: {
         hello: () => "Hello from Apollo GraphQL and welcome to Jackass",
         dbTime: async (_parent: unknown, _args: unknown, ctx: GraphQLContext) => {
@@ -26,12 +26,13 @@ export const resolvers = {
             return prisma.tournament.findMany();
         },
 
-        clubs: async (_: any, __: any, { db }: any) => {
-            return db.club.findMany();
+        clubs: async () => {
+            return prisma.club.findMany();
         },
-        club: async (_: any, args: { id: string }, { db }: any) => {
-            return db.club.findUnique({
-                where: { id: args.id }
+
+        club: async (_: any, args: { id: string }) => {
+            return prisma.club.findUnique({
+                where: { id: Number(args.id) }
             });
         }
 
@@ -73,3 +74,4 @@ export const resolvers = {
         },
     },
 };
+export default resolvers

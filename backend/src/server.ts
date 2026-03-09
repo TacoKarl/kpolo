@@ -12,7 +12,7 @@ import { pool } from "./db/pool.js";
 import healthRoutes from "./modules/health/health.routes.js";
 
 import { typeDefs } from "./graphql/typeDefs.js";
-import { resolvers } from "./graphql/resolvers.js";
+import resolvers from "./graphql/resolvers.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
