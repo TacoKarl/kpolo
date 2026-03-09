@@ -5,7 +5,7 @@ import bcrypt from "bcrypt"
 
 
 export async function seedFakeData(prisma: PrismaClient) {
-  console.log('Start seeding...');
+  console.log('START seeding fakeData...');
 
   // Create roles
   const playerRole = await prisma.role.findUniqueOrThrow({
@@ -253,5 +253,5 @@ export async function seedFakeData(prisma: PrismaClient) {
 
   console.log('Created matches');
 
-  console.log('Seeding finished.');
+  console.log('FINISH seeding fakeData');
 }
