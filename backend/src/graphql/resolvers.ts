@@ -58,13 +58,19 @@ const resolvers = {
             return user;
         },
         login: async (_: any, { email, password }: {email: string; password: string}) => {
-            const user = await prisma.user.findUnique({ where: { email } });
+            const user = await prisma.user.findUnique({ 
+                where: { email },
+                include: { roles: true }, // fetches the related Role[] array
+            });
             if (!user) throw new Error("Email or Password does not match");
 
             const valid = await bcrypt.compare(password, user.password_hash);
             if (!valid) throw new Error("Email or Password does not match");
 
-            const token = jwt.sign({ userId: user.id}, process.env.JWT_SECRET!, {expiresIn: "1h"});
+            const userRoles = user.roles.map((r) => r.role);
+
+
+            const token = jwt.sign({ userId: user.id, userRoles}, process.env.JWT_SECRET!, {expiresIn: "1h"});
 
             return {
                 token,
