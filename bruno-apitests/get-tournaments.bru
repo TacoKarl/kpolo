@@ -1,0 +1,26 @@
+meta {
+  name: get-tournaments
+  type: graphql
+  seq: 4
+}
+
+post {
+  url: kajakpolo.olros.online/graphql
+  body: graphql
+  auth: inherit
+}
+
+body:graphql {
+  query GetTournaments {
+          tournaments {
+              id
+              name
+              season
+          }
+      }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
