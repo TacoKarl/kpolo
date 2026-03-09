@@ -10,7 +10,7 @@ REMOTE=$(git rev-parse origin/main)
 if [ "$LOCAL" != "$REMOTE" ]; then
 	echo "${date} - Changes detected! Deploying API..."
 	git pull origin main
-	podman compose up -d --build --forcre-recreate api
+	podman compose up -d --build --force-recreate api
 	curl -H "Content-Type: application/json" \
 		-X POST \
 		-d "{\"content\": \"Backend deployed!\"}" \
