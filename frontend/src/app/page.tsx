@@ -6,7 +6,7 @@ export default function Home() {
       <main className="flex min-h-screen w-full max-w-3xl flex-col items-center  justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
         <div className ="container mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
           <Image
-          className="light:invert"
+          className="filter brightness-90 contrast-15 dark:brightness-100 dark:contrast-100"
           src="/bear-in-kajak.svg"
           alt="Kajakpolo Bjørn logo"
           width={500}

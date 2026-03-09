@@ -33,6 +33,7 @@ export default function Navbar() {
           <li><Link href="/" className="text-white">Hjem</Link></li>
           <li><Link href="/omkajakpolo" className="text-white">Om Kajakpolo</Link></li>
           <li><Link href="/turneringsliste" className="text-white">Turneringsliste</Link></li>
+            <li><Link href="/clubs" className="text-white">Klubber</Link></li>
         </ul>
       </div>
       <div className="flex items-center gap-4">

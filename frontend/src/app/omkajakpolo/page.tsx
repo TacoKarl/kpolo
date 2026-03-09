@@ -3,7 +3,7 @@ import Image from "next/image";
 export default function Home() {
   return (
         <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-            <Image
+            <Image className="filter brightness-90 contrast-15 dark:brightness-100 dark:contrast-100"
               src="/bear-in-kajak.svg"
               alt="Kajakpolo Bjørn logo"
               width={500}
