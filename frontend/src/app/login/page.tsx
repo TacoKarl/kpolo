@@ -3,6 +3,7 @@
 import {useCallback, useEffect, useRef, useState} from "react";
 import { useUser } from "@/app/context/UserContext";
 import {useRouter} from "next/navigation";
+import { createSession } from "../lib/session";
 
 export default function LoginPage() {
     const isDev = process.env.NODE_ENV === 'development';
@@ -73,6 +74,8 @@ export default function LoginPage() {
                 setError(data.errors[0].message || 'Login failed');
                 return;
             }
+
+            await createSession(data);
 
             const loginData = data.data.login;
             if (loginData) {
