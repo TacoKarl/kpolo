@@ -84,10 +84,10 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
             <form
                 onSubmit={handleSubmit}
-                className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm flex flex-col gap-4"
+                className="bg-card text-foreground p-8 rounded-xl shadow-lg border border-foreground/10 w-full max-w-sm flex flex-col gap-4"
             >
                 <h1 className="text-2xl font-bold text-center mb-4">Login</h1>
 
@@ -97,7 +97,7 @@ export default function LoginPage() {
                     placeholder="E-mail: example@example.dk"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="border border-gray-300 rounded-md p-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                 />
 
@@ -107,7 +107,7 @@ export default function LoginPage() {
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="border border-gray-300 rounded-md p-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                 />
                 {error && (
