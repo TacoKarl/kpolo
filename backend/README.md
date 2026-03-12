@@ -27,71 +27,10 @@ OWNER to postgres;
 
 Vores backend er designet med dette ER-Diagram.
 
+
 ```mermaid
 ---
 title: ER-Diagram V1
----
-erDiagram
-    User }|--|| Club : belongs_to
-    User ||--|{ UserRole : has
-    Role ||--o{ UserRole : has
-    Club ||--o{ Team : has
-    Tournament ||--o{ Match : has
-    Team }|--o{ Match : "TODO has 2 teams"
-    TeamMembership }o--|| User : has
-    TeamMembership }o--|| Team : has 
-    
-    User {
-        int id
-        string name
-        int clubId
-    }
-    UserRole {
-        int userId
-        int roleId
-        datetime assigned_at
-    }
-    Role {
-        int id
-        string role
-    }
-    Club {
-        int id
-        string name
-        int userManagerId
-        string city
-    }
-    Tournament {
-        int id
-        string season
-    }
-    Match {
-        int id
-        int team1Id
-        int team2Id
-        int team1Score
-        int team2Score
-        int winnerTeamId
-        date matchDate
-    }
-    Team {
-        int id
-        int clubId
-        string name
-    }
-    TeamMembership {
-        int userId
-        int teamId
-        datetime from_date
-        datetime to_date
-    }
-```
-
-
-
-```mermaid
----
-title: ER-Diagram V2
 ---
 erDiagram
     Direction LR
@@ -106,7 +45,7 @@ erDiagram
     User {
         int id
         string name
-        int clubId
+        int club_id
     }
     Role {
         int id
@@ -115,7 +54,7 @@ erDiagram
     Club {
         int id
         string name
-        int userManagerId
+        int user_manager_id
         string city
     }
     Tournament {
@@ -124,22 +63,125 @@ erDiagram
     }
     Match {
         int id
-        int team1Id
-        int team2Id
-        int team1Score
-        int team2Score
-        int winnerTeamId
-        date matchDate
+        int team1_id
+        int team2_id
+        int team1_score
+        int team2_score
+        int winner_team_id
+        datetime match_date
     }
     Team {
         int id
-        int clubId
+        int club_id
         string name
     }
     TeamMembership {
-        int userId
-        int teamId
+        int user_id
+        int team_id
         datetime from_date
         datetime to_date
     }
+```
+
+
+
+
+
+
+```mermaid
+---
+title: ER-Diagram V2
+---
+erDiagram
+    Direction TB
+    User }|--|| Club : belongs_to
+    User }o--o{ Role : has
+    User ||--o{ TeamMembership : has
+    User || -- o{ TournamentTeamUser : in 
+    Club ||--o{ ClubLogo : has
+    Club ||--o{ Team : has
+    Team ||--o{ TeamMembership : has
+    Team ||--o{ TeamLogo : has
+    Tournament ||--o{ Match : has
+    Tournament ||--o{ TournamentTeam : has
+    TournamentTeam }o--|| Team : is
+    TournamentTeam ||--o{ TournamentTeamUser : has 
+    Match }o--|{ TournamentTeam : "NOTE: Always has 2 teams"
+    
+    User {
+        int id
+        string name
+        int club_id
+    }
+
+    Role {
+        int id
+        string role
+    }
+
+    Club {
+        int id
+        string name
+        int user_manager_id
+        string region
+        string address
+        string email
+    }
+
+    ClubLogo {
+        int id
+        int club_id
+        blob logo
+        datetime valid_from
+        datetime valid_to
+    }
+
+    Tournament {
+        int id
+        string season
+    }
+
+    Match {
+        int id
+        int tournament_team1_id
+        int tournament_team2_id
+        int team1_score
+        int team2_score
+        int winner_tournament_team_id
+        datetime match_date
+    }
+    Team {
+        int id
+        int club_id
+        string name
+    }
+
+    TeamLogo {
+        int id
+        int team_id
+        blob logo
+        datetime valid_from
+        datetime valid_to
+    }
+
+    TeamMembership {
+        int user_id
+        int team_id
+        datetime valid_from
+        datetime valid_to
+    }
+
+    TournamentTeam {
+        int id
+        int tournament_id
+        int team_id
+    }
+
+    TournamentTeamUser{
+        int id
+        int tournament_team_id
+        int user_id
+        int player_nr
+    }
+
 ```
