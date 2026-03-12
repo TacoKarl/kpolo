@@ -25,5 +25,9 @@ query GetClub($id: ID!) {
         name
         city
         address
+        teams {
+            id
+            name
+        }
     }
 }

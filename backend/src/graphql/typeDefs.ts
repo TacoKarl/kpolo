@@ -25,6 +25,12 @@ export const typeDefs = gql`
         address: String!
         contact_info: String
         website: String
+        teams: [Team!]!
+    }
+
+    type Team {
+        id: ID!
+        name: String!
     }
 
   type Mutation {

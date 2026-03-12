@@ -21,6 +21,7 @@ export type Club = {
   contact_info?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  teams: Array<Team>;
   website?: Maybe<Scalars['String']['output']>;
 };
 
@@ -75,6 +76,12 @@ export type RegisterResponse = {
   __typename?: 'RegisterResponse';
   email: Scalars['String']['output'];
   id: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+};
+
+export type Team = {
+  __typename?: 'Team';
+  id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
 };
 

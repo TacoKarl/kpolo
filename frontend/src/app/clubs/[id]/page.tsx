@@ -17,12 +17,23 @@ export default function ClubPage() {
 
     const club = data?.club;
     if (!club) return <p>Club not found</p>;
+    const teams = club.teams ?? [];
 
     return (
         <div>
             <h1>{club.name}</h1>
             <p>City: {club.city}</p>
             <p>Address: {club.address}</p>
+            <h2>Teams</h2>
+            {teams.length === 0 ? (
+                <p>Der er ingen hold registeret til denne klub.</p>
+            ) : (
+                <ul>
+                    {teams.map((team) => (
+                        <li key={team.id}>{team.name}</li>
+                    ))}
+                </ul>
+            )}
         </div>
     );
 }

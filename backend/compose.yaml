@@ -6,6 +6,8 @@ services:
       context: ./
       dockerfile: Dockerfile
     image: kpolo-backend
+    entrypoint: []
+    command: sh -c 'if [ "$NODE_ENV" = "development" ]; then npm run dev; else npm run start; fi'
     ports:
       - "3000:3000"
     depends_on:
@@ -17,6 +19,11 @@ services:
       PRISMA_CLIENT_ENABLE_ACCELERATE: "false"
     env_file:
       - .env
+    volumes:
+      - ./src:/app/src
+      - ./prisma:/app/prisma
+      - ./tsconfig.json:/app/tsconfig.json
+      - /app/node_modules
 
 
   pgAdmin:
