@@ -2,6 +2,7 @@
 
 import {useCallback, useEffect, useRef, useState} from "react";
 import { useUser } from "@/app/context/UserContext";
+import {useRouter} from "next/navigation";
 
 export default function LoginPage() {
     const isDev = process.env.NODE_ENV === 'development';
@@ -10,8 +11,9 @@ export default function LoginPage() {
     const [verified, setVerified] = useState(isDev);
     const ref = useRef<HTMLDivElement>(null);
     const widgetIdRef = useRef<string | null>(null);
-    const { setUser } = useUser();
+    const {setUser} = useUser();
     const [error, setError] = useState<Error | null>(null);
+    const router = useRouter();
 
     const handleVerify = useCallback(() => {
         setVerified(true);
@@ -45,7 +47,7 @@ export default function LoginPage() {
         const email = (e.currentTarget.elements.namedItem('email') as HTMLInputElement).value;
         const password = (e.currentTarget.elements.namedItem('password') as HTMLInputElement).value;
 
-        console.log('Login med: ${email}');
+        console.log(`Login med: ${email}`);
 
         const query = `
             mutation Login($email: String!, $password: String!) {
@@ -59,10 +61,10 @@ export default function LoginPage() {
         try {
             const res = await fetch(process.env.NEXT_PUBLIC_API_URL!, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     query,
-                    variables: { email: email, password: password },
+                    variables: {email: email, password: password},
                 }),
             });
 
@@ -75,12 +77,18 @@ export default function LoginPage() {
             const loginData = data.data.login;
             if (loginData) {
                 localStorage.setItem('token', loginData.token);
-                setUser({ name: loginData.name, avatarUrl: null });
+                setUser({
+                    name: loginData.name,
+                    avatarUrl: null,
+                    token: loginData.token,
+                });
             }
+
         } catch (err) {
             console.error(err);
             setError(new Error('Login fejlede - prøv igen'));
         }
+        router.push('/profil');
     };
 
     return (
@@ -122,7 +130,7 @@ export default function LoginPage() {
                 >
                     Login
                 </button>
-                {!isDev &&<div ref={ref}></div>}
+                {!isDev && <div ref={ref}></div>}
                 <p className="text-center text-gray-500 text-sm mt-2">
                     Don&apos;t have an account? Ask your club manager
                 </p>

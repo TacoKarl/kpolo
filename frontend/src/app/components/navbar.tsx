@@ -1,19 +1,16 @@
 // app/components/Navbar.jsx
 'use client';
 import Link from 'next/link';
-import { useEffect } from "react";
-import { useUser} from "@/app/context/UserContext";
+import {useEffect, useState} from "react";
+import { useUser } from "@/app/context/UserContext";
 import Image from "next/image";
+import {jwtDecode} from "jwt-decode";
+import {MyJwtPayload} from "@/app/components/interfaces/MyJwtPayload";
+import {useIsAdmin} from "@/app/components/hooks/useIsAdmin";
 
 export default function Navbar() {
-    const { user } = useUser();
-
-  useEffect(() => {
-    // Her kan du hente brugerdata fra fx session eller API
-    // Eksempel:
-    // setUser({ name: "John Doe", avatarUrl: null });
-  }, []);
-
+    const { user, setUser } = useUser();
+    const isAdmin = useIsAdmin();
   const getInitials = (name: string) => {
     const parts = name.trim().split(' ');
     if (parts.length === 1) return parts[0][0].toUpperCase();
@@ -37,6 +34,11 @@ export default function Navbar() {
         </ul>
       </div>
       <div className="flex items-center gap-4">
+          {isAdmin && (
+              <Link href="/admin" className="text-white font-semibold">
+                  Admin
+              </Link>
+          )}
         {user ? (
             <Link href="/profil" className="flex items-center gap-2 bg-gray-700 rounded-full text-white">
               {user.avatarUrl ? (
