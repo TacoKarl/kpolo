@@ -32,10 +32,18 @@ const resolvers = {
 
         club: async (_: any, args: { id: string }) => {
             return prisma.club.findUnique({
-                where: { id: Number(args.id) }
+                where: { id: Number(args.id) },
+                include: {teams: true}
             });
         }
 
+    },
+    Club: {
+        teams: async (club: { id: number }) => {
+            return prisma.team.findMany({
+                where: { club_id: club.id }
+            });
+        }
     },
     Mutation: {
         add: (_parent: unknown, args: { a: number; b: number }) => args.a + args.b,
