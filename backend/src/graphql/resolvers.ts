@@ -3,6 +3,7 @@ import { PrismaClient } from "../generated/prisma/index.js";
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 import { PrismaPg } from '@prisma/adapter-pg';
+import * as async_hooks from "node:async_hooks";
 
 const adapter = new PrismaPg({
     connectionString: process.env.DATABASE_URL!,
@@ -240,6 +241,86 @@ const resolvers = {
                 data: { is_active: isActive },
             });
         },
+        createTournament: async (_: any, {
+            name,
+            season,
+            divisions = [],
+            dates = [],
+            teamAssignments = [],
+        }: {
+            name: string;
+            season: string;
+            divisions?: string[];
+            dates?: string[];
+            teamAssignments?: { teamId: number; divisionIndex: number }[];
+        }
+        ) => {
+            return prisma.$transaction(async (tx) => {
+                const tournament = await tx.tournament.create({
+                    data: { name, season },
+                });
+
+                const divisionRecords = await Promise.all(
+                    divisions.map((divName) =>
+                    tx.division.create({
+                        data: {
+                            name: divName,
+                            tournament_id: tournament.id,
+                        },
+                    })
+                )
+                );
+                await Promise.all(
+                    dates.map((dateStr) =>
+                    tx.tournamentDate.create({
+                        data: {
+                            tournament_id: tournament.id,
+                            date: new Date(dateStr),
+                        },
+                    })
+                    )
+                );
+                if (teamAssignments.length > 0) {
+                    await Promise.all(
+                        teamAssignments.map(({ teamId, divisionIndex }) =>
+                        tx.tournamentTeam.create({
+                            data: {
+                                tournament_id: tournament.id,
+                                team_id: teamId,
+                                division_id: divisionRecords[divisionIndex].id
+                            },
+                        }))
+                    );
+                }
+                return prisma.tournament.findUnique({
+                    where: { id: tournament.id },
+                    include: {
+                        divisions: {
+                            include: {
+                                teams: {
+                                    include: { team: true }
+                                }
+                            }
+                        },
+                        dates: true,
+                        teams: { include: { team: true, division: true } },
+                    },
+                });
+            });
+        },
+        updateTournament: async (
+            _: any,
+            { id, name, season }: { id: number; name?: string; season?: string }
+        ) => {
+            return prisma.tournament.update({
+                where: { id },
+                data: {
+                    ...(name ? { name } : {}),
+                    ...(season ? { season } : {}),
+                },
+            });
+            },
+
         register: async (_: any, { email, name, password }: { email: string, name: string, password: string}) => {
             const existingUser = await prisma.user.findUnique({ where: { email } });
             if (existingUser) throw new Error(`User with email ${email} already exists`);

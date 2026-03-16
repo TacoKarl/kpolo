@@ -137,3 +137,30 @@ mutation SetTeamActive($id: Int!, $isActive: Boolean!) {
     }
 }
 
+
+mutation CreateTournament($input: CreateTournamentInput!) {
+    createTournament(input: $input) {
+        id
+        name
+        season
+        divisions {
+            id
+            name
+        }
+        dates {
+            id
+            date
+        }
+        teams {
+            id
+            team {
+                id
+                name
+            }
+            division {
+                id
+                name
+            }
+        }
+    }
+}

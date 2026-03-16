@@ -50,6 +50,10 @@ model Team {
   matchesWon     Match[]          @relation("MatchWinnerTeam")
 
   club Club @relation(fields: [club_id], references: [id])
+
+  tournamentTeams TournamentTeam[]
+
+  @@unique([club_id, name])
 }
 
 model TeamMembership {
@@ -61,18 +65,26 @@ model TeamMembership {
 
   team Team @relation(fields: [team_id], references: [id])
   user User @relation(fields: [user_id], references: [id])
+
+  @@unique([team_id, user_id, from_date])
 }
 
 model Tournament {
-  id      Int     @id @default(autoincrement())
-  season  String
-  name    String
-  matches Match[]
+  id        Int              @id @default(autoincrement())
+  season    String
+  name      String
+  divisions Division[]
+  matches   Match[]
+  teams     TournamentTeam[]
+  dates     TournamentDate[]
+
+  @@unique([name, season])
 }
 
 model Match {
   id             Int      @id @default(autoincrement())
   tournament_id  Int
+  division_id    Int?
   team1_id       Int
   team1_score    Int?
   team2_id       Int
@@ -84,4 +96,37 @@ model Match {
   team1       Team       @relation("MatchTeam1", fields: [team1_id], references: [id])
   team2       Team       @relation("MatchTeam2", fields: [team2_id], references: [id])
   winner_team Team?      @relation("MatchWinnerTeam", fields: [winner_team_id], references: [id])
+}
+
+model Division {
+  id            Int    @id @default(autoincrement())
+  tournament_id Int
+  name          String
+
+  teams      TournamentTeam[]
+  tournament Tournament       @relation(fields: [tournament_id], references: [id])
+
+  @@unique([tournament_id, name])
+}
+
+model TournamentTeam {
+  id            Int @id @default(autoincrement())
+  tournament_id Int
+  team_id       Int
+  division_id   Int
+
+  tournament Tournament @relation(fields: [tournament_id], references: [id])
+  team       Team       @relation(fields: [team_id], references: [id])
+  division   Division   @relation(fields: [division_id], references: [id])
+
+  @@unique([tournament_id, team_id])
+  @@unique([team_id, division_id])
+}
+
+model TournamentDate {
+  id            Int      @id @default(autoincrement())
+  tournament_id Int
+  date          DateTime
+
+  tournament Tournament @relation(fields: [tournament_id], references: [id])
 }

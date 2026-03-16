@@ -7,6 +7,7 @@ type Division = {
     id: number
     name: string
     public: boolean
+    teams: number[]
 }
 
 type Team = {
