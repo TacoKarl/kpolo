@@ -10,6 +10,7 @@ export const typeDefs = gql`
     
         clubs: [Club!]!
         club(id: ID!): Club
+        users: [User!]!
     }
     
     type Tournament {
@@ -21,7 +22,7 @@ export const typeDefs = gql`
     type Club {
         id: ID!
         name: String!
-        city: String!
+        region: String!
         address: String!
         contact_info: String
         website: String
@@ -33,10 +34,17 @@ export const typeDefs = gql`
         name: String!
     }
 
+    type User {
+        id: ID!
+        name: String!
+        email: String!
+    }
+
   type Mutation {
     add(a: Int!, b: Int!): Int!
     login(email: String!, password: String!): LoginResponse!
     register(email: String!, name: String!, password: String!): RegisterResponse!
+    createClub(name: String!, address: String!, region: String!, managerEmail: String!): Club!
   }
   type LoginResponse {
     token: String!

@@ -35,7 +35,17 @@ const resolvers = {
                 where: { id: Number(args.id) },
                 include: {teams: true}
             });
-        }
+        },
+        users: async () => {
+            return prisma.user.findMany({
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                },
+                orderBy: { email: "asc" },
+            });
+        },
 
     },
     Club: {
@@ -47,6 +57,27 @@ const resolvers = {
     },
     Mutation: {
         add: (_parent: unknown, args: { a: number; b: number }) => args.a + args.b,
+        createClub: async (
+            _: any,
+            {
+                name,
+                address,
+                region,
+                managerEmail,
+            }: { name: string; address: string; region: string; managerEmail: string }
+        ) => {
+            const manager = await prisma.user.findUnique({ where: { email: managerEmail } });
+            if (!manager) throw new Error(`No user found with email ${managerEmail}`);
+
+            return prisma.club.create({
+                data: {
+                    name,
+                    address,
+                    region,
+                    user_manager_id: manager.id,
+                },
+            });
+        },
         register: async (_: any, { email, name, password }: { email: string, name: string, password: string}) => {
             const existingUser = await prisma.user.findUnique({ where: { email } });
             if (existingUser) throw new Error(`User with email ${email} already exists`);

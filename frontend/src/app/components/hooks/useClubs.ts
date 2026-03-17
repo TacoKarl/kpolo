@@ -8,17 +8,9 @@ export function useClubs() {
     const clubs = data?.clubs ?? [];
 
     // Filtrering efter regioner
-    const jyllandClubs = clubs.filter(c =>
-        ["aarhus", "fredericia", "silkeborg"].includes(c.city.toLowerCase())
-    );
-
-    const fynClubs = clubs.filter(c =>
-        ["odense", "svendborg"].includes(c.city.toLowerCase())
-    );
-
-    const sjællandClubs = clubs.filter(c =>
-        !["aarhus", "fredericia", "silkeborg", "odense", "svendborg"].includes(c.city.toLowerCase())
-    );
+    const jyllandClubs = clubs.filter(c => c.region?.toLowerCase() === "jylland");
+    const fynClubs = clubs.filter(c => c.region?.toLowerCase() === "fyn");
+    const sjællandClubs = clubs.filter(c => c.region?.toLowerCase() === "sjælland");
 
     return {
         loading,

@@ -17,10 +17,10 @@ export type Scalars = {
 export type Club = {
   __typename?: 'Club';
   address: Scalars['String']['output'];
-  city: Scalars['String']['output'];
   contact_info?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  region: Scalars['String']['output'];
   teams: Array<Team>;
   website?: Maybe<Scalars['String']['output']>;
 };
@@ -35,6 +35,7 @@ export type LoginResponse = {
 export type Mutation = {
   __typename?: 'Mutation';
   add: Scalars['Int']['output'];
+  createClub: Club;
   login: LoginResponse;
   register: RegisterResponse;
 };
@@ -43,6 +44,14 @@ export type Mutation = {
 export type MutationAddArgs = {
   a: Scalars['Int']['input'];
   b: Scalars['Int']['input'];
+};
+
+
+export type MutationCreateClubArgs = {
+  address: Scalars['String']['input'];
+  managerEmail: Scalars['String']['input'];
+  name: Scalars['String']['input'];
+  region: Scalars['String']['input'];
 };
 
 
@@ -65,6 +74,7 @@ export type Query = {
   dbTime: Scalars['String']['output'];
   hello: Scalars['String']['output'];
   tournaments: Array<Tournament>;
+  users: Array<User>;
 };
 
 
@@ -90,4 +100,11 @@ export type Tournament = {
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
   season: Scalars['String']['output'];
+};
+
+export type User = {
+  __typename?: 'User';
+  email: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
 };

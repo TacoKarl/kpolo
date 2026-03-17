@@ -1,5 +1,7 @@
-import {useState} from "react";
-import {useClubs} from "@/app/components/hooks/useClubs";
+import { useState } from "react";
+import { useClubs } from "@/app/components/hooks/useClubs";
+import { useMutation, useQuery } from "@apollo/client/react";
+import { CreateClubDocument, GetClubsDocument, GetUsersDocument } from "@/generated/graphql";
 
 export default function AdminClubsPage() {
     const { regions, loading } = useClubs();
@@ -7,24 +9,31 @@ export default function AdminClubsPage() {
     const [name, setName] = useState("");
     const [address, setAddress] = useState("");
     const [region, setRegion] = useState("");
-    const [email, setEmail] = useState("");
-    const [managerId, setManagerId] = useState("");
+    const [managerEmail, setManagerEmail] = useState("");
+
+    const [createClub, { loading: creating }] = useMutation(CreateClubDocument, {
+        refetchQueries: [GetClubsDocument],
+    });
+
+    const { data: usersData, loading: usersLoading } = useQuery(GetUsersDocument);
+    const users = usersData?.users ?? [];
 
     const handleCreateClub = async () => {
-        /* await createClub(
-            name,
-            address,
-            region,
-            email,
-            Number(managerId)
-        );
-         */
+        if (!name || !address || !region || !managerEmail) return;
+
+        await createClub({
+            variables: {
+                name,
+                address,
+                region,
+                managerEmail,
+            },
+        });
 
         setName("");
         setAddress("");
         setRegion("");
-        setEmail("");
-        setManagerId("");
+        setManagerEmail("");
     };
 
     return (
@@ -40,7 +49,7 @@ export default function AdminClubsPage() {
                             <ul className="ml-4">
                                 {clubs.map((c) => (
                                     <li key={c.id}>
-                                        {c.name} – {c.city}
+                                        {c.name}
                                     </li>
                                 ))}
                             </ul>
@@ -76,15 +85,23 @@ export default function AdminClubsPage() {
                     <option value="Sjælland">Sjælland</option>
                 </select>
 
-                <input
-                    placeholder="Klub Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                <select
+                    value={managerEmail}
+                    onChange={(e) => setManagerEmail(e.target.value)}
                     className="border p-2 rounded"
-                />
+                    disabled={usersLoading}
+                >
+                    <option value="">Vælg manager (email)</option>
+                    {users.map((u) => (
+                        <option key={u.id} value={u.email}>
+                            {u.email}
+                        </option>
+                    ))}
+                </select>
 
                 <button
                     onClick={handleCreateClub}
+                    disabled={creating}
                     className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
                 >
                     Opret klub

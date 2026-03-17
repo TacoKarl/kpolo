@@ -12,7 +12,7 @@ query GetClubs {
     clubs {
         id
         name
-        city
+        region
         address
         contact_info
         website
@@ -23,11 +23,28 @@ query GetClub($id: ID!) {
     club(id: $id) {
         id
         name
-        city
+        region
         address
         teams {
             id
             name
         }
+    }
+}
+
+query GetUsers {
+    users {
+        id
+        name
+        email
+    }
+}
+
+mutation CreateClub($name: String!, $address: String!, $region: String!, $managerEmail: String!) {
+    createClub(name: $name, address: $address, region: $region, managerEmail: $managerEmail) {
+        id
+        name
+        region
+        address
     }
 }
