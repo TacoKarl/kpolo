@@ -38,6 +38,7 @@ const resolvers = {
         },
         users: async () => {
             return prisma.user.findMany({
+                where: { managed_clubs: null },
                 select: {
                     id: true,
                     name: true,
