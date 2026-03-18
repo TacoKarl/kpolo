@@ -19,6 +19,18 @@ query GetClubs {
     }
 }
 
+query GetClubsWithTeams {
+    clubs {
+        id
+        name
+        region
+        teams {
+            id
+            name
+        }
+    }
+}
+
 query GetClub($id: ID!) {
     club(id: $id) {
         id
@@ -28,6 +40,17 @@ query GetClub($id: ID!) {
         teams {
             id
             name
+        }
+    }
+}
+
+query GetClubMembers($id: ID!) {
+    club(id: $id) {
+        id
+        members {
+            id
+            name
+            email
         }
     }
 }
@@ -46,5 +69,12 @@ mutation CreateClub($name: String!, $address: String!, $region: String!, $manage
         name
         region
         address
+    }
+}
+
+mutation CreateTeam($name: String!, $clubId: Int!, $memberIds: [Int!]!) {
+    createTeam(name: $name, clubId: $clubId, memberIds: $memberIds) {
+        id
+        name
     }
 }

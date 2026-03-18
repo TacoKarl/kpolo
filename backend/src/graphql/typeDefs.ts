@@ -27,6 +27,7 @@ export const typeDefs = gql`
         contact_info: String
         website: String
         teams: [Team!]!
+        members: [User!]!
     }
 
     type Team {
@@ -45,6 +46,7 @@ export const typeDefs = gql`
     login(email: String!, password: String!): LoginResponse!
     register(email: String!, name: String!, password: String!): RegisterResponse!
     createClub(name: String!, address: String!, region: String!, managerEmail: String!): Club!
+    createTeam(name: String!, clubId: Int!, memberIds: [Int!]!): Team!
   }
   type LoginResponse {
     token: String!

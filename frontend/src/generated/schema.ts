@@ -19,6 +19,7 @@ export type Club = {
   address: Scalars['String']['output'];
   contact_info?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
+  members: Array<User>;
   name: Scalars['String']['output'];
   region: Scalars['String']['output'];
   teams: Array<Team>;
@@ -36,6 +37,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   add: Scalars['Int']['output'];
   createClub: Club;
+  createTeam: Team;
   login: LoginResponse;
   register: RegisterResponse;
 };
@@ -52,6 +54,13 @@ export type MutationCreateClubArgs = {
   managerEmail: Scalars['String']['input'];
   name: Scalars['String']['input'];
   region: Scalars['String']['input'];
+};
+
+
+export type MutationCreateTeamArgs = {
+  clubId: Scalars['Int']['input'];
+  memberIds: Array<Scalars['Int']['input']>;
+  name: Scalars['String']['input'];
 };
 
 

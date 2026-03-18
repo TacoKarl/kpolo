@@ -54,7 +54,18 @@ const resolvers = {
             return prisma.team.findMany({
                 where: { club_id: club.id }
             });
-        }
+        },
+        members: async (club: { id: number }) => {
+            return prisma.user.findMany({
+                where: { club_id: club.id },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                },
+                orderBy: { name: "asc" },
+            });
+        },
     },
     Mutation: {
         add: (_parent: unknown, args: { a: number; b: number }) => args.a + args.b,
@@ -77,6 +88,47 @@ const resolvers = {
                     region,
                     user_manager_id: manager.id,
                 },
+            });
+        },
+        createTeam: async (
+            _: any,
+            {
+                name,
+                clubId,
+                memberIds,
+            }: { name: string; clubId: number; memberIds: number[] }
+        ) => {
+            const memberIdsList = memberIds ?? [];
+
+            return prisma.$transaction(async (tx) => {
+                if (memberIdsList.length > 0) {
+                    const validMembers = await tx.user.count({
+                        where: { id: { in: memberIdsList }, club_id: clubId },
+                    });
+                    if (validMembers !== memberIdsList.length) {
+                        throw new Error("All team members must belong to the selected club");
+                    }
+                }
+
+                const team = await tx.team.create({
+                    data: {
+                        name,
+                        club_id: clubId,
+                    },
+                });
+
+                if (memberIdsList.length > 0) {
+                    const fromDate = new Date();
+                    await tx.teamMembership.createMany({
+                        data: memberIdsList.map((userId) => ({
+                            team_id: team.id,
+                            user_id: userId,
+                            from_date: fromDate,
+                        })),
+                    });
+                }
+
+                return team;
             });
         },
         register: async (_: any, { email, name, password }: { email: string, name: string, password: string}) => {
