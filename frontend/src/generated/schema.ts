@@ -40,6 +40,8 @@ export type Mutation = {
   createTeam: Team;
   login: LoginResponse;
   register: RegisterResponse;
+  updateClub: Club;
+  updateTeam: Team;
 };
 
 
@@ -76,18 +78,39 @@ export type MutationRegisterArgs = {
   password: Scalars['String']['input'];
 };
 
+
+export type MutationUpdateClubArgs = {
+  address?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['Int']['input'];
+  name?: InputMaybe<Scalars['String']['input']>;
+  region?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationUpdateTeamArgs = {
+  id: Scalars['Int']['input'];
+  memberIds?: InputMaybe<Array<Scalars['Int']['input']>>;
+  name?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type Query = {
   __typename?: 'Query';
   club?: Maybe<Club>;
   clubs: Array<Club>;
   dbTime: Scalars['String']['output'];
   hello: Scalars['String']['output'];
+  team?: Maybe<Team>;
   tournaments: Array<Tournament>;
   users: Array<User>;
 };
 
 
 export type QueryClubArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryTeamArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -100,7 +123,9 @@ export type RegisterResponse = {
 
 export type Team = {
   __typename?: 'Team';
+  club: Club;
   id: Scalars['ID']['output'];
+  members: Array<User>;
   name: Scalars['String']['output'];
 };
 

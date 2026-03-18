@@ -55,6 +55,27 @@ query GetClubMembers($id: ID!) {
     }
 }
 
+query GetTeamForEdit($id: ID!) {
+    team(id: $id) {
+        id
+        name
+        club {
+            id
+            name
+            members {
+                id
+                name
+                email
+            }
+        }
+        members {
+            id
+            name
+            email
+        }
+    }
+}
+
 query GetUsers {
     users {
         id
@@ -72,8 +93,24 @@ mutation CreateClub($name: String!, $address: String!, $region: String!, $manage
     }
 }
 
+mutation UpdateClub($id: Int!, $name: String, $address: String, $region: String) {
+    updateClub(id: $id, name: $name, address: $address, region: $region) {
+        id
+        name
+        region
+        address
+    }
+}
+
 mutation CreateTeam($name: String!, $clubId: Int!, $memberIds: [Int!]!) {
     createTeam(name: $name, clubId: $clubId, memberIds: $memberIds) {
+        id
+        name
+    }
+}
+
+mutation UpdateTeam($id: Int!, $name: String, $memberIds: [Int!]) {
+    updateTeam(id: $id, name: $name, memberIds: $memberIds) {
         id
         name
     }
