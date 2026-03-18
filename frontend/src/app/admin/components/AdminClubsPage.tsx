@@ -115,7 +115,7 @@ export default function AdminClubsPage() {
 
     return (
         <div>
-            <h3 className="text-lg font-semibold mb-2">Alle klubber</h3>
+            <h3 className="text-lg font-semibold mb-2">Klubber du bestyrer:</h3>
             {loading ? (
                 <p>Loading...</p>
             ) : (

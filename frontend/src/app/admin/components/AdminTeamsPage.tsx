@@ -115,7 +115,7 @@ export default function AdminTeamsPage() {
 
     return (
         <div>
-            <h3 className="text-lg font-semibold mb-2">Alle hold</h3>
+            <h3 className="text-lg font-semibold mb-2">Hold du bestyrer:</h3>
             {clubsLoading ? (
                 <p>Loading...</p>
             ) : (
