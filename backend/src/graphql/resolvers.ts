@@ -35,7 +35,23 @@ const resolvers = {
                 where: { id: Number(args.id) },
                 include: {teams: true}
             });
-        }
+        },
+        team: async (_: any, args: { id: string }) => {
+            return prisma.team.findUnique({
+                where: { id: Number(args.id) },
+            });
+        },
+        users: async () => {
+            return prisma.user.findMany({
+                where: { managed_clubs: null },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                },
+                orderBy: { email: "asc" },
+            });
+        },
 
     },
     Club: {
@@ -43,10 +59,163 @@ const resolvers = {
             return prisma.team.findMany({
                 where: { club_id: club.id }
             });
-        }
+        },
+        members: async (club: { id: number }) => {
+            return prisma.user.findMany({
+                where: { club_id: club.id },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                },
+                orderBy: { name: "asc" },
+            });
+        },
+    },
+    Team: {
+        club: async (team: { club_id: number }) => {
+            return prisma.club.findUnique({
+                where: { id: team.club_id },
+            });
+        },
+        members: async (team: { id: number }) => {
+            return prisma.user.findMany({
+                where: { teams: { some: { team_id: team.id } } },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                },
+                orderBy: { name: "asc" },
+            });
+        },
     },
     Mutation: {
         add: (_parent: unknown, args: { a: number; b: number }) => args.a + args.b,
+        createClub: async (
+            _: any,
+            {
+                name,
+                address,
+                region,
+                managerEmail,
+            }: { name: string; address: string; region: string; managerEmail: string }
+        ) => {
+            const manager = await prisma.user.findUnique({ where: { email: managerEmail } });
+            if (!manager) throw new Error(`No user found with email ${managerEmail}`);
+
+            return prisma.club.create({
+                data: {
+                    name,
+                    address,
+                    region,
+                    user_manager_id: manager.id,
+                },
+            });
+        },
+        updateClub: async (
+            _: any,
+            {
+                id,
+                name,
+                address,
+                region,
+            }: { id: number; name?: string; address?: string; region?: string }
+        ) => {
+            return prisma.club.update({
+                where: { id },
+                data: {
+                    ...(name !== undefined ? { name } : {}),
+                    ...(address !== undefined ? { address } : {}),
+                    ...(region !== undefined ? { region } : {}),
+                },
+            });
+        },
+        createTeam: async (
+            _: any,
+            {
+                name,
+                clubId,
+                memberIds,
+            }: { name: string; clubId: number; memberIds: number[] }
+        ) => {
+            const memberIdsList = memberIds ?? [];
+
+            return prisma.$transaction(async (tx) => {
+                if (memberIdsList.length > 0) {
+                    const validMembers = await tx.user.count({
+                        where: { id: { in: memberIdsList }, club_id: clubId },
+                    });
+                    if (validMembers !== memberIdsList.length) {
+                        throw new Error("All team members must belong to the selected club");
+                    }
+                }
+
+                const team = await tx.team.create({
+                    data: {
+                        name,
+                        club_id: clubId,
+                    },
+                });
+
+                if (memberIdsList.length > 0) {
+                    const fromDate = new Date();
+                    await tx.teamMembership.createMany({
+                        data: memberIdsList.map((userId) => ({
+                            team_id: team.id,
+                            user_id: userId,
+                            from_date: fromDate,
+                        })),
+                    });
+                }
+
+                return team;
+            });
+        },
+        updateTeam: async (
+            _: any,
+            {
+                id,
+                name,
+                memberIds,
+            }: { id: number; name?: string; memberIds?: number[] }
+        ) => {
+            return prisma.$transaction(async (tx) => {
+                const team = await tx.team.findUnique({ where: { id } });
+                if (!team) throw new Error("Team not found");
+
+                if (memberIds) {
+                    const validMembers = await tx.user.count({
+                        where: { id: { in: memberIds }, club_id: team.club_id },
+                    });
+                    if (validMembers !== memberIds.length) {
+                        throw new Error("All team members must belong to the selected club");
+                    }
+
+                    await tx.teamMembership.deleteMany({
+                        where: { team_id: id },
+                    });
+
+                    if (memberIds.length > 0) {
+                        const fromDate = new Date();
+                        await tx.teamMembership.createMany({
+                            data: memberIds.map((userId) => ({
+                                team_id: id,
+                                user_id: userId,
+                                from_date: fromDate,
+                            })),
+                        });
+                    }
+                }
+
+                return tx.team.update({
+                    where: { id },
+                    data: {
+                        ...(name !== undefined ? { name } : {}),
+                    },
+                });
+            });
+        },
         register: async (_: any, { email, name, password }: { email: string, name: string, password: string}) => {
             const existingUser = await prisma.user.findUnique({ where: { email } });
             if (existingUser) throw new Error(`User with email ${email} already exists`);

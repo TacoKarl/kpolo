@@ -11,7 +11,7 @@ model Club {
   id              Int     @id @default(autoincrement())
   name            String
   user_manager_id Int     @unique
-  city            String?
+  region          String
   address         String?
   members         User[]  @relation("ClubMemberships")
   teams           Team[]

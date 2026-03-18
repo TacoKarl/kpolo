@@ -22,7 +22,7 @@ export default function ClubPage() {
     return (
         <div>
             <h1>{club.name}</h1>
-            <p>City: {club.city}</p>
+            <p>Region: {club.region}</p>
             <p>Address: {club.address}</p>
             <h2>Teams</h2>
             {teams.length === 0 ? (

@@ -17,10 +17,11 @@ export type Scalars = {
 export type Club = {
   __typename?: 'Club';
   address: Scalars['String']['output'];
-  city: Scalars['String']['output'];
   contact_info?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
+  members: Array<User>;
   name: Scalars['String']['output'];
+  region: Scalars['String']['output'];
   teams: Array<Team>;
   website?: Maybe<Scalars['String']['output']>;
 };
@@ -35,14 +36,33 @@ export type LoginResponse = {
 export type Mutation = {
   __typename?: 'Mutation';
   add: Scalars['Int']['output'];
+  createClub: Club;
+  createTeam: Team;
   login: LoginResponse;
   register: RegisterResponse;
+  updateClub: Club;
+  updateTeam: Team;
 };
 
 
 export type MutationAddArgs = {
   a: Scalars['Int']['input'];
   b: Scalars['Int']['input'];
+};
+
+
+export type MutationCreateClubArgs = {
+  address: Scalars['String']['input'];
+  managerEmail: Scalars['String']['input'];
+  name: Scalars['String']['input'];
+  region: Scalars['String']['input'];
+};
+
+
+export type MutationCreateTeamArgs = {
+  clubId: Scalars['Int']['input'];
+  memberIds: Array<Scalars['Int']['input']>;
+  name: Scalars['String']['input'];
 };
 
 
@@ -58,17 +78,39 @@ export type MutationRegisterArgs = {
   password: Scalars['String']['input'];
 };
 
+
+export type MutationUpdateClubArgs = {
+  address?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['Int']['input'];
+  name?: InputMaybe<Scalars['String']['input']>;
+  region?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationUpdateTeamArgs = {
+  id: Scalars['Int']['input'];
+  memberIds?: InputMaybe<Array<Scalars['Int']['input']>>;
+  name?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type Query = {
   __typename?: 'Query';
   club?: Maybe<Club>;
   clubs: Array<Club>;
   dbTime: Scalars['String']['output'];
   hello: Scalars['String']['output'];
+  team?: Maybe<Team>;
   tournaments: Array<Tournament>;
+  users: Array<User>;
 };
 
 
 export type QueryClubArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryTeamArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -81,7 +123,9 @@ export type RegisterResponse = {
 
 export type Team = {
   __typename?: 'Team';
+  club: Club;
   id: Scalars['ID']['output'];
+  members: Array<User>;
   name: Scalars['String']['output'];
 };
 
@@ -90,4 +134,11 @@ export type Tournament = {
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
   season: Scalars['String']['output'];
+};
+
+export type User = {
+  __typename?: 'User';
+  email: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
 };

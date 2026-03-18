@@ -12,10 +12,22 @@ query GetClubs {
     clubs {
         id
         name
-        city
+        region
         address
         contact_info
         website
+    }
+}
+
+query GetClubsWithTeams {
+    clubs {
+        id
+        name
+        region
+        teams {
+            id
+            name
+        }
     }
 }
 
@@ -23,11 +35,83 @@ query GetClub($id: ID!) {
     club(id: $id) {
         id
         name
-        city
+        region
         address
         teams {
             id
             name
         }
+    }
+}
+
+query GetClubMembers($id: ID!) {
+    club(id: $id) {
+        id
+        members {
+            id
+            name
+            email
+        }
+    }
+}
+
+query GetTeamForEdit($id: ID!) {
+    team(id: $id) {
+        id
+        name
+        club {
+            id
+            name
+            members {
+                id
+                name
+                email
+            }
+        }
+        members {
+            id
+            name
+            email
+        }
+    }
+}
+
+query GetUsers {
+    users {
+        id
+        name
+        email
+    }
+}
+
+mutation CreateClub($name: String!, $address: String!, $region: String!, $managerEmail: String!) {
+    createClub(name: $name, address: $address, region: $region, managerEmail: $managerEmail) {
+        id
+        name
+        region
+        address
+    }
+}
+
+mutation UpdateClub($id: Int!, $name: String, $address: String, $region: String) {
+    updateClub(id: $id, name: $name, address: $address, region: $region) {
+        id
+        name
+        region
+        address
+    }
+}
+
+mutation CreateTeam($name: String!, $clubId: Int!, $memberIds: [Int!]!) {
+    createTeam(name: $name, clubId: $clubId, memberIds: $memberIds) {
+        id
+        name
+    }
+}
+
+mutation UpdateTeam($id: Int!, $name: String, $memberIds: [Int!]) {
+    updateTeam(id: $id, name: $name, memberIds: $memberIds) {
+        id
+        name
     }
 }

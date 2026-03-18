@@ -22,7 +22,7 @@ type RegionListProps = {
     clubs: {
         id: string;
         name: string;
-        city: string;
+        address: string;
     }[];
 };
 
@@ -33,7 +33,7 @@ function RegionList({ title, clubs }: RegionListProps) {
             <ul>
                 {clubs.map(c => (
                     <li key={c.id}>
-                        <Link href={`/clubs/${c.id}`}>{c.name}</Link> – {c.city}
+                        <Link href={`/clubs/${c.id}`}>{c.name}</Link> – {c.address}
                     </li>
                 ))}
             </ul>

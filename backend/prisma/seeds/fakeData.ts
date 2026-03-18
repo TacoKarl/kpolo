@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { PrismaClient } from '../../src/generated/prisma';
-import bcrypt from "bcrypt"
+import * as bcrypt from "bcrypt"
 
 
 
@@ -97,7 +97,7 @@ export async function seedFakeData(prisma: PrismaClient) {
     data: {
       name: 'Copenhagen Kayak Polo Club',
       user_manager_id: manager1.id,
-      city: 'Copenhagen',
+      region: 'Sjælland',
       address: 'Strandvej 123, 2100 København Ø',
     },
   });
@@ -106,7 +106,7 @@ export async function seedFakeData(prisma: PrismaClient) {
     data: {
       name: 'Aarhus Kayak Club',
       user_manager_id: manager2.id,
-      city: 'Aarhus',
+      region: 'Jylland',
       address: 'Havnevej 45, 8000 Aarhus C',
     },
   });
