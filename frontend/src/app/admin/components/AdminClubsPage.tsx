@@ -1,7 +1,10 @@
+'use client';
+
 import { useState } from "react";
 import { useClubs } from "@/app/components/hooks/useClubs";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { CreateClubDocument, GetClubsDocument, GetUsersDocument } from "@/generated/graphql";
+import { Toast } from "@/app/components/ui/Toast";
 
 export default function AdminClubsPage() {
     const { regions, loading } = useClubs();
@@ -10,6 +13,7 @@ export default function AdminClubsPage() {
     const [address, setAddress] = useState("");
     const [region, setRegion] = useState("");
     const [managerEmail, setManagerEmail] = useState("");
+    const [toastOpen, setToastOpen] = useState(false);
 
     const [createClub, { loading: creating }] = useMutation(CreateClubDocument, {
         refetchQueries: [GetClubsDocument],
@@ -34,6 +38,7 @@ export default function AdminClubsPage() {
         setAddress("");
         setRegion("");
         setManagerEmail("");
+        setToastOpen(true);
     };
 
     return (
@@ -107,6 +112,11 @@ export default function AdminClubsPage() {
                     Opret klub
                 </button>
             </div>
+            <Toast
+                message="Klub oprettet"
+                open={toastOpen}
+                onClose={() => setToastOpen(false)}
+            />
         </div>
     )
 }

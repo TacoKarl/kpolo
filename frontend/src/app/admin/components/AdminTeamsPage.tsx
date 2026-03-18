@@ -7,6 +7,7 @@ import {
     GetClubMembersDocument,
     GetClubsWithTeamsDocument,
 } from "@/generated/graphql";
+import { Toast } from "@/app/components/ui/Toast";
 
 export default function AdminTeamsPage() {
     const { data: clubsData, loading: clubsLoading } = useQuery(GetClubsWithTeamsDocument);
@@ -15,6 +16,7 @@ export default function AdminTeamsPage() {
     const [name, setName] = useState("");
     const [clubId, setClubId] = useState("");
     const [memberIds, setMemberIds] = useState<number[]>([]);
+    const [toastOpen, setToastOpen] = useState(false);
 
     const { data: membersData, loading: membersLoading } = useQuery(GetClubMembersDocument, {
         variables: { id: clubId },
@@ -49,6 +51,7 @@ export default function AdminTeamsPage() {
 
         setName("");
         setMemberIds([]);
+        setToastOpen(true);
     };
 
     return (
@@ -131,6 +134,11 @@ export default function AdminTeamsPage() {
                     Opret hold
                 </button>
             </div>
+            <Toast
+                message="Hold Oprettet"
+                open={toastOpen}
+                onClose={() => setToastOpen(false)}
+            />
         </div>
     );
 }
