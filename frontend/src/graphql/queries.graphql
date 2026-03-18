@@ -5,6 +5,38 @@ query GetTournaments {
         id
         name
         season
+        dates {
+            id
+            date
+        }
+        divisions {
+            id
+            name
+            teams {
+                id
+                team {
+                    id
+                    name
+                }
+            }
+        }
+        teams {
+            id
+            team {
+                id
+                name
+            }
+            division {
+                id
+                name
+            }
+        }
+        matches {
+            id
+            team1_score
+            team2_score
+            match_date
+        }
     }
 }
 
@@ -161,6 +193,31 @@ mutation CreateTournament($input: CreateTournamentInput!) {
                 id
                 name
             }
+        }
+    }
+}
+
+mutation UpdateTournament(
+    $id: Int!
+    $input: UpdateTournamentInput!
+) {
+    updateTournament(id: $id, input: $input) {
+        id
+        name
+        season
+        divisions {
+            id
+            name
+            teams {
+                team {
+                    id
+                    name
+                }
+            }
+        }
+        dates {
+            id
+            date
         }
     }
 }

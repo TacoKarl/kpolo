@@ -24,16 +24,16 @@ export const typeDefs = gql`
         id: Int!
         name: String!
         season: String!
-        divisions: [Division!]!
-        teams: [TournamentTeam!]!
-        dates: [TournamentDate!]!
-        matches: [Match!]!
+        divisions: [Division!]
+        teams: [TournamentTeam!]
+        dates: [TournamentDate!]
+        matches: [Match!]
     }
 
     type Division {
         id: Int!
         name: String!
-        teams: [TournamentTeam!]!
+        teams: [TournamentTeam!]
     }
     
     type Club {
@@ -44,8 +44,8 @@ export const typeDefs = gql`
         address: String!
         contact_info: String
         website: String
-        teams(includeInactive: Boolean = false): [Team!]!
-        members: [User!]!
+        teams(includeInactive: Boolean = false): [Team!]
+        members: [User!]
     }
 
     type Team {
@@ -53,7 +53,7 @@ export const typeDefs = gql`
         name: String!
         isActive: Boolean!
         club: Club!
-        members: [User!]!
+        members: [User!]
     }
 
     type User {
@@ -72,8 +72,10 @@ export const typeDefs = gql`
     type TournamentDate {
         id: Int!
         tournament: Tournament!
-        date: String!
+        date: DateTime!
     }
+
+scalar DateTime
 
     type Match {
         id: Int!
@@ -105,7 +107,7 @@ export const typeDefs = gql`
         setTeamActive(id: Int!, isActive: Boolean!): Team!
         
         createTournament(input: CreateTournamentInput): Tournament!
-        updateTournament(id: Int!, name: String, season: String!): Tournament!
+        updateTournament(id: Int!, input: UpdateTournamentInput): Tournament!
     }
     
     type LoginResponse {
@@ -139,9 +141,17 @@ export const typeDefs = gql`
     input CreateTournamentInput {
         name: String!
         season: String!
-        divisions: [DivisionInput!]!
-        dates: [TournamentDateInput!]!
-        teamAssignments: [TeamAssignmentInput!]!
+        divisions: [DivisionInput!]
+        dates: [TournamentDateInput!]
+        teamAssignments: [TeamAssignmentInput!]
+    }
+
+    input UpdateTournamentInput {
+        name: String
+        season: String
+        divisions: [DivisionInput!]
+        dates: [TournamentDateInput!]
+        teamAssignments: [TeamAssignmentInput!]
     }
     
 `;
