@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from "react";
-import { useMutation, useQuery } from "@apollo/client/react";
+import { useApolloClient, useMutation, useQuery } from "@apollo/client/react";
 import {
     CreateTeamDocument,
     GetClubMembersDocument,
@@ -10,6 +10,7 @@ import {
 import { Toast } from "@/app/components/ui/Toast";
 
 export default function AdminTeamsPage() {
+    const client = useApolloClient();
     const { data: clubsData, loading: clubsLoading } = useQuery(GetClubsWithTeamsDocument);
     const clubs = clubsData?.clubs ?? [];
 
@@ -35,18 +36,15 @@ export default function AdminTeamsPage() {
     const handleCreateTeam = async () => {
         if (!name || !clubId) return;
 
-        const refetchQueries = [{ query: GetClubsWithTeamsDocument }];
-        if (clubId) {
-            refetchQueries.push({ query: GetClubMembersDocument, variables: { id: clubId } });
-        }
-
         await createTeam({
             variables: {
                 name,
                 clubId: Number(clubId),
                 memberIds,
             },
-            refetchQueries,
+        });
+        await client.refetchQueries({
+            include: [GetClubsWithTeamsDocument, GetClubMembersDocument],
         });
 
         setName("");
