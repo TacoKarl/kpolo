@@ -8,10 +8,11 @@ query GetTournaments {
     }
 }
 
-query GetClubs {
-    clubs {
+query GetClubs($includeInactive: Boolean = false) {
+    clubs(includeInactive: $includeInactive) {
         id
         name
+        isActive
         region
         address
         contact_info
@@ -19,33 +20,37 @@ query GetClubs {
     }
 }
 
-query GetClubsWithTeams {
-    clubs {
+query GetClubsWithTeams($includeInactive: Boolean = false) {
+    clubs(includeInactive: $includeInactive) {
         id
         name
+        isActive
         region
-        teams {
+        teams(includeInactive: $includeInactive) {
             id
             name
+            isActive
         }
     }
 }
 
-query GetClub($id: ID!) {
-    club(id: $id) {
+query GetClub($id: ID!, $includeInactive: Boolean = false) {
+    club(id: $id, includeInactive: $includeInactive) {
         id
         name
+        isActive
         region
         address
-        teams {
+        teams(includeInactive: $includeInactive) {
             id
             name
+            isActive
         }
     }
 }
 
-query GetClubMembers($id: ID!) {
-    club(id: $id) {
+query GetClubMembers($id: ID!, $includeInactive: Boolean = false) {
+    club(id: $id, includeInactive: $includeInactive) {
         id
         members {
             id
@@ -55,13 +60,15 @@ query GetClubMembers($id: ID!) {
     }
 }
 
-query GetTeamForEdit($id: ID!) {
-    team(id: $id) {
+query GetTeamForEdit($id: ID!, $includeInactive: Boolean = false) {
+    team(id: $id, includeInactive: $includeInactive) {
         id
         name
+        isActive
         club {
             id
             name
+            isActive
             members {
                 id
                 name
@@ -102,6 +109,10 @@ mutation UpdateClub($id: Int!, $name: String, $address: String, $region: String)
     }
 }
 
+mutation DeleteClub($id: Int!) {
+    deleteClub(id: $id)
+}
+
 mutation CreateTeam($name: String!, $clubId: Int!, $memberIds: [Int!]!) {
     createTeam(name: $name, clubId: $clubId, memberIds: $memberIds) {
         id
@@ -114,4 +125,8 @@ mutation UpdateTeam($id: Int!, $name: String, $memberIds: [Int!]) {
         id
         name
     }
+}
+
+mutation DeleteTeam($id: Int!) {
+    deleteTeam(id: $id)
 }

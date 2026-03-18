@@ -5,14 +5,17 @@ import { useClubs } from "@/app/components/hooks/useClubs";
 import { useMutation, useQuery } from "@apollo/client/react";
 import {
     CreateClubDocument,
+    DeleteClubDocument,
     GetClubsDocument,
     GetUsersDocument,
     UpdateClubDocument,
 } from "@/generated/graphql";
 import { Toast } from "@/app/components/ui/Toast";
+import { ConfirmDialog } from "@/app/components/ui/ConfirmDialog";
 
 export default function AdminClubsPage() {
-    const { regions, loading, clubs } = useClubs();
+    const [showInactive, setShowInactive] = useState(false);
+    const { regions, loading, clubs } = useClubs(showInactive);
 
     const [name, setName] = useState("");
     const [address, setAddress] = useState("");
@@ -26,11 +29,15 @@ export default function AdminClubsPage() {
     const [editNameValue, setEditNameValue] = useState("");
     const [editAddressValue, setEditAddressValue] = useState("");
     const [editRegionValue, setEditRegionValue] = useState("");
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
     const [createClub, { loading: creating }] = useMutation(CreateClubDocument, {
         refetchQueries: [GetClubsDocument],
     });
     const [updateClub, { loading: updating }] = useMutation(UpdateClubDocument, {
+        refetchQueries: [GetClubsDocument],
+    });
+    const [deleteClub, { loading: deleting }] = useMutation(DeleteClubDocument, {
         refetchQueries: [GetClubsDocument],
     });
 
@@ -113,9 +120,28 @@ export default function AdminClubsPage() {
         setEditRegion(false);
     };
 
+    const handleDeleteClub = async () => {
+        if (!selectedClubId) return;
+        await deleteClub({
+            variables: { id: Number(selectedClubId) },
+        });
+        setConfirmDeleteOpen(false);
+        setSelectedClubId(null);
+    };
+
     return (
         <div>
-            <h3 className="text-lg font-semibold mb-2">Klubber du bestyrer:</h3>
+            <div className="flex items-center justify-between mb-2">
+                <h3 className="text-lg font-semibold">Klubber du bestyrer:</h3>
+                <label className="flex items-center gap-2 text-sm">
+                    <input
+                        type="checkbox"
+                        checked={showInactive}
+                        onChange={(e) => setShowInactive(e.target.checked)}
+                    />
+                    Vis inaktive
+                </label>
+            </div>
             {loading ? (
                 <p>Loading...</p>
             ) : (
@@ -129,7 +155,9 @@ export default function AdminClubsPage() {
                                         <button
                                             type="button"
                                             onClick={() => handleSelectClub(c.id)}
-                                            className="text-left hover:underline"
+                                            className={`text-left hover:underline ${
+                                                c.isActive ? "" : "text-gray-400"
+                                            }`}
                                         >
                                             {c.name}
                                         </button>
@@ -343,8 +371,28 @@ export default function AdminClubsPage() {
                             </>
                         )}
                     </div>
+
+                    <button
+                        type="button"
+                        onClick={() => setConfirmDeleteOpen(true)}
+                        disabled={deleting}
+                        className="mt-2 bg-red-600 text-white p-2 rounded hover:bg-red-700"
+                    >
+                        Slet klub
+                    </button>
                 </div>
             )}
+            <ConfirmDialog
+                open={confirmDeleteOpen}
+                title="Slet klub"
+                message="Denne handling sætter klubben som permanent inaktiv. Den vil ikke længere kunne ses på hjemmesiden, og alle kamphold tilknyttet klubben vil også blive skjult."
+                confirmationLabel="Skriv klubbens navn for at bekræfte"
+                expectedText={selectedClub?.name ?? ""}
+                confirmLabel="Ok"
+                cancelLabel="Afbryd"
+                onConfirm={handleDeleteClub}
+                onCancel={() => setConfirmDeleteOpen(false)}
+            />
             <Toast
                 message="Klub oprettet"
                 open={toastOpen}
