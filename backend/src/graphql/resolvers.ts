@@ -26,19 +26,25 @@ const resolvers = {
             return prisma.tournament.findMany();
         },
 
-        clubs: async () => {
-            return prisma.club.findMany();
+        clubs: async (_: unknown, args: { includeInactive?: boolean }) => {
+            return prisma.club.findMany({
+                where: args.includeInactive ? {} : { is_active: true },
+            });
         },
 
-        club: async (_: any, args: { id: string }) => {
-            return prisma.club.findUnique({
-                where: { id: Number(args.id) },
+        club: async (_: any, args: { id: string; includeInactive?: boolean }) => {
+            return prisma.club.findFirst({
+                where: args.includeInactive
+                    ? { id: Number(args.id) }
+                    : { id: Number(args.id), is_active: true },
                 include: {teams: true}
             });
         },
-        team: async (_: any, args: { id: string }) => {
-            return prisma.team.findUnique({
-                where: { id: Number(args.id) },
+        team: async (_: any, args: { id: string; includeInactive?: boolean }) => {
+            return prisma.team.findFirst({
+                where: args.includeInactive
+                    ? { id: Number(args.id) }
+                    : { id: Number(args.id), is_active: true },
             });
         },
         users: async () => {
@@ -55,9 +61,12 @@ const resolvers = {
 
     },
     Club: {
-        teams: async (club: { id: number }) => {
+        isActive: (club: { is_active: boolean }) => club.is_active,
+        teams: async (club: { id: number }, args: { includeInactive?: boolean }) => {
             return prisma.team.findMany({
-                where: { club_id: club.id }
+                where: args.includeInactive
+                    ? { club_id: club.id }
+                    : { club_id: club.id, is_active: true }
             });
         },
         members: async (club: { id: number }) => {
@@ -73,8 +82,9 @@ const resolvers = {
         },
     },
     Team: {
+        isActive: (team: { is_active: boolean }) => team.is_active,
         club: async (team: { club_id: number }) => {
-            return prisma.club.findUnique({
+            return prisma.club.findFirst({
                 where: { id: team.club_id },
             });
         },
@@ -109,6 +119,7 @@ const resolvers = {
                     name,
                     address,
                     region,
+                    is_active: true,
                     user_manager_id: manager.id,
                 },
             });
@@ -129,6 +140,12 @@ const resolvers = {
                     ...(address !== undefined ? { address } : {}),
                     ...(region !== undefined ? { region } : {}),
                 },
+            });
+        },
+        setClubActive: async (_: any, { id, isActive }: { id: number; isActive: boolean }) => {
+            return prisma.club.update({
+                where: { id },
+                data: { is_active: isActive },
             });
         },
         createTeam: async (
@@ -155,6 +172,7 @@ const resolvers = {
                     data: {
                         name,
                         club_id: clubId,
+                        is_active: true,
                     },
                 });
 
@@ -214,6 +232,12 @@ const resolvers = {
                         ...(name !== undefined ? { name } : {}),
                     },
                 });
+            });
+        },
+        setTeamActive: async (_: any, { id, isActive }: { id: number; isActive: boolean }) => {
+            return prisma.team.update({
+                where: { id },
+                data: { is_active: isActive },
             });
         },
         register: async (_: any, { email, name, password }: { email: string, name: string, password: string}) => {

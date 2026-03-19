@@ -2,8 +2,10 @@
 import { useQuery } from "@apollo/client/react";
 import { GetClubsDocument, GetClubsQuery } from "@/generated/graphql";
 
-export function useClubs() {
-    const { data, loading, error } = useQuery<GetClubsQuery>(GetClubsDocument);
+export function useClubs(includeInactive = false) {
+    const { data, loading, error } = useQuery<GetClubsQuery>(GetClubsDocument, {
+        variables: { includeInactive },
+    });
 
     const clubs = data?.clubs ?? [];
 

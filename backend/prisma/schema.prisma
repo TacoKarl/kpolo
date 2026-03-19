@@ -11,6 +11,7 @@ model Club {
   id              Int     @id @default(autoincrement())
   name            String
   user_manager_id Int     @unique
+  is_active       Boolean @default(true)
   region          String
   address         String?
   members         User[]  @relation("ClubMemberships")
@@ -42,6 +43,7 @@ model Team {
   id             Int              @id @default(autoincrement())
   club_id        Int
   name           String
+  is_active      Boolean          @default(true)
   members        TeamMembership[]
   matchesAsTeam1 Match[]          @relation("MatchTeam1")
   matchesAsTeam2 Match[]          @relation("MatchTeam2")

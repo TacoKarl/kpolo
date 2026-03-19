@@ -19,11 +19,17 @@ export type Club = {
   address: Scalars['String']['output'];
   contact_info?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
+  isActive: Scalars['Boolean']['output'];
   members: Array<User>;
   name: Scalars['String']['output'];
   region: Scalars['String']['output'];
   teams: Array<Team>;
   website?: Maybe<Scalars['String']['output']>;
+};
+
+
+export type ClubTeamsArgs = {
+  includeInactive?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type LoginResponse = {
@@ -40,6 +46,8 @@ export type Mutation = {
   createTeam: Team;
   login: LoginResponse;
   register: RegisterResponse;
+  setClubActive: Club;
+  setTeamActive: Team;
   updateClub: Club;
   updateTeam: Team;
 };
@@ -79,6 +87,18 @@ export type MutationRegisterArgs = {
 };
 
 
+export type MutationSetClubActiveArgs = {
+  id: Scalars['Int']['input'];
+  isActive: Scalars['Boolean']['input'];
+};
+
+
+export type MutationSetTeamActiveArgs = {
+  id: Scalars['Int']['input'];
+  isActive: Scalars['Boolean']['input'];
+};
+
+
 export type MutationUpdateClubArgs = {
   address?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['Int']['input'];
@@ -107,11 +127,18 @@ export type Query = {
 
 export type QueryClubArgs = {
   id: Scalars['ID']['input'];
+  includeInactive?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
+export type QueryClubsArgs = {
+  includeInactive?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 
 export type QueryTeamArgs = {
   id: Scalars['ID']['input'];
+  includeInactive?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type RegisterResponse = {
@@ -125,6 +152,7 @@ export type Team = {
   __typename?: 'Team';
   club: Club;
   id: Scalars['ID']['output'];
+  isActive: Scalars['Boolean']['output'];
   members: Array<User>;
   name: Scalars['String']['output'];
 };
