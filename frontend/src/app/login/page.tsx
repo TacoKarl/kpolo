@@ -2,6 +2,7 @@
 
 import {useCallback, useEffect, useRef, useState} from "react";
 import { useUser } from "@/app/context/UserContext";
+import { createSession } from "../lib/session";
 import {useRouter} from "next/navigation";
 
 export default function LoginPage() {
@@ -59,7 +60,10 @@ export default function LoginPage() {
         `;
 
         try {
-            const res = await fetch(process.env.NEXT_PUBLIC_API_URL!, {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL
+            if (!apiUrl) throw new Error('API URL not configured')
+
+            const res = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
@@ -73,16 +77,20 @@ export default function LoginPage() {
                 setError(data.errors[0].message || 'Login failed');
                 return;
             }
-
+            
             const loginData = data.data.login;
             if (loginData) {
-                localStorage.setItem('token', loginData.token);
+                
+                await createSession(loginData.token);
+                
                 setUser({
                     name: loginData.name,
                     avatarUrl: null,
                     token: loginData.token,
                 });
+        
             }
+        
 
         } catch (err) {
             console.error(err);
