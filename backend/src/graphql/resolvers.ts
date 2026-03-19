@@ -142,18 +142,11 @@ const resolvers = {
                 },
             });
         },
-        deleteClub: async (_: any, { id }: { id: number }) => {
-            await prisma.$transaction(async (tx) => {
-                await tx.team.updateMany({
-                    where: { club_id: id },
-                    data: { is_active: false },
-                });
-                await tx.club.update({
-                    where: { id },
-                    data: { is_active: false },
-                });
+        setClubActive: async (_: any, { id, isActive }: { id: number; isActive: boolean }) => {
+            return prisma.club.update({
+                where: { id },
+                data: { is_active: isActive },
             });
-            return true;
         },
         createTeam: async (
             _: any,
@@ -241,14 +234,11 @@ const resolvers = {
                 });
             });
         },
-        deleteTeam: async (_: any, { id }: { id: number }) => {
-            await prisma.$transaction(async (tx) => {
-                await tx.team.update({
-                    where: { id },
-                    data: { is_active: false },
-                });
+        setTeamActive: async (_: any, { id, isActive }: { id: number; isActive: boolean }) => {
+            return prisma.team.update({
+                where: { id },
+                data: { is_active: isActive },
             });
-            return true;
         },
         register: async (_: any, { email, name, password }: { email: string, name: string, password: string}) => {
             const existingUser = await prisma.user.findUnique({ where: { email } });

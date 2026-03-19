@@ -44,10 +44,10 @@ export type Mutation = {
   add: Scalars['Int']['output'];
   createClub: Club;
   createTeam: Team;
-  deleteClub: Scalars['Boolean']['output'];
-  deleteTeam: Scalars['Boolean']['output'];
   login: LoginResponse;
   register: RegisterResponse;
+  setClubActive: Club;
+  setTeamActive: Team;
   updateClub: Club;
   updateTeam: Team;
 };
@@ -74,16 +74,6 @@ export type MutationCreateTeamArgs = {
 };
 
 
-export type MutationDeleteClubArgs = {
-  id: Scalars['Int']['input'];
-};
-
-
-export type MutationDeleteTeamArgs = {
-  id: Scalars['Int']['input'];
-};
-
-
 export type MutationLoginArgs = {
   email: Scalars['String']['input'];
   password: Scalars['String']['input'];
@@ -94,6 +84,18 @@ export type MutationRegisterArgs = {
   email: Scalars['String']['input'];
   name: Scalars['String']['input'];
   password: Scalars['String']['input'];
+};
+
+
+export type MutationSetClubActiveArgs = {
+  id: Scalars['Int']['input'];
+  isActive: Scalars['Boolean']['input'];
+};
+
+
+export type MutationSetTeamActiveArgs = {
+  id: Scalars['Int']['input'];
+  isActive: Scalars['Boolean']['input'];
 };
 
 

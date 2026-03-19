@@ -1,17 +1,217 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useApolloClient, useMutation, useQuery } from "@apollo/client/react";
 import {
     CreateTeamDocument,
-    DeleteTeamDocument,
     GetClubMembersDocument,
     GetClubsWithTeamsDocument,
     GetTeamForEditDocument,
+    SetTeamActiveDocument,
     UpdateTeamDocument,
 } from "@/generated/graphql";
 import { Toast } from "@/app/components/ui/Toast";
 import { ConfirmDialog } from "@/app/components/ui/ConfirmDialog";
+
+type EditTeamFormProps = {
+    team: {
+        id: string;
+        name: string;
+        isActive: boolean;
+        members: { id: string; name: string; email: string }[];
+    };
+    clubMembers: { id: string; name: string; email: string }[];
+    updating: boolean;
+    togglingActive: boolean;
+    onSaveName: (id: number, nameValue: string) => Promise<void>;
+    onSaveMembers: (id: number, memberIds: number[]) => Promise<void>;
+    onInactivate: (id: number) => Promise<void>;
+    onRestore: (id: number) => Promise<void>;
+};
+
+function EditTeamForm({
+    team,
+    clubMembers,
+    updating,
+    togglingActive,
+    onSaveName,
+    onSaveMembers,
+    onInactivate,
+    onRestore,
+}: EditTeamFormProps) {
+    const [editTeamName, setEditTeamName] = useState(false);
+    const [editTeamMembers, setEditTeamMembers] = useState(false);
+    const [editTeamNameValue, setEditTeamNameValue] = useState(team.name);
+    const [editMemberIds, setEditMemberIds] = useState<number[]>(
+        team.members.map((m) => Number(m.id))
+    );
+    const [confirmInactivateOpen, setConfirmInactivateOpen] = useState(false);
+
+    const originalTeamName = team.name;
+    const originalMemberIds = team.members.map((m) => Number(m.id));
+    const isTeamNameDirty = editTeamNameValue !== originalTeamName;
+    const isTeamMembersDirty =
+        editMemberIds.length !== originalMemberIds.length ||
+        editMemberIds.some((id) => !originalMemberIds.includes(id));
+
+    return (
+        <div className="mt-8 flex flex-col gap-3 max-w-md">
+            <h3 className="text-lg font-semibold">Rediger hold</h3>
+
+            <div className="flex items-center gap-2">
+                <input
+                    value={editTeamNameValue}
+                    readOnly={!editTeamName}
+                    onChange={(e) => setEditTeamNameValue(e.target.value)}
+                    className={`border p-2 rounded flex-1 ${
+                        editTeamName ? "" : "bg-gray-100 text-gray-500 cursor-not-allowed"
+                    }`}
+                />
+                {!editTeamName ? (
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setEditTeamNameValue(originalTeamName);
+                            setEditTeamName(true);
+                        }}
+                        className="text-blue-600 hover:underline"
+                    >
+                        Rediger
+                    </button>
+                ) : (
+                    <>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setEditTeamNameValue(originalTeamName);
+                                setEditTeamName(false);
+                            }}
+                            className="text-red-500 hover:underline"
+                        >
+                            Fortryd
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => onSaveName(Number(team.id), editTeamNameValue)}
+                            disabled={updating || !isTeamNameDirty}
+                            className={`border px-3 py-2 rounded transition ${
+                                updating || !isTeamNameDirty
+                                    ? "bg-gray-200 text-gray-500 border-gray-200 cursor-not-allowed"
+                                    : "bg-green-600 text-white border-green-600 hover:bg-green-700"
+                            }`}
+                        >
+                            Gem
+                        </button>
+                    </>
+                )}
+            </div>
+
+            <div className="border p-2 rounded">
+                <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium">Holdspillere</span>
+                    {!editTeamMembers ? (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setEditMemberIds(originalMemberIds);
+                                setEditTeamMembers(true);
+                            }}
+                            className="text-blue-600 hover:underline"
+                        >
+                            Rediger
+                        </button>
+                    ) : (
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setEditMemberIds(originalMemberIds);
+                                    setEditTeamMembers(false);
+                                }}
+                                className="text-red-500 hover:underline"
+                            >
+                                Fortryd
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => onSaveMembers(Number(team.id), editMemberIds)}
+                                disabled={updating || !isTeamMembersDirty}
+                                className={`border px-3 py-1 rounded transition ${
+                                    updating || !isTeamMembersDirty
+                                        ? "bg-gray-200 text-gray-500 border-gray-200 cursor-not-allowed"
+                                        : "bg-green-600 text-white border-green-600 hover:bg-green-700"
+                                }`}
+                            >
+                                Gem
+                            </button>
+                        </div>
+                    )}
+                </div>
+                {clubMembers.length === 0 ? (
+                    <p>Ingen medlemmer i denne klub.</p>
+                ) : (
+                    <ul className="flex flex-col gap-1">
+                        {clubMembers.map((member) => {
+                            const memberId = Number(member.id);
+                            return (
+                                <li key={member.id} className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={editMemberIds.includes(memberId)}
+                                        onChange={() => {
+                                            if (!editTeamMembers) return;
+                                            setEditMemberIds((prev) =>
+                                                prev.includes(memberId)
+                                                    ? prev.filter((id) => id !== memberId)
+                                                    : [...prev, memberId]
+                                            );
+                                        }}
+                                        disabled={!editTeamMembers}
+                                    />
+                                    <span>{member.name} ({member.email})</span>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                )}
+            </div>
+
+            {team.isActive ? (
+                <button
+                    type="button"
+                    onClick={() => setConfirmInactivateOpen(true)}
+                    disabled={togglingActive}
+                    className="mt-2 bg-red-600 text-white p-2 rounded hover:bg-red-700"
+                >
+                    Inaktivér hold
+                </button>
+            ) : (
+                <button
+                    type="button"
+                    onClick={() => onRestore(Number(team.id))}
+                    disabled={togglingActive}
+                    className="mt-2 bg-green-600 text-white p-2 rounded hover:bg-green-700"
+                >
+                    Genopret hold
+                </button>
+            )}
+
+            {team.isActive && (
+                <ConfirmDialog
+                    open={confirmInactivateOpen}
+                    title="Inaktivér hold"
+                    message="Denne handling gør holdet inaktivt. Det vil ikke længere kunne ses på hjemmesiden."
+                    confirmationLabel="Skriv holdets navn for at bekræfte inaktivering"
+                    expectedText={team.name}
+                    confirmLabel="Ok"
+                    cancelLabel="Afbryd"
+                    onConfirm={() => onInactivate(Number(team.id))}
+                    onCancel={() => setConfirmInactivateOpen(false)}
+                />
+            )}
+        </div>
+    );
+}
 
 export default function AdminTeamsPage() {
     const client = useApolloClient();
@@ -26,11 +226,6 @@ export default function AdminTeamsPage() {
     const [memberIds, setMemberIds] = useState<number[]>([]);
     const [toastOpen, setToastOpen] = useState(false);
     const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
-    const [editTeamName, setEditTeamName] = useState(false);
-    const [editTeamMembers, setEditTeamMembers] = useState(false);
-    const [editTeamNameValue, setEditTeamNameValue] = useState("");
-    const [editMemberIds, setEditMemberIds] = useState<number[]>([]);
-    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
     const { data: membersData, loading: membersLoading } = useQuery(GetClubMembersDocument, {
         variables: { id: clubId, includeInactive: showInactive },
@@ -40,7 +235,7 @@ export default function AdminTeamsPage() {
 
     const [createTeam, { loading: creating }] = useMutation(CreateTeamDocument);
     const [updateTeam, { loading: updating }] = useMutation(UpdateTeamDocument);
-    const [deleteTeam, { loading: deleting }] = useMutation(DeleteTeamDocument);
+    const [setTeamActive, { loading: togglingActive }] = useMutation(SetTeamActiveDocument);
 
     const { data: editTeamData } = useQuery(GetTeamForEditDocument, {
         variables: { id: selectedTeamId ?? "", includeInactive: showInactive },
@@ -48,20 +243,6 @@ export default function AdminTeamsPage() {
     });
     const editTeam = editTeamData?.team;
     const editClubMembers = editTeam?.club?.members ?? [];
-    const originalTeamName = editTeam?.name ?? "";
-    const originalMemberIds = editTeam?.members.map((m) => Number(m.id)) ?? [];
-    const isTeamNameDirty = editTeamNameValue !== originalTeamName;
-    const isTeamMembersDirty =
-        editMemberIds.length !== originalMemberIds.length ||
-        editMemberIds.some((id) => !originalMemberIds.includes(id));
-
-    useEffect(() => {
-        if (!editTeam) return;
-        setEditTeamNameValue(editTeam.name);
-        setEditMemberIds(editTeam.members.map((m) => Number(m.id)));
-        setEditTeamName(false);
-        setEditTeamMembers(false);
-    }, [editTeam?.id]);
 
     const toggleMember = (userId: number) => {
         setMemberIds((prev) =>
@@ -88,47 +269,47 @@ export default function AdminTeamsPage() {
         setToastOpen(true);
     };
 
-    const handleSaveTeamName = async () => {
-        if (!editTeam) return;
-
+    const handleSaveTeamName = async (id: number, nameValue: string) => {
         await updateTeam({
             variables: {
-                id: Number(editTeam.id),
-                name: editTeamNameValue,
+                id,
+                name: nameValue,
             },
         });
         await client.refetchQueries({
             include: [GetClubsWithTeamsDocument, GetTeamForEditDocument],
         });
-
-        setEditTeamName(false);
     };
 
-    const handleSaveTeamMembers = async () => {
-        if (!editTeam) return;
-
+    const handleSaveTeamMembers = async (id: number, memberIdsValue: number[]) => {
         await updateTeam({
             variables: {
-                id: Number(editTeam.id),
-                memberIds: editMemberIds,
+                id,
+                memberIds: memberIdsValue,
             },
         });
         await client.refetchQueries({
             include: [GetClubsWithTeamsDocument, GetTeamForEditDocument],
         });
-
-        setEditTeamMembers(false);
     };
 
-    const handleDeleteTeam = async () => {
-        if (!editTeam) return;
-        await deleteTeam({
-            variables: { id: Number(editTeam.id) },
+    const handleInactivateTeam = async (id: number) => {
+        await setTeamActive({
+            variables: { id, isActive: false },
         });
         await client.refetchQueries({
             include: [GetClubsWithTeamsDocument],
         });
-        setConfirmDeleteOpen(false);
+        setSelectedTeamId(null);
+    };
+
+    const handleRestoreTeam = async (id: number) => {
+        await setTeamActive({
+            variables: { id, isActive: true },
+        });
+        await client.refetchQueries({
+            include: [GetClubsWithTeamsDocument],
+        });
         setSelectedTeamId(null);
     };
 
@@ -236,149 +417,18 @@ export default function AdminTeamsPage() {
             </div>
 
             {editTeam && (
-                <div className="mt-8 flex flex-col gap-3 max-w-md">
-                    <h3 className="text-lg font-semibold">Rediger hold</h3>
-
-                    <div className="flex items-center gap-2">
-                        <input
-                            value={editTeamNameValue}
-                            readOnly={!editTeamName}
-                            onChange={(e) => setEditTeamNameValue(e.target.value)}
-                            className={`border p-2 rounded flex-1 ${
-                                editTeamName ? "" : "bg-gray-100 text-gray-500 cursor-not-allowed"
-                            }`}
-                        />
-                        {!editTeamName ? (
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setEditTeamNameValue(originalTeamName);
-                                    setEditTeamName(true);
-                                }}
-                                className="text-blue-600 hover:underline"
-                            >
-                                Rediger
-                            </button>
-                        ) : (
-                            <>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setEditTeamNameValue(originalTeamName);
-                                        setEditTeamName(false);
-                                    }}
-                                    className="text-red-500 hover:underline"
-                                >
-                                    Fortryd
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={handleSaveTeamName}
-                                    disabled={updating || !isTeamNameDirty}
-                                    className={`border px-3 py-2 rounded transition ${
-                                        updating || !isTeamNameDirty
-                                            ? "bg-gray-200 text-gray-500 border-gray-200 cursor-not-allowed"
-                                            : "bg-green-600 text-white border-green-600 hover:bg-green-700"
-                                    }`}
-                                >
-                                    Gem
-                                </button>
-                            </>
-                        )}
-                    </div>
-
-                    <div className="border p-2 rounded">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="font-medium">Holdspillere</span>
-                            {!editTeamMembers ? (
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setEditMemberIds(originalMemberIds);
-                                        setEditTeamMembers(true);
-                                    }}
-                                    className="text-blue-600 hover:underline"
-                                >
-                                    Rediger
-                                </button>
-                            ) : (
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setEditMemberIds(originalMemberIds);
-                                            setEditTeamMembers(false);
-                                        }}
-                                        className="text-red-500 hover:underline"
-                                    >
-                                        Fortryd
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={handleSaveTeamMembers}
-                                        disabled={updating || !isTeamMembersDirty}
-                                        className={`border px-3 py-1 rounded transition ${
-                                            updating || !isTeamMembersDirty
-                                                ? "bg-gray-200 text-gray-500 border-gray-200 cursor-not-allowed"
-                                                : "bg-green-600 text-white border-green-600 hover:bg-green-700"
-                                        }`}
-                                    >
-                                        Gem
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                        {editClubMembers.length === 0 ? (
-                            <p>Ingen medlemmer i denne klub.</p>
-                        ) : (
-                            <ul className="flex flex-col gap-1">
-                                {editClubMembers.map((member) => {
-                                    const memberId = Number(member.id);
-                                    return (
-                                        <li key={member.id} className="flex items-center gap-2">
-                                            <input
-                                                type="checkbox"
-                                                checked={editMemberIds.includes(memberId)}
-                                                onChange={() => {
-                                                    if (!editTeamMembers) return;
-                                                    setEditMemberIds((prev) =>
-                                                        prev.includes(memberId)
-                                                            ? prev.filter((id) => id !== memberId)
-                                                            : [...prev, memberId]
-                                                    );
-                                                }}
-                                                disabled={!editTeamMembers}
-                                            />
-                                            <span>{member.name} ({member.email})</span>
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                        )}
-                    </div>
-
-                    <button
-                        type="button"
-                        onClick={() => setConfirmDeleteOpen(true)}
-                        disabled={deleting}
-                        className="mt-2 bg-red-600 text-white p-2 rounded hover:bg-red-700"
-                    >
-                        Slet hold
-                    </button>
-
-                </div>
+                <EditTeamForm
+                    key={editTeam.id}
+                    team={editTeam}
+                    clubMembers={editClubMembers}
+                    updating={updating}
+                    togglingActive={togglingActive}
+                    onSaveName={handleSaveTeamName}
+                    onSaveMembers={handleSaveTeamMembers}
+                    onInactivate={handleInactivateTeam}
+                    onRestore={handleRestoreTeam}
+                />
             )}
-            <ConfirmDialog
-                open={confirmDeleteOpen}
-                title="Slet hold"
-                message="Denne handling sætter klubben som permanent inaktiv. Den vil ikke længere kunne ses på hjemmesiden."
-                confirmationLabel="Skriv holdets navn for at bekræfte"
-                expectedText={editTeam?.name ?? ""}
-                confirmLabel="Ok"
-                cancelLabel="Afbryd"
-                onConfirm={handleDeleteTeam}
-                onCancel={() => setConfirmDeleteOpen(false)}
-            />
             <Toast
                 message="Hold Oprettet"
                 open={toastOpen}

@@ -2,18 +2,19 @@
 
 import { useState } from "react";
 import { useClubs } from "@/app/components/hooks/useClubs";
-import { useMutation, useQuery } from "@apollo/client/react";
+import { useApolloClient, useMutation, useQuery } from "@apollo/client/react";
 import {
     CreateClubDocument,
-    DeleteClubDocument,
     GetClubsDocument,
     GetUsersDocument,
+    SetClubActiveDocument,
     UpdateClubDocument,
 } from "@/generated/graphql";
 import { Toast } from "@/app/components/ui/Toast";
 import { ConfirmDialog } from "@/app/components/ui/ConfirmDialog";
 
 export default function AdminClubsPage() {
+    const client = useApolloClient();
     const [showInactive, setShowInactive] = useState(false);
     const { regions, loading, clubs } = useClubs(showInactive);
 
@@ -29,17 +30,14 @@ export default function AdminClubsPage() {
     const [editNameValue, setEditNameValue] = useState("");
     const [editAddressValue, setEditAddressValue] = useState("");
     const [editRegionValue, setEditRegionValue] = useState("");
-    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+    const [confirmInactivateOpen, setConfirmInactivateOpen] = useState(false);
 
-    const [createClub, { loading: creating }] = useMutation(CreateClubDocument, {
-        refetchQueries: [GetClubsDocument],
-    });
+    const [createClub, { loading: creating }] = useMutation(CreateClubDocument);
     const [updateClub, { loading: updating }] = useMutation(UpdateClubDocument, {
         refetchQueries: [GetClubsDocument],
     });
-    const [deleteClub, { loading: deleting }] = useMutation(DeleteClubDocument, {
-        refetchQueries: [GetClubsDocument],
-    });
+    const [inactivateClub, { loading: inactivating }] = useMutation(SetClubActiveDocument);
+    const [setClubActive, { loading: togglingActive }] = useMutation(SetClubActiveDocument);
 
     const { data: usersData, loading: usersLoading } = useQuery(GetUsersDocument);
     const users = usersData?.users ?? [];
@@ -54,6 +52,9 @@ export default function AdminClubsPage() {
                 region,
                 managerEmail,
             },
+        });
+        await client.refetchQueries({
+            include: [GetClubsDocument],
         });
 
         setName("");
@@ -120,12 +121,26 @@ export default function AdminClubsPage() {
         setEditRegion(false);
     };
 
-    const handleDeleteClub = async () => {
+    const handleInactivateClub = async () => {
         if (!selectedClubId) return;
-        await deleteClub({
-            variables: { id: Number(selectedClubId) },
+        await inactivateClub({
+            variables: { id: Number(selectedClubId), isActive: false },
         });
-        setConfirmDeleteOpen(false);
+        await client.refetchQueries({
+            include: [GetClubsDocument],
+        });
+        setConfirmInactivateOpen(false);
+        setSelectedClubId(null);
+    };
+
+    const handleRestoreClub = async () => {
+        if (!selectedClubId) return;
+        await setClubActive({
+            variables: { id: Number(selectedClubId), isActive: true },
+        });
+        await client.refetchQueries({
+            include: [GetClubsDocument],
+        });
         setSelectedClubId(null);
     };
 
@@ -372,27 +387,40 @@ export default function AdminClubsPage() {
                         )}
                     </div>
 
-                    <button
-                        type="button"
-                        onClick={() => setConfirmDeleteOpen(true)}
-                        disabled={deleting}
-                        className="mt-2 bg-red-600 text-white p-2 rounded hover:bg-red-700"
-                    >
-                        Slet klub
-                    </button>
+                    {selectedClub.isActive ? (
+                        <button
+                            type="button"
+                            onClick={() => setConfirmInactivateOpen(true)}
+                            disabled={inactivating}
+                            className="mt-2 bg-red-600 text-white p-2 rounded hover:bg-red-700"
+                        >
+                            Inaktivér klub
+                        </button>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={handleRestoreClub}
+                            disabled={togglingActive}
+                            className="mt-2 bg-green-600 text-white p-2 rounded hover:bg-green-700"
+                        >
+                            Genopret klub
+                        </button>
+                    )}
                 </div>
             )}
-            <ConfirmDialog
-                open={confirmDeleteOpen}
-                title="Slet klub"
-                message="Denne handling sætter klubben som permanent inaktiv. Den vil ikke længere kunne ses på hjemmesiden, og alle kamphold tilknyttet klubben vil også blive skjult."
-                confirmationLabel="Skriv klubbens navn for at bekræfte"
-                expectedText={selectedClub?.name ?? ""}
-                confirmLabel="Ok"
-                cancelLabel="Afbryd"
-                onConfirm={handleDeleteClub}
-                onCancel={() => setConfirmDeleteOpen(false)}
-            />
+            {selectedClub?.isActive && (
+                <ConfirmDialog
+                    open={confirmInactivateOpen}
+                    title="Inaktivér klub"
+                    message="Denne handling gør klubben inaktiv. Den vil ikke længere kunne ses på hjemmesiden, og alle kamphold tilknyttet klubben vil også blive skjult."
+                    confirmationLabel="Skriv klubbens navn for at bekræfte inaktivering"
+                    expectedText={selectedClub?.name ?? ""}
+                    confirmLabel="Ok"
+                    cancelLabel="Afbryd"
+                    onConfirm={handleInactivateClub}
+                    onCancel={() => setConfirmInactivateOpen(false)}
+                />
+            )}
             <Toast
                 message="Klub oprettet"
                 open={toastOpen}

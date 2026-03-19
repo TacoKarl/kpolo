@@ -109,8 +109,11 @@ mutation UpdateClub($id: Int!, $name: String, $address: String, $region: String)
     }
 }
 
-mutation DeleteClub($id: Int!) {
-    deleteClub(id: $id)
+mutation SetClubActive($id: Int!, $isActive: Boolean!) {
+    setClubActive(id: $id, isActive: $isActive) {
+        id
+        isActive
+    }
 }
 
 mutation CreateTeam($name: String!, $clubId: Int!, $memberIds: [Int!]!) {
@@ -127,6 +130,10 @@ mutation UpdateTeam($id: Int!, $name: String, $memberIds: [Int!]) {
     }
 }
 
-mutation DeleteTeam($id: Int!) {
-    deleteTeam(id: $id)
+mutation SetTeamActive($id: Int!, $isActive: Boolean!) {
+    setTeamActive(id: $id, isActive: $isActive) {
+        id
+        isActive
+    }
 }
+
