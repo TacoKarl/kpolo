@@ -12,6 +12,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  DateTime: { input: any; output: any; }
 };
 
 export type Club = {
@@ -20,16 +21,35 @@ export type Club = {
   contact_info?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   isActive: Scalars['Boolean']['output'];
-  members: Array<User>;
+  members?: Maybe<Array<User>>;
   name: Scalars['String']['output'];
   region: Scalars['String']['output'];
-  teams: Array<Team>;
+  teams?: Maybe<Array<Team>>;
   website?: Maybe<Scalars['String']['output']>;
 };
 
 
 export type ClubTeamsArgs = {
   includeInactive?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+export type CreateTournamentInput = {
+  dates?: InputMaybe<Array<TournamentDateInput>>;
+  divisions?: InputMaybe<Array<DivisionInput>>;
+  name: Scalars['String']['input'];
+  season: Scalars['String']['input'];
+  teamAssignments?: InputMaybe<Array<TeamAssignmentInput>>;
+};
+
+export type Division = {
+  __typename?: 'Division';
+  id: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  teams?: Maybe<Array<TournamentTeam>>;
+};
+
+export type DivisionInput = {
+  name: Scalars['String']['input'];
 };
 
 export type LoginResponse = {
@@ -39,23 +59,31 @@ export type LoginResponse = {
   userId: Scalars['Int']['output'];
 };
 
+export type Match = {
+  __typename?: 'Match';
+  division?: Maybe<Division>;
+  id: Scalars['Int']['output'];
+  match_date: Scalars['String']['output'];
+  team1: Team;
+  team1_score?: Maybe<Scalars['Int']['output']>;
+  team2: Team;
+  team2_score?: Maybe<Scalars['Int']['output']>;
+  tournament: Tournament;
+  winner_team?: Maybe<Team>;
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
-  add: Scalars['Int']['output'];
   createClub: Club;
   createTeam: Team;
+  createTournament: Tournament;
   login: LoginResponse;
   register: RegisterResponse;
   setClubActive: Club;
   setTeamActive: Team;
   updateClub: Club;
   updateTeam: Team;
-};
-
-
-export type MutationAddArgs = {
-  a: Scalars['Int']['input'];
-  b: Scalars['Int']['input'];
+  updateTournament: Tournament;
 };
 
 
@@ -71,6 +99,11 @@ export type MutationCreateTeamArgs = {
   clubId: Scalars['Int']['input'];
   memberIds: Array<Scalars['Int']['input']>;
   name: Scalars['String']['input'];
+};
+
+
+export type MutationCreateTournamentArgs = {
+  input?: InputMaybe<CreateTournamentInput>;
 };
 
 
@@ -113,6 +146,12 @@ export type MutationUpdateTeamArgs = {
   name?: InputMaybe<Scalars['String']['input']>;
 };
 
+
+export type MutationUpdateTournamentArgs = {
+  id: Scalars['Int']['input'];
+  input?: InputMaybe<UpdateTournamentInput>;
+};
+
 export type Query = {
   __typename?: 'Query';
   club?: Maybe<Club>;
@@ -153,15 +192,51 @@ export type Team = {
   club: Club;
   id: Scalars['ID']['output'];
   isActive: Scalars['Boolean']['output'];
-  members: Array<User>;
+  members?: Maybe<Array<User>>;
   name: Scalars['String']['output'];
+};
+
+export type TeamAssignmentInput = {
+  divisionIndex: Scalars['Int']['input'];
+  teamId: Scalars['Int']['input'];
 };
 
 export type Tournament = {
   __typename?: 'Tournament';
+  dates?: Maybe<Array<TournamentDate>>;
+  divisions?: Maybe<Array<Division>>;
   id: Scalars['Int']['output'];
+  matches?: Maybe<Array<Match>>;
   name: Scalars['String']['output'];
   season: Scalars['String']['output'];
+  teams?: Maybe<Array<TournamentTeam>>;
+};
+
+export type TournamentDate = {
+  __typename?: 'TournamentDate';
+  date: Scalars['DateTime']['output'];
+  id: Scalars['Int']['output'];
+  tournament: Tournament;
+};
+
+export type TournamentDateInput = {
+  date: Scalars['String']['input'];
+};
+
+export type TournamentTeam = {
+  __typename?: 'TournamentTeam';
+  division: Division;
+  id: Scalars['Int']['output'];
+  team: Team;
+  tournament: Tournament;
+};
+
+export type UpdateTournamentInput = {
+  dates?: InputMaybe<Array<TournamentDateInput>>;
+  divisions?: InputMaybe<Array<DivisionInput>>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  season?: InputMaybe<Scalars['String']['input']>;
+  teamAssignments?: InputMaybe<Array<TeamAssignmentInput>>;
 };
 
 export type User = {

@@ -210,6 +210,52 @@ export async function seedFakeData(prisma: PrismaClient) {
 
   console.log('Created tournaments');
 
+  const ligaDivision = await prisma.division.create({
+    data: {
+      tournament_id: tournament1.id,
+      name: "Liga",
+    },
+  });
+
+  const firstDivision = await prisma.division.create({
+    data: {
+      tournament_id: tournament1.id,
+      name: "1. Division",
+    },
+  });
+  console.log('Created divisions');
+
+  await prisma.tournamentDate.createMany({
+    data: [
+      { tournament_id: tournament1.id, date: new Date(2024, 8, 15) },
+      { tournament_id: tournament1.id, date: new Date(2024, 9, 5) },
+      { tournament_id: tournament2.id, date: new Date(2024, 10, 20) },
+    ],
+  });
+
+  console.log('Created Tournament dates');
+
+  await prisma.tournamentTeam.createMany({
+    data: [
+      {
+        tournament_id: tournament1.id,
+        team_id: team1.id,
+        division_id: ligaDivision.id,
+      },
+      {
+        tournament_id: tournament1.id,
+        team_id: team2.id,
+        division_id: ligaDivision.id,
+      },
+      {
+        tournament_id: tournament1.id,
+        team_id: team3.id,
+        division_id: firstDivision.id,
+      },
+    ],
+  });
+
+  console.log('Created tournament teams');
   // Create matches
   const matchDate1 = new Date(2024, 8, 15); // September 15, 2024
   const matchDate2 = new Date(2024, 9, 5); // October 5, 2024
@@ -218,6 +264,7 @@ export async function seedFakeData(prisma: PrismaClient) {
   await prisma.match.create({
     data: {
       tournament_id: tournament1.id,
+      division_id: ligaDivision.id,
       team1_id: team1.id,
       team2_id: team3.id,
       team1_score: 5,
@@ -230,6 +277,7 @@ export async function seedFakeData(prisma: PrismaClient) {
   await prisma.match.create({
     data: {
       tournament_id: tournament1.id,
+      division_id: firstDivision.id,
       team1_id: team2.id,
       team2_id: team3.id,
       team1_score: 2,
