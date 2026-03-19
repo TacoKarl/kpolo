@@ -1,0 +1,44 @@
+/* Grundlæggende styling for alle knapper */
+.btn {
+    padding: 0.5rem 0.5rem;
+    border: none;
+    margin: 2px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease-in-out; /* 'all' fanger også scale og border */
+}
+
+/* --- GRØN (Success) --- */
+.green {
+    background-color: #2dc522; /* En frisk, moderne grøn */
+    color: white; /* Hvid tekst læses ofte bedre på denne grønne */
+}
+
+.green:hover {
+    background-color: #16a31d; /* Gør den mørkere ved hover */
+    transform: translateY(-1px); /* Lille løft-effekt */
+}
+
+/* --- RØD (Danger) --- */
+.red {
+    background-color: #f31010; /* En klar, men balanceret rød */
+    color: white;
+}
+
+.red:hover {
+    background-color: #d51111; /* Dyb rød ved hover */
+    transform: translateY(-1px);
+}
+
+/* --- OUTLINE (Neutral/Action) --- */
+.outline {
+    background-color: transparent;
+    border: 2px solid #3b82f6; /* Blå outline i stedet for den meget skarpe blå */
+    color: #3b82f6;
+}
+
+.outline:hover {
+    background-color: #3b82f6;
+    color: white;
+}
