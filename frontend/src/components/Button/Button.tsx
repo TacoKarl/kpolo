@@ -5,7 +5,7 @@ interface ButtonProps {
     children: React.ReactNode;
     variant?: 'green' | 'red' | 'outline'; // Valgfri prop
 }
-export const Button = ({ children, variant = 'primary' }: ButtonProps) => {
+export const Button = ({ children, variant = 'outline' }: ButtonProps) => {
     const buttonClass = `${styles.btn} ${styles[variant]}`;
 
     return (
