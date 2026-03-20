@@ -9,21 +9,19 @@ function getTokenExpiration(token: string): Date {
   return new Date(payload.exp * 1000)
 }
 
-export async function createSession(token: string) {
+export async function createSession(refreshToken: string) {
   const cookieStore = await cookies()
 
-  cookieStore.set('kpolo_session', token, {
+  cookieStore.set('kpolo_refresh', refreshToken, {
     httpOnly: true,
     secure: true,
-    expires: getTokenExpiration(token),
+    expires: getTokenExpiration(refreshToken),
     sameSite: 'lax',
     path: '/',
   })
 }
 
-
-
 export async function deleteSession() {
   const cookieStore = await cookies()
-  cookieStore.delete('kpolo_session')
+  cookieStore.delete('kpolo_refresh')
 }
