@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "name": "kpolo-bruno",
+  "name": "local",
   "type": "collection",
   "ignore": [
     "node_modules",
