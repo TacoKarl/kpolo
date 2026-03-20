@@ -5,7 +5,27 @@ on:
     branches: [main]
 
 jobs:
+  changes:
+    name: Check for backend changes
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.check.outputs.backend }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: check
+        run: |
+          # Check if any files in kpolo/backend changed in this push
+          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q '^kpolo/backend/'; then
+            echo "backend=true" >> $GITHUB_OUTPUT
+          else
+            echo "backend=false" >> $GITHUB_OUTPUT
+          fi
+
   deploy:
+    name: Deploy Backend
+    needs: changes
+    if: ${{ needs.changes.outputs.backend == 'true' }}
     runs-on: self-hosted
 
     steps:
