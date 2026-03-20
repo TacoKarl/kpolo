@@ -34,7 +34,7 @@
 /* --- OUTLINE (Neutral/Action) --- */
 .outline {
     background-color: transparent;
-    border: 2px solid #000000; /* Blå outline i stedet for den meget skarpe blå */
+    border: 2px solid #000000;
     color: #000000;
 }
 
