@@ -7,10 +7,13 @@ import Image from "next/image";
 import {jwtDecode} from "jwt-decode";
 import {MyJwtPayload} from "@/app/components/interfaces/MyJwtPayload";
 import {useIsAdmin} from "@/app/components/hooks/useIsAdmin";
+import {Button} from "@/components/Button";
 
 export default function Navbar() {
     const { user, setUser } = useUser();
     const isAdmin = useIsAdmin();
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   const getInitials = (name: string) => {
     const parts = name.trim().split(' ');
     if (parts.length === 1) return parts[0][0].toUpperCase();
@@ -18,6 +21,8 @@ export default function Navbar() {
     const last = parts[parts.length - 1][0];
     return (first + last).toUpperCase();
   };
+
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   return (
     <nav className="sticky top-0 left-0 z-50 bg-gray-800 p-4 w-full">
@@ -55,7 +60,7 @@ export default function Navbar() {
               )}
             </Link>
         ) : (
-            <Link href="/login" className="text-white">Login</Link>
+            <Button><Link href="/login">Sign in</Link></Button>
         )}
       </div>
       </div>

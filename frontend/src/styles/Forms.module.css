@@ -1,6 +1,6 @@
 /* src/styles/Form.module.css */
 .input, .select {
-    width: fit-content;
+    width: 75%;
     padding: 0.6rem 0.8rem;
     border: 1px solid #d1d5db;
     border-radius: 6px;

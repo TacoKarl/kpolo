@@ -8,8 +8,9 @@ export default function Components () {
     return (
         <>
             <Button variant='outline'>outline button</Button>
-            <Button variant='green'>green button</Button>
-            <Button variant='red'>red button</Button>
+            <Button variant='primary'>primary button</Button>
+            <Button variant='secondary'>secondary button</Button>
+            <Button variant='tertiary'>tertiary button</Button>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <Card variant='info' >
                     <h2 className={cardStyles.title}>cardStyles.title</h2>

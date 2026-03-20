@@ -1,15 +1,19 @@
 import React from 'react';
 import styles from './Button.module.css';
 
-interface ButtonProps {
-    children: React.ReactNode;
-    variant?: 'green' | 'red' | 'outline'; // Valgfri prop
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+    variant?: 'primary' | 'secondary' | 'tertiary' | 'danger' | 'outline';
 }
-export const Button = ({ children, variant = 'outline' }: ButtonProps) => {
-    const buttonClass = `${styles.btn} ${styles[variant]}`;
+
+export const Button = ({ children,
+                           variant = 'primary',
+                           className,
+                           ...props
+                       }: ButtonProps) => {
+    const buttonClass = `${styles.btn} ${styles[variant]} ${className ?? ''}`;
 
     return (
-        <button className={buttonClass}>
+        <button className={buttonClass} {...props}>
             {children}
         </button>
     );

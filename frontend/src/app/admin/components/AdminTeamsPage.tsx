@@ -12,6 +12,9 @@ import {
 } from "@/generated/graphql";
 import { Toast } from "@/app/components/ui/Toast";
 import { ConfirmDialog } from "@/app/components/ui/ConfirmDialog";
+import {Card} from "@/components/Card";
+import {Button} from "@/components/Button";
+import formStyles from "@/styles/Forms.module.css";
 
 type EditTeamFormProps = {
     team: {
@@ -355,13 +358,14 @@ export default function AdminTeamsPage() {
                 </div>
             )}
 
-            <div className="mt-6 flex flex-col gap-2 max-w-md">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <Card>
                 <h3 className="text-lg font-semibold mb-2">Opret nyt hold</h3>
                 <input
                     placeholder="Holdnavn"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="border p-2 rounded"
+                    className={formStyles.input}
                 />
 
                 <select
@@ -370,7 +374,7 @@ export default function AdminTeamsPage() {
                         setClubId(e.target.value);
                         setMemberIds([]);
                     }}
-                    className="border p-2 rounded"
+                    className={formStyles.select}
                 >
                     <option value="">Vælg klub</option>
                     {clubs.map((club) => (
@@ -383,7 +387,7 @@ export default function AdminTeamsPage() {
                 <div className="border p-2 rounded">
                     <div className="font-medium mb-2">Vælg spillere</div>
                     {!clubId ? (
-                        <p>Vælg en klub for at se spillere.</p>
+                        <p className={"text-red-500"}>Vælg en klub for at se spillere.</p>
                     ) : membersLoading ? (
                         <p>Loading...</p>
                     ) : members.length === 0 ? (
@@ -407,16 +411,18 @@ export default function AdminTeamsPage() {
                     )}
                 </div>
 
-                <button
+                <Button
                     onClick={handleCreateTeam}
                     disabled={creating}
-                    className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
+                    variant={'primary'}
                 >
                     Opret hold
-                </button>
-            </div>
+                </Button>
+                </Card>
+
 
             {editTeam && (
+                <Card>
                 <EditTeamForm
                     key={editTeam.id}
                     team={{
@@ -431,12 +437,15 @@ export default function AdminTeamsPage() {
                     onInactivate={handleInactivateTeam}
                     onRestore={handleRestoreTeam}
                 />
+                </Card>
+
             )}
             <Toast
                 message="Hold Oprettet"
                 open={toastOpen}
                 onClose={() => setToastOpen(false)}
             />
+            </div>
         </div>
     );
 }

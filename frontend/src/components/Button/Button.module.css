@@ -10,35 +10,57 @@
 }
 
 /* --- GRØN (Success) --- */
-.green {
-    background-color: #2dc522; /* En frisk, moderne grøn */
+.primary {
+    background-color: var(--primary); /* En frisk, moderne grøn */
     color: white; /* Hvid tekst læses ofte bedre på denne grønne */
 }
 
-.green:hover {
-    background-color: #16a31d; /* Gør den mørkere ved hover */
+.primary:hover {
+    background-color: #013B60FF; /* Gør den mørkere ved hover */
     transform: translateY(-1px); /* Lille løft-effekt */
 }
 
 /* --- RØD (Danger) --- */
-.red {
-    background-color: #f31010; /* En klar, men balanceret rød */
+.secondary {
+    background-color: var(--secondary); /* En klar, men balanceret rød */
     color: white;
 }
 
-.red:hover {
-    background-color: #d51111; /* Dyb rød ved hover */
+.secondary:hover {
+    background-color: #c55201; /* Dyb rød ved hover */
     transform: translateY(-1px);
 }
 
 /* --- OUTLINE (Neutral/Action) --- */
 .outline {
     background-color: transparent;
-    border: 2px solid #3b82f6; /* Blå outline i stedet for den meget skarpe blå */
-    color: #3b82f6;
+    border: 2px solid #000000; /* Blå outline i stedet for den meget skarpe blå */
+    color: #000000;
 }
 
 .outline:hover {
-    background-color: #3b82f6;
+    background-color: #000000;
     color: white;
+}
+
+.tertiary {
+    background-color: var(--tertiary); /* En klar, men balanceret rød */
+    color: white;
+}
+
+.tertiary:hover {
+    background-color: #017880; /* Dyb rød ved hover */
+    transform: translateY(-1px);
+}
+
+.danger {
+    background: #fb2c36;
+    padding-block: 0.25rem;
+    padding-inline: 0.5rem;
+    border-radius: 4px;
+    color: white;
+}
+
+.danger:hover {
+    background: #b91c1c;
 }
