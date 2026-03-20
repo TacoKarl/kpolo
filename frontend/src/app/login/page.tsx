@@ -3,8 +3,6 @@
 import {useCallback, useEffect, useRef, useState} from "react";
 import { useUser } from "@/app/context/UserContext";
 import {useRouter} from "next/navigation";
-import { getGraphqlUrl } from "@/app/lib/apiUrls";
-import { setAccessToken } from "@/app/lib/auth";
 
 export default function LoginPage() {
     const isDev = process.env.NODE_ENV === 'development';
@@ -61,10 +59,9 @@ export default function LoginPage() {
         `;
 
         try {
-        const res = await fetch(getGraphqlUrl(), {
+            const res = await fetch(process.env.NEXT_PUBLIC_API_URL!, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                credentials: "include",
                 body: JSON.stringify({
                     query,
                     variables: {email: email, password: password},
@@ -79,10 +76,11 @@ export default function LoginPage() {
 
             const loginData = data.data.login;
             if (loginData) {
-                setAccessToken(loginData.token);
+                localStorage.setItem('token', loginData.token);
                 setUser({
                     name: loginData.name,
                     avatarUrl: null,
+                    token: loginData.token,
                 });
             }
 

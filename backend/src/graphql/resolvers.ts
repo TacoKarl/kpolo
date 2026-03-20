@@ -1,9 +1,8 @@
 import type { Pool } from "pg";
-import type { Request, Response } from "express";
 import { PrismaClient } from "../generated/prisma/index.js";
 import bcrypt from "bcrypt"
+import jwt from "jsonwebtoken"
 import { PrismaPg } from '@prisma/adapter-pg';
-import { signAccessToken, signRefreshToken, setRefreshTokenCookie, type TokenPayload } from "../auth/tokens.js";
 
 const adapter = new PrismaPg({
     connectionString: process.env.DATABASE_URL!,
@@ -13,9 +12,6 @@ const prisma = new PrismaClient({ adapter });
 
 export type GraphQLContext = {
     pool: Pool;
-    req: Request;
-    res: Response;
-    user: TokenPayload | null;
 };
 
 type DivisionInput = { name: string };
@@ -423,7 +419,7 @@ const resolvers = {
 
             return user;
         },
-        login: async (_: any, { email, password }: {email: string; password: string}, ctx: GraphQLContext) => {
+        login: async (_: any, { email, password }: {email: string; password: string}) => {
             const user = await prisma.user.findUnique({ 
                 where: { email },
                 include: { roles: true }, // fetches the related Role[] array
@@ -435,10 +431,8 @@ const resolvers = {
 
             const userRoles = user.roles.map((r) => r.role);
 
-            const isDev = process.env.NODE_ENV === "development";
-            const token = signAccessToken({ userId: user.id, userRoles });
-            const refreshToken = signRefreshToken({ userId: user.id, userRoles });
-            setRefreshTokenCookie(ctx.res, refreshToken, isDev);
+
+            const token = jwt.sign({ userId: user.id, userRoles}, process.env.JWT_SECRET!, {expiresIn: "1h"});
 
             return {
                 token,
