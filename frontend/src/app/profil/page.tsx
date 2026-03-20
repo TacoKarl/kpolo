@@ -1,22 +1,16 @@
 'use client';
 import { useUser } from "@/app/context/UserContext";
 import { useRouter } from "next/navigation";
-import { clearAccessToken } from "@/app/lib/auth";
-import { getLogoutUrl } from "@/app/lib/apiUrls";
-import Image from "next/image";
 
-export default function ProfilePage () {
+export default function profilePage () {
     const { user, setUser } = useUser();
     const router = useRouter();
 
-    const handleLogout = async () => {
-        clearAccessToken();
+    const handleLogout = () => {
+        // Ryd context og localStorage
         setUser(null);
-        try {
-            await fetch(getLogoutUrl(), { method: "POST", credentials: "include" });
-        } catch {
-            // Ignore logout failures; the client state is already cleared.
-        }
+        localStorage.removeItem("token"); // hvis du også gemmer token separat
+        localStorage.removeItem("user");
         router.push("/login");
     };
 
@@ -26,15 +20,7 @@ export default function ProfilePage () {
             {user && (
                 <div className="mt-4 flex flex-col gap-2">
                     <p>Navn: {user.name}</p>
-                    {user.avatarUrl && (
-                        <Image
-                            src={user.avatarUrl}
-                            alt="Profilbillede"
-                            width={96}
-                            height={96}
-                            className="w-24 h-24 rounded-full"
-                        />
-                    )}
+                    {user.avatarUrl && <img src={user.avatarUrl} alt="Profilbillede" className="w-24 h-24 rounded-full" />}
 
                     <button
                         onClick={handleLogout}

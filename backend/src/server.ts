@@ -3,7 +3,6 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import cors from "cors";
-import cookieParser from "cookie-parser";
 import { ApolloServer } from "@apollo/server";
 import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
 import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin/landingPage/default";
@@ -11,16 +10,6 @@ import { expressMiddleware } from "@as-integrations/express5";
 
 import { pool } from "./db/pool.js";
 import healthRoutes from "./modules/health/health.routes.js";
-import {
-    clearRefreshTokenCookie,
-    getAccessTokenFromRequest,
-    getRefreshTokenFromRequest,
-    setRefreshTokenCookie,
-    signAccessToken,
-    signRefreshToken,
-    verifyAccessToken,
-    verifyRefreshToken,
-} from "./auth/tokens.js";
 
 import { typeDefs } from "./graphql/typeDefs.js";
 import resolvers from "./graphql/resolvers.js";
@@ -36,7 +25,6 @@ const allowedOrigins = isDev
 
 // Usual middleware
 app.use(express.json());
-app.use(cookieParser());
 
 // Optional: if you want to lock CORS down, replace "*" with your frontend dev URL
 // e.g. "http://localhost:3001" or "http://localhost:5173"
@@ -53,27 +41,6 @@ app.use(
 
 // Health stays as-is
 app.use("/health", healthRoutes);
-
-app.post("/refresh", (req, res) => {
-    const token = getRefreshTokenFromRequest(req);
-    if (!token) return res.status(401).json({ error: "Missing refresh token" });
-
-    try {
-        const payload = verifyRefreshToken(token);
-        const accessToken = signAccessToken(payload);
-        const refreshToken = signRefreshToken(payload);
-        setRefreshTokenCookie(res, refreshToken, isDev);
-        return res.json({ accessToken });
-    } catch (err) {
-        clearRefreshTokenCookie(res, isDev);
-        return res.status(401).json({ error: "Invalid refresh token" });
-    }
-});
-
-app.post("/logout", (_req, res) => {
-    clearRefreshTokenCookie(res, isDev);
-    res.json({ ok: true });
-});
 // Apollo Server
 const apollo = new ApolloServer({
     typeDefs,
@@ -90,18 +57,7 @@ await apollo.start();
 app.use(
     "/graphql",
     expressMiddleware(apollo, {
-        context: async ({ req, res }) => {
-            const token = getAccessTokenFromRequest(req);
-            let user = null;
-            if (token) {
-                try {
-                    user = verifyAccessToken(token);
-                } catch {
-                    user = null;
-                }
-            }
-            return { pool, req, res, user };
-        },
+        context: async () => ({ pool }),
     })
 );
 
