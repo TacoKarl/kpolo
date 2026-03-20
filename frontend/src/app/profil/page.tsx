@@ -1,16 +1,21 @@
 'use client';
 import { useUser } from "@/app/context/UserContext";
 import { useRouter } from "next/navigation";
+import { clearAccessToken } from "@/app/lib/auth";
+import { getLogoutUrl } from "@/app/lib/apiUrls";
 
 export default function profilePage () {
     const { user, setUser } = useUser();
     const router = useRouter();
 
-    const handleLogout = () => {
-        // Ryd context og localStorage
+    const handleLogout = async () => {
+        clearAccessToken();
         setUser(null);
-        localStorage.removeItem("token"); // hvis du også gemmer token separat
-        localStorage.removeItem("user");
+        try {
+            await fetch(getLogoutUrl(), { method: "POST", credentials: "include" });
+        } catch {
+            // Ignore logout failures; client state is already cleared.
+        }
         router.push("/login");
     };
 
