@@ -14,6 +14,10 @@ export type GraphQLContext = {
     pool: Pool;
 };
 
+type DivisionInput = { name: string };
+type TournamentDateInput = { date: string };
+type TeamAssignmentInput = { teamId: number; divisionIndex: number };
+
 const resolvers = {
     Query: {
         hello: () => "Hello from Apollo GraphQL and welcome to Jackass",
@@ -23,7 +27,22 @@ const resolvers = {
         },
 
         tournaments: async () => {
-            return prisma.tournament.findMany();
+            return prisma.tournament.findMany({
+                include: {
+                    divisions: {
+                        include: {
+                            teams: {
+                                include: { team: true } // TournamentTeam -> Team
+                            }
+                        }
+                    },
+                    dates: true, // TournamentDate
+                    teams: { // direkte teams på turnering
+                        include: { team: true, division: true }
+                    },
+                    matches: true, // hvis du vil have dem med
+                }
+            });
         },
 
         clubs: async (_: unknown, args: { includeInactive?: boolean }) => {
@@ -101,7 +120,6 @@ const resolvers = {
         },
     },
     Mutation: {
-        add: (_parent: unknown, args: { a: number; b: number }) => args.a + args.b,
         createClub: async (
             _: any,
             {
@@ -240,6 +258,149 @@ const resolvers = {
                 data: { is_active: isActive },
             });
         },
+        createTournament: async (_: any, { input }: {
+            input: {
+                name: string;
+                season: string;
+                divisions: DivisionInput[];
+                dates: TournamentDateInput[];
+                teamAssignments: TeamAssignmentInput[];
+            };
+        }) => {
+            const { name, season, divisions = [], dates = [], teamAssignments = [] } = input;
+
+            return prisma.$transaction(async (tx) => {
+                // 1️⃣ Opret turnering
+                const tournament = await tx.tournament.create({ data: { name, season } });
+
+                // 2️⃣ Opret divisioner
+                const divisionRecords = await Promise.all(
+                    divisions.map(div =>
+                        tx.division.create({
+                            data: {
+                                name: div.name,
+                                tournament_id: tournament.id,
+                            },
+                        })
+                    )
+                );
+
+                // 3️⃣ Opret datoer
+                await Promise.all(
+                    dates.map(d =>
+                        tx.tournamentDate.create({
+                            data: {
+                                tournament_id: tournament.id,
+                                date: new Date(d.date), // sørg for ISO string
+                            },
+                        })
+                    )
+                );
+
+                // 4️⃣ Opret teams i divisioner
+                await Promise.all(
+                    teamAssignments.map(({ teamId, divisionIndex }) => {
+                        const division = divisionRecords[divisionIndex];
+                        if (!division) throw new Error("Invalid divisionIndex in teamAssignments");
+
+                        return tx.tournamentTeam.create({
+                            data: {
+                                tournament_id: tournament.id,
+                                team_id: teamId,
+                                division_id: division.id,
+                            },
+                        });
+                    })
+                );
+
+                // 5️⃣ Returner turnering inkl. relationer
+                return tx.tournament.findUnique({
+                    where: { id: tournament.id },
+                    include: {
+                        divisions: {
+                            include: {
+                                teams: { include: { team: true } },
+                            },
+                        },
+                        dates: true,
+                        teams: { include: { team: true, division: true } },
+                        matches: true,
+                    },
+                });
+            });
+        },
+        updateTournament: async (_: any, { id, input }: { id: number;
+            input: {
+                name: string;
+                season: string;
+                divisions: DivisionInput[];
+                dates: TournamentDateInput[];
+                teamAssignments: TeamAssignmentInput[];
+            };
+        }) => {
+            const { name, season, divisions, dates, teamAssignments } = input;
+
+            return prisma.$transaction(async (tx) => {
+                // Opdater navn og sæson
+                await tx.tournament.update({
+                    where: { id },
+                    data: { ...(name && { name }), ...(season && { season }) },
+                });
+
+                // Optionelt: opdater divisioner
+                if (divisions) {
+                    const existingDivisions = await tx.division.findMany({ where: { tournament_id: id } });
+                    for (const div of existingDivisions) {
+                        // slet først alle TournamentTeam tilknytninger
+                        await tx.tournamentTeam.deleteMany({ where: { division_id: div.id } });
+                    }
+                    // så kan du slette divisionerne
+                    await tx.division.deleteMany({ where: { tournament_id: id } });
+
+                    await Promise.all(
+                        divisions.map(div =>
+                            tx.division.create({ data: { name: div.name, tournament_id: id } })
+                        )
+                    );
+                }
+
+                // Optionelt: opdater dates
+                if (dates) {
+                    await tx.tournamentDate.deleteMany({ where: { tournament_id: id } });
+                    await Promise.all(
+                        dates.map(d => tx.tournamentDate.create({ data: { tournament_id: id, date: new Date(d.date) } }))
+                    );
+                }
+
+                // Optionelt: opdater teamAssignments
+                if (teamAssignments) {
+                    await tx.tournamentTeam.deleteMany({ where: { tournament_id: id } });
+                    // Husk at mappe divisionIndex til division.id
+                    const divisionRecords = await tx.division.findMany({ where: { tournament_id: id } });
+                    await Promise.all(
+                        teamAssignments.map(({ teamId, divisionIndex }) =>
+                            tx.tournamentTeam.create({
+                                data: {
+                                    tournament_id: id,
+                                    team_id: teamId,
+                                    division_id: divisionRecords[divisionIndex].id,
+                                },
+                            })
+                        )
+                    );
+                }
+
+                return tx.tournament.findUnique({
+                    where: { id },
+                    include: {
+                        divisions: { include: { teams: { include: { team: true } } } },
+                        dates: true,
+                        teams: { include: { team: true, division: true } },
+                    },
+                });
+            });
+        },
+
         register: async (_: any, { email, name, password }: { email: string, name: string, password: string}) => {
             const existingUser = await prisma.user.findUnique({ where: { email } });
             if (existingUser) throw new Error(`User with email ${email} already exists`);

@@ -336,7 +336,7 @@ export default function AdminTeamsPage() {
                                 {club.name}
                             </h4>
                             <ul className="ml-4">
-                                {club.teams.map((t) => (
+                                {club.teams?.map((t) => (
                                     <li key={t.id}>
                                         <button
                                             type="button"
@@ -419,7 +419,10 @@ export default function AdminTeamsPage() {
             {editTeam && (
                 <EditTeamForm
                     key={editTeam.id}
-                    team={editTeam}
+                    team={{
+                        ...editTeam,
+                        members: editTeam.members ?? [], // fallback to empty array
+                    }}
                     clubMembers={editClubMembers}
                     updating={updating}
                     togglingActive={togglingActive}
