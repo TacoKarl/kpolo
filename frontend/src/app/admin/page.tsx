@@ -5,11 +5,13 @@ import { useIsAdmin } from "@/app/components/hooks/useIsAdmin";
 import AdminClubsPage from "@/app/admin/components/AdminClubsPage";
 import AdminTournamentsPage from "@/app/admin/components/AdminTournamentsPage";
 import AdminTeamsPage from "@/app/admin/components/AdminTeamsPage";
+import { checkIfUserHasRoles, getUserRoles } from "../lib/auth";
 
 type ActiveTab = "tournament" | "clubs" | "teams";
 
-export default function AdminPage() {
-    const isAdmin = useIsAdmin();
+export default async function AdminPage() {
+    const isAdmin = await checkIfUserHasRoles(["System Admin", "Club Admin"]);
+
 
     const tabsId = useId();
     const tournamentTabId = `${tabsId}-tab-tournament`;
