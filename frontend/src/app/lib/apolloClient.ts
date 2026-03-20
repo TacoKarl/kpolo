@@ -1,28 +1,29 @@
 // Apollo client settings
 import { ApolloClient, ApolloLink, HttpLink, InMemoryCache } from "@apollo/client";
-import { onError } from "@apollo/client/link/error";
-import { setContext } from "@apollo/client/link/context";
+import { ErrorLink } from "@apollo/client/link/error";
+import { CombinedGraphQLErrors } from "@apollo/client/errors";
+import { SetContextLink } from "@apollo/client/link/context";
 import { from, mergeMap } from "rxjs";
 import { getAccessToken, refreshAccessToken } from "./auth";
 import { getGraphqlUrl } from "./apiUrls";
 
 export function makeApolloClient() {
-    const authLink = setContext((_, { headers }) => {
+    const authLink = new SetContextLink((prevContext) => {
         const token = getAccessToken();
         return {
             headers: {
-                ...headers,
+                ...prevContext.headers,
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
         };
     });
 
-    const errorLink = onError(({ graphQLErrors, operation, forward }) => {
-        const hasAuthError = graphQLErrors?.some(
-            (err) => err.extensions?.code === "UNAUTHENTICATED"
-        );
+    const errorLink = new ErrorLink(({ error, operation, forward }) => {
+        const hasAuthError = CombinedGraphQLErrors.is(error)
+            ? error.errors.some((err) => err.extensions?.code === "UNAUTHENTICATED")
+            : false;
 
-        if (!hasAuthError || !forward) return;
+        if (!hasAuthError) return;
 
         const { refreshAttempted } = operation.getContext();
         if (refreshAttempted) return;
