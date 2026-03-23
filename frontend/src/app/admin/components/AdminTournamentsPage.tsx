@@ -10,6 +10,10 @@ import {
     UpdateTournamentDocument
 } from "@/generated/graphql";
 import {Toast} from "@/app/components/ui/Toast";
+import {Card} from "@/components/Card";
+import cardStyles from "@/components/Card/Card.module.css"
+import formStyles from "@/styles/Forms.module.css"
+import {Button} from "@/components/Button";
 
 type EditableDivision = {
     id: number;
@@ -202,22 +206,159 @@ export default function AdminTournamentsPage() {
                 <h1>Allerede registrerede turneringer</h1>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {tournamentsData?.tournaments.map(t => (
-                        <div
+                        <Card
                             key={t.id}
-                            className="border rounded-lg p-4 shadow hover:shadow-lg cursor-pointer"
-                            onClick={() => setSelectedTournamentId(String(t.id))}
+                            onClick={() => setSelectedTournamentId(prev =>
+                                prev === String(t.id) ? null : String(t.id)
+                            )}
                         >
-                            <h2 className="font-bold">{t.name}</h2>
-                            <p>Sæson: {t.season}</p>
-                            <p>Divisioner: {t.divisions?.length ?? 0}</p>
-                            <p>Datoer: {t.dates?.map(d => new Date(d.date).toLocaleDateString("da-DK")).join(", ")}
+                            <h2 className={cardStyles.title}>{t.name}</h2>
+                            <p className={cardStyles.text}>Sæson: {t.season}</p>
+                            <p className={cardStyles.text}>Divisioner: {t.divisions?.length ?? 0}</p>
+                            <p className={cardStyles.text}>
+                                Datoer: {t.dates?.map(d => new Date(d.date).toLocaleDateString("da-DK")).join(", ")}
                             </p>
-                        </div>
+                        </Card>
                     ))}
                 </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                        <Card variant='form'>
+                        <h1 className={cardStyles.title}>Registrer ny turnering</h1>
+                        <input
+                            className={formStyles.input}
+                            type={"text"}
+                            placeholder={"Danmarksturneringen"}
+                            onChange={(e) =>
+                                setTournamentName(e.target.value)}
+                        />
+                        <input
+                            className={formStyles.input}
+                            type={"text"}
+                            placeholder={"Sæson"}
+                            onChange={(e) =>
+                                setTournamentSeason(e.target.value)}
+                        />
+                        <div className="flex items-center gap-3">
+                            <h2 className={cardStyles.title}>Tilføj datoer:</h2>
+                            <label className="switch">
+                                <input className={cardStyles.text} type="checkbox" id="publicToggle" onClick={toggleDates} />
+                                <span className="slider"></span>
+                            </label>
+                        </div>
+                        {dates.map((d, index) => (
+                            <div key={index} className="flex gap-2 items-center">
+                                <input
+                                    className={cardStyles.text}
+                                    type="date"
+                                    value={d.date}
+                                    onChange={(e) => {
+                                        const updated = [...dates]
+                                        updated[index].date = e.target.value
+                                        setDates(updated)
+                                    }}
+                                />
+                            </div>
+                        ))}
+                        <Button
+                            variant={'outline'}
+                            className="hover:cursor-pointer border-black"
+                            onClick={addDate}
+                        >
+                            +
+                        </Button>
+                        <div className="flex items-center gap-3">
+                            <h2>Tilføj Divisioner</h2>
+                            <button
+                                onClick={toggleDivisions}
+                                className="border px-2 rounded"
+                            >
+                                {showDivisions ? "Offentlig" : "Privat"}
+                            </button>
+                        </div>
+                        {divisions.map((div, divIndex) => (
+                            <div key={div.id} className="bg-zinc-50  border-zinc-300  rounded-lg p-4 mb-4 shadow-sm relative w-fit ">
 
+                                <input
+                                    type="text"
+                                    placeholder="Division navn"
+                                    value={div.name}
+                                    onChange={(e) => {
+                                        const updated = [...divisions];
+                                        updated[divIndex].name = e.target.value;
+                                        setDivisions(updated);
+                                    }}
+                                    className={formStyles.input}
+                                />
+                                <Button
+                                    type="button"
+                                    variant='danger'
+                                    onClick={() => removeDivision(divIndex)}
+                                    className=""
+                                >
+                                    Slet
+                                </Button>
+                                {div.teams.map((teamId, teamIndex) => (
+                                    <div key={teamIndex} className="flex gap-2 items-center w-fit">
+                                        <select
+                                            value={teamId}
+                                            onChange={(e) => {
+                                                const updated = [...divisions];
+                                                updated[divIndex].teams[teamIndex] = Number(e.target.value);
+                                                setDivisions(updated);
+                                            }}
+                                            className={formStyles.select}
+                                        >
+                                            <option value={0}>Vælg hold</option>
+                                            {clubs.map((club) => (
+                                                <optgroup key={club.id} label={club.name}>
+                                                    {club.teams?.map((team) => (
+                                                        <option key={team.id} value={team.id}>
+                                                            {team.name}
+                                                        </option>
+                                                    ))}
+                                                </optgroup>
+                                            ))}
+                                        </select>
+                                        <Button
+                                            variant='danger'
+                                            type="button"
+                                            onClick={() => removeTeamFromDivision(divIndex, teamIndex)}
+                                            className=""
+                                        >
+                                            Slet
+                                        </Button>
+                                    </div>
+                                ))}
+                                <Button
+                                    type="button"
+                                    variant={'outline'}
+                                    onClick={() => addTeamToDivision(divIndex)}
+                                    className=""
+                                >
+                                    + Tilføj hold
+                                </Button>
+                            </div>
+
+                        ))}
+                        <Button
+                            variant={'outline'}
+                            className="hover:cursor-pointer border-2 rounded-lg"
+                            onClick={addDivision}
+                        >
+                            + Tilføj division
+                        </Button>
+                            <Button
+                                variant='primary'
+                                className="hover:cursor-pointer"
+                                onClick={handleCreateTournament}
+                            >
+                                Publicer
+                            </Button>
+                    </Card>
+                    </div>
                 {selectedTournament && (
-                    <div className="mt-8 border p-4 rounded shadow max-w-3xl">
+                        <Card>
                         <h2 className="text-xl font-semibold mb-4">Rediger Turnering</h2>
 
                         <input
@@ -246,9 +387,9 @@ export default function AdminTournamentsPage() {
                                 />
                             </div>
                         ))}
-                        <button onClick={handleAddDate} className="bg-green-500 text-white px-2 py-1 rounded mb-4">
+                        <Button onClick={handleAddDate} variant={'outline'}>
                             + Tilføj dato
-                        </button>
+                        </Button>
 
                         <h3 className="font-medium mb-2">Divisioner</h3>
                         {editDivisions.map((div, divIndex) => (
@@ -283,17 +424,19 @@ export default function AdminTournamentsPage() {
                                                 </optgroup>
                                             ))}
                                         </select>
-                                        <button
+                                        <Button
                                             type="button"
+                                            variant={'danger'}
                                             onClick={() => removeTeamFromDivision(divIndex, teamIndex)}
                                             className="bg-red-500 text-white rounded px-2 py-1 hover:bg-red-600"
                                         >
                                             Slet
-                                        </button>
+                                        </Button>
                                     </div>
                                 ))}
 
-                                <button
+                                <Button
+                                    variant={'outline'}
                                     onClick={() => {
                                         const updated = [...editDivisions];
                                         updated[divIndex].teams.push(0);
@@ -302,7 +445,7 @@ export default function AdminTournamentsPage() {
                                     className="bg-green-500 text-white px-2 py-1 rounded"
                                 >
                                     + Tilføj hold
-                                </button>
+                                </Button>
                             </div>
                         ))}
                         <button onClick={handleAddDivision} className="bg-green-500 text-white px-2 py-1 rounded mb-4">
@@ -312,8 +455,9 @@ export default function AdminTournamentsPage() {
                         <button onClick={handleSaveTournament} className="bg-blue-600 text-white px-3 py-2 rounded">
                             Gem ændringer
                         </button>
-                    </div>
+                        </Card>
                 )}
+                </div>
 
                 <Toast
                     message="Turnering opdateret"
@@ -321,128 +465,11 @@ export default function AdminTournamentsPage() {
                     onClose={() => setToastOpen(false)}
                 />
             </div>
-                <h1>Registrer ny turnering</h1>
-                <input
-                    type={"text"}
-                    placeholder={"Danmarksturneringen"}
-                    onChange={(e) =>
-                        setTournamentName(e.target.value)}
-                />
-                <input
-                    type={"text"}
-                    placeholder={"Sæson"}
-                    onChange={(e) =>
-                        setTournamentSeason(e.target.value)}
-                />
-                <div className="flex items-center gap-3">
-                    <h2>Tilføj datoer:</h2>
-                    <label className="switch">
-                        <input type="checkbox" id="publicToggle" onClick={toggleDates} />
-                            <span className="slider"></span>
-                    </label>
-                </div>
-                {dates.map((d, index) => (
-                    <div key={index} className="flex gap-2 items-center">
-                        <input
-                            type="date"
-                            value={d.date}
-                            onChange={(e) => {
-                                const updated = [...dates]
-                                updated[index].date = e.target.value
-                                setDates(updated)
-                            }}
-                        />
-                    </div>
-                ))}
-                <button
-                    className="hover:cursor-pointer border-black border-2 rounded-lg h-7 w-7"
-                onClick={addDate}
-                >
-                    +
-                </button>
-                <div className="flex items-center gap-3">
-                    <h2>Tilføj Divisioner</h2>
-                    <button
-                        onClick={toggleDivisions}
-                        className="border px-2 rounded"
-                    >
-                        {showDivisions ? "Offentlig" : "Privat"}
-                    </button>
-                </div>
-                {divisions.map((div, divIndex) => (
-                    <div key={div.id} className="bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg p-4 mb-4 shadow-sm relative w-full md:w-2/5">
-                        <button
-                            type="button"
-                            onClick={() => removeDivision(divIndex)}
-                            className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
-                        >
-                            X
-                        </button>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <Card variant='blackSpace'>none</Card>
 
-                        <input
-                            type="text"
-                            placeholder="Division navn"
-                            value={div.name}
-                            onChange={(e) => {
-                                const updated = [...divisions];
-                                updated[divIndex].name = e.target.value;
-                                setDivisions(updated);
-                            }}
-                            className="w-full border border-zinc-300 dark:border-zinc-600 rounded px-2 py-1 mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-zinc-900"
-                        />
-                        {div.teams.map((teamId, teamIndex) => (
-                            <div key={teamIndex} className="flex gap-2 items-center">
-                                <select
-                                    value={teamId}
-                                    onChange={(e) => {
-                                        const updated = [...divisions];
-                                        updated[divIndex].teams[teamIndex] = Number(e.target.value);
-                                        setDivisions(updated);
-                                    }}
-                                    className="flex-1 border border-zinc-300 dark:border-zinc-600 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-zinc-900"
-                                >
-                                    <option value={0}>Vælg hold</option>
-                                    {clubs.map((club) => (
-                                        <optgroup key={club.id} label={club.name}>
-                                            {club.teams?.map((team) => (
-                                                <option key={team.id} value={team.id}>
-                                                    {team.name}
-                                                </option>
-                                            ))}
-                                        </optgroup>
-                                    ))}
-                                </select>
-                                <button
-                                    type="button"
-                                    onClick={() => removeTeamFromDivision(divIndex, teamIndex)}
-                                    className="bg-red-500 text-white rounded px-2 py-1 hover:bg-red-600"
-                                >
-                                    Slet
-                                </button>
-                            </div>
-                        ))}
+            </div>
 
-                        <button
-                            type="button"
-                            onClick={() => addTeamToDivision(divIndex)}
-                            className="bg-green-500 text-white rounded px-3 py-1 hover:bg-green-600"
-                        >
-                            + Tilføj hold
-                        </button>
-                    </div>
-                ))}
-                <button
-                    className="hover:cursor-pointer border-black border-2 rounded-lg h-7 w-7"
-                    onClick={addDivision}
-                >
-                    +
-                </button>
-                <button
-                    className="hover:cursor-pointer border-black border-2 rounded-lg h-7"
-                    onClick={handleCreateTournament}
-                >
-                    Publicer
-                </button>
         </>
     )
 }

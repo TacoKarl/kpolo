@@ -1,8 +1,11 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  --background: #F1F5F9;
   --foreground: #000000;
+  --primary: #005f9e;
+  --secondary: #FF6B00;
+  --tertiary: #00A3AD;
 }
 
 @theme inline {
@@ -13,6 +16,7 @@
   --color-card: var(--card);
 }
 
+/*
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #000000;
@@ -21,11 +25,24 @@
     --card-border: #2a2a2a;
   }
 }
+ */
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.primary {
+  background-color: var(--primary);
+  color: var(--background);
+}
+
+.secondary {
+  background-color: var(--secondary);
+}
+.tertiary {
+  background-color: var(--tertiary);
 }
 /* Container for the switch */
 .switch {

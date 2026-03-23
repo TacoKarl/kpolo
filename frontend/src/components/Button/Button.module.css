@@ -1,0 +1,66 @@
+/* Grundlæggende styling for alle knapper */
+.btn {
+    padding: 0.5rem 0.5rem;
+    border: none;
+    margin: 2px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease-in-out; /* 'all' fanger også scale og border */
+}
+
+/* --- GRØN (Success) --- */
+.primary {
+    background-color: var(--primary); /* En frisk, moderne grøn */
+    color: white; /* Hvid tekst læses ofte bedre på denne grønne */
+}
+
+.primary:hover {
+    background-color: #013B60FF; /* Gør den mørkere ved hover */
+    transform: translateY(-1px); /* Lille løft-effekt */
+}
+
+/* --- RØD (Danger) --- */
+.secondary {
+    background-color: var(--secondary); /* En klar, men balanceret rød */
+    color: white;
+}
+
+.secondary:hover {
+    background-color: #c55201; /* Dyb rød ved hover */
+    transform: translateY(-1px);
+}
+
+/* --- OUTLINE (Neutral/Action) --- */
+.outline {
+    background-color: transparent;
+    border: 2px solid #000000;
+    color: #000000;
+}
+
+.outline:hover {
+    background-color: #000000;
+    color: white;
+}
+
+.tertiary {
+    background-color: var(--tertiary); /* En klar, men balanceret rød */
+    color: white;
+}
+
+.tertiary:hover {
+    background-color: #017880; /* Dyb rød ved hover */
+    transform: translateY(-1px);
+}
+
+.danger {
+    background: #fb2c36;
+    padding-block: 0.25rem;
+    padding-inline: 0.5rem;
+    border-radius: 4px;
+    color: white;
+}
+
+.danger:hover {
+    background: #b91c1c;
+}

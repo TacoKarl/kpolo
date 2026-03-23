@@ -12,6 +12,8 @@ import {
 } from "@/generated/graphql";
 import { Toast } from "@/app/components/ui/Toast";
 import { ConfirmDialog } from "@/app/components/ui/ConfirmDialog";
+import {Card} from "@/components/Card";
+import {Button} from "@/components/Button";
 
 export default function AdminClubsPage() {
     const client = useApolloClient();
@@ -184,7 +186,8 @@ export default function AdminClubsPage() {
                 </div>
             )}
 
-            <div className="mt-6 flex flex-col gap-2 max-w-md">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <Card>
                 <h3 className="text-lg font-semibold mb-2">Opret ny klub</h3>
                 <input
                     placeholder="Klub navn"
@@ -225,17 +228,20 @@ export default function AdminClubsPage() {
                     ))}
                 </select>
 
-                <button
+                <Button
                     onClick={handleCreateClub}
                     disabled={creating}
                     className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
                 >
                     Opret klub
-                </button>
-            </div>
+                </Button>
+                </Card>
+
+
 
             {selectedClub && (
                 <div className="mt-8 flex flex-col gap-3 max-w-md">
+                    <Card>
                     <h3 className="text-lg font-semibold">Rediger klub</h3>
 
                     <div className="flex items-center gap-2">
@@ -248,7 +254,7 @@ export default function AdminClubsPage() {
                             }`}
                         />
                         {!editName ? (
-                            <button
+                            <Button
                                 type="button"
                                 onClick={() => {
                                     setEditNameValue(originalName);
@@ -257,7 +263,7 @@ export default function AdminClubsPage() {
                                 className="text-blue-600 hover:underline"
                             >
                                 Rediger
-                            </button>
+                            </Button>
                         ) : (
                             <>
                                 <button
@@ -286,6 +292,7 @@ export default function AdminClubsPage() {
                         )}
                     </div>
 
+
                     <div className="flex items-center gap-2">
                         <input
                             value={editAddressValue}
@@ -296,7 +303,7 @@ export default function AdminClubsPage() {
                             }`}
                         />
                         {!editAddress ? (
-                            <button
+                            <Button
                                 type="button"
                                 onClick={() => {
                                     setEditAddressValue(originalAddress);
@@ -305,10 +312,10 @@ export default function AdminClubsPage() {
                                 className="text-blue-600 hover:underline"
                             >
                                 Rediger
-                            </button>
+                            </Button>
                         ) : (
                             <>
-                                <button
+                                <Button
                                     type="button"
                                     onClick={() => {
                                         setEditAddressValue(originalAddress);
@@ -317,8 +324,8 @@ export default function AdminClubsPage() {
                                     className="border px-3 py-2 rounded transition hover:bg-gray-50 active:bg-gray-100"
                                 >
                                     Fortryd
-                                </button>
-                                <button
+                                </Button>
+                                <Button
                                     type="button"
                                     onClick={handleSaveClubAddress}
                                     disabled={updating || !isAddressDirty}
@@ -329,10 +336,11 @@ export default function AdminClubsPage() {
                                     }`}
                                 >
                                     Gem
-                                </button>
+                                </Button>
                             </>
                         )}
                     </div>
+
 
                     <div className="flex items-center gap-2">
                         <select
@@ -349,7 +357,7 @@ export default function AdminClubsPage() {
                             <option value="Sjælland">Sjælland</option>
                         </select>
                         {!editRegion ? (
-                            <button
+                            <Button
                                 type="button"
                                 onClick={() => {
                                     setEditRegionValue(originalRegion);
@@ -358,10 +366,10 @@ export default function AdminClubsPage() {
                                 className="text-blue-600 hover:underline"
                             >
                                 Rediger
-                            </button>
+                            </Button>
                         ) : (
                             <>
-                                <button
+                                <Button
                                     type="button"
                                     onClick={() => {
                                         setEditRegionValue(originalRegion);
@@ -370,8 +378,8 @@ export default function AdminClubsPage() {
                                     className="border px-3 py-2 rounded transition hover:bg-gray-50 active:bg-gray-100"
                                 >
                                     Fortryd
-                                </button>
-                                <button
+                                </Button>
+                                <Button
                                     type="button"
                                     onClick={handleSaveClubRegion}
                                     disabled={updating || !isRegionDirty}
@@ -382,10 +390,11 @@ export default function AdminClubsPage() {
                                     }`}
                                 >
                                     Gem
-                                </button>
+                                </Button>
                             </>
                         )}
                     </div>
+                    </Card>
 
                     {selectedClub.isActive ? (
                         <button
@@ -408,6 +417,7 @@ export default function AdminClubsPage() {
                     )}
                 </div>
             )}
+            </div>
             {selectedClub?.isActive && (
                 <ConfirmDialog
                     open={confirmInactivateOpen}
@@ -421,6 +431,7 @@ export default function AdminClubsPage() {
                     onCancel={() => setConfirmInactivateOpen(false)}
                 />
             )}
+
             <Toast
                 message="Klub oprettet"
                 open={toastOpen}

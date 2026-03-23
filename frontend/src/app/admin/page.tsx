@@ -27,7 +27,7 @@ export default function AdminPage() {
                     <div
                         role="tablist"
                         aria-label="Turneringer og events"
-                        className="flex w-full gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-900"
+                        className="flex w-full gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-1"
                     >
                         <button
                             id={tournamentTabId}
@@ -38,8 +38,8 @@ export default function AdminPage() {
                             className={[
                                 "flex-1 rounded-md px-3 py-2 text-sm font-medium transition",
                                 activeTab === "tournament"
-                                    ? "bg-white text-zinc-900 shadow-sm dark:bg-black dark:text-zinc-100"
-                                    : "text-zinc-700 hover:bg-white/60 dark:text-zinc-300 dark:hover:bg-black/40",
+                                    ? "bg-white text-zinc-900 shadow-sm "
+                                    : "text-zinc-700 hover:bg-white/60 ",
                             ].join(" ")}
                             onClick={() => setActiveTab("tournament")}
                         >
@@ -55,8 +55,8 @@ export default function AdminPage() {
                             className={[
                                 "flex-1 rounded-md px-3 py-2 text-sm font-medium transition",
                                 activeTab === "clubs"
-                                    ? "bg-white text-zinc-900 shadow-sm dark:bg-black dark:text-zinc-100"
-                                    : "text-zinc-700 hover:bg-white/60 dark:text-zinc-300 dark:hover:bg-black/40",
+                                    ? "bg-white text-zinc-900 shadow-sm "
+                                    : "text-zinc-700 hover:bg-white/60 ",
                             ].join(" ")}
                             onClick={() => setActiveTab("clubs")}
                         >
@@ -72,8 +72,8 @@ export default function AdminPage() {
                             className={[
                                 "flex-1 rounded-md px-3 py-2 text-sm font-medium transition",
                                 activeTab === "teams"
-                                    ? "bg-white text-zinc-900 shadow-sm dark:bg-black dark:text-zinc-100"
-                                    : "text-zinc-700 hover:bg-white/60 dark:text-zinc-300 dark:hover:bg-black/40",
+                                    ? "bg-white text-zinc-900 shadow-sm"
+                                    : "text-zinc-700 hover:bg-white/60",
                             ].join(" ")}
                             onClick={() => setActiveTab("teams")}
                         >
