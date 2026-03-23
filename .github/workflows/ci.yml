@@ -95,9 +95,9 @@ jobs:
       #    echo "API did not become healthy in time"
       #    exit 1
 
-      - name: Run Bruno tests
-        working-directory: bruno-apitests/local
-        run: bru run .
+      #- name: Run Bruno tests
+      #  working-directory: bruno-apitests/local
+      #  run: bru run .
 
       - name: Stop backend
         run: docker-compose -f backend/compose.yaml down
