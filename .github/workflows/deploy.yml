@@ -29,11 +29,15 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Pull latest code
+        run: |
+          cd /home/appuser/kpolo
+          git fetch origin main
+          git reset --hard origin/main
 
       - name: Build and start container
         run: |
+          cd /home/appuser/kpolo/backend
           podman compose up --build api -d
 
       - name: Wait for
