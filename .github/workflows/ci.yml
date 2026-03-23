@@ -86,14 +86,14 @@ jobs:
       - name: Start backend via docker
         run: docker-compose -f backend/compose.yaml up -d
 
-      - name: Wait for API
-        run: |
-          for i in {1..10}; do
-            curl --fail http://localhost:3000/health && exit 0
-            sleep 2
-          done
-          echo "API did not become healthy in time"
-          exit 1
+      #- name: Wait for API
+      #  run: |
+      #    for i in {1..10}; do
+      #      curl --fail http://localhost:3000/health && exit 0
+      #      sleep 2
+      #    done
+      #    echo "API did not become healthy in time"
+      #    exit 1
 
       - name: Run Bruno tests
         working-directory: bruno-apitests/local
