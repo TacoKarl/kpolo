@@ -5,10 +5,12 @@ import { useIsAdmin } from "@/app/components/hooks/useIsAdmin";
 import AdminClubsPage from "@/app/admin/components/AdminClubsPage";
 import AdminTournamentsPage from "@/app/admin/components/AdminTournamentsPage";
 import AdminTeamsPage from "@/app/admin/components/AdminTeamsPage";
+import { useUser } from "@/app/context/UserContext";
 
 type ActiveTab = "tournament" | "clubs" | "teams";
 
 export default function AdminPage() {
+    const { authReady } = useUser();
     const isAdmin = useIsAdmin();
 
     const tabsId = useId();
@@ -22,7 +24,9 @@ export default function AdminPage() {
 
     return (
         <div className="p-6">
-            {isAdmin ? (
+            {!authReady ? (
+                <p>Checking session...</p>
+            ) : isAdmin ? (
                 <>
                     <div
                         role="tablist"

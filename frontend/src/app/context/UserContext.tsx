@@ -1,6 +1,7 @@
 'use client';
 
-import {createContext, useContext, useState, ReactNode} from 'react';
+import {createContext, useContext, useEffect, useState, ReactNode} from 'react';
+import { refreshAccessToken } from "@/app/lib/auth";
 
 type User = {
     name: string;
@@ -10,6 +11,7 @@ type User = {
 type UserContextType = {
     user: User | null;
     setUser: (user: User | null) => void;
+    authReady: boolean;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -20,6 +22,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         const savedUser = localStorage.getItem('user');
         return savedUser ? JSON.parse(savedUser) : null;
     });
+    const [authReady, setAuthReady] = useState(false);
 
     const setUser = (user: User | null) => {
         if (user) {
@@ -31,14 +34,24 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         setUserState(user);
     }
 
+    useEffect(() => {
+        let active = true;
+        refreshAccessToken().finally(() => {
+            if (active) setAuthReady(true);
+        });
+        return () => {
+            active = false;
+        };
+    }, []);
+
     return (
-        <UserContext.Provider value={{ user, setUser }}>
+        <UserContext.Provider value={{ user, setUser, authReady }}>
             {children}
         </UserContext.Provider>
     )
 }
 
-export const useUser = () => {
+export const useUser = (): UserContextType => {
     const context = useContext(UserContext);
     if (!context) {
         throw new Error("useUser must be used within a UserProvider");

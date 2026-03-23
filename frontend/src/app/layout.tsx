@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Navbar from "./components/navbar";
+import dynamic from "next/dynamic";
 import Footer from "./components/footer";
 import Script from "next/script";
 import { UserProvider } from "@/app/context/UserContext";
@@ -16,6 +16,8 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
+const Navbar = dynamic(() => import("./components/navbar"), { ssr: false });
 
 export const metadata: Metadata = {
   title: "Kajakpolo Danmark",
