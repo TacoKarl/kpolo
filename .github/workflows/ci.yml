@@ -63,6 +63,9 @@ jobs:
       - name: Install Bruno CLI
         run: npm install -g @usebruno/cli
 
+      - run: ls backend
+
+
       - name: Set up Docker Compose
         run: |
           sudo apt-get update
