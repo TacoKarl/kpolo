@@ -72,7 +72,7 @@ jobs:
           sudo apt-get install -y docker-compose
 
       - name: Start backend via docker
-        run: docker-compose -f backend/compose.yml up -d
+        run: docker-compose -f backend/compose.yaml up -d
 
       - name: Wait for API
         run: |
@@ -88,7 +88,7 @@ jobs:
         run: bru run .
 
       - name: Stop backend
-        run: docker-compose -f backend/compose.yml down
+        run: docker-compose -f backend/compose.yaml down
 
   # Run only if rapport files changed
   rapport:
