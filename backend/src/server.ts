@@ -46,6 +46,7 @@ app.use(
     })
 );
 
+
 // Health stays as-is
 app.use("/health", healthRoutes);
 // Apollo Server

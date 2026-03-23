@@ -12,11 +12,13 @@ jobs:
       backend: ${{ steps.check.outputs.backend }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - id: check
         run: |
           # Check if any files in kpolo/backend changed in this push
-          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q '^kpolo/backend/'; then
+          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q '^backend/'; then
             echo "backend=true" >> $GITHUB_OUTPUT
           else
             echo "backend=false" >> $GITHUB_OUTPUT
