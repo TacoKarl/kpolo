@@ -1,0 +1,26 @@
+meta {
+  name: get-tournaments
+  type: graphql
+  seq: 4
+}
+
+post {
+  url: http://localhost:3000/graphql
+  body: graphql
+  auth: inherit
+}
+
+body:graphql {
+  query GetTournaments {
+          tournaments {
+              id
+              name
+              season
+          }
+      }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

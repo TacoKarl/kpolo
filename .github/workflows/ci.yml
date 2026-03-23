@@ -52,13 +52,40 @@ jobs:
 
   # Run only if backend files changed
   backend:
-    name: backend
+    name: backend check
     needs: changes
     if: ${{ needs.changes.outputs.backend == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - run: echo "backend"
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Bruno CLI
+        run: npm install -g @usebruno/cli
+
+      - name: Set up Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+
+      - name: Start backend via docker
+        run: docker-compose -f kpolo/backend/compose.yml up -d
+
+      - name: Wait for API
+        run: |
+          for i in {1..10}; do
+            curl --fail http://localhost:3000/health && exit 0
+            sleep 2
+          done
+          echo "API did not become healthy in time"
+          exit 1
+
+      - name: Run Bruno tests
+        working-directory: kpolo/bruno-apitests/local
+        run: bru run .
+
+      - name: Stop backend
+        run: docker-compose -f kpolo/backend/compose.yml down
 
   # Run only if rapport files changed
   rapport:
