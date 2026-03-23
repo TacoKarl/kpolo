@@ -3,7 +3,7 @@
 import {useCallback, useEffect, useRef, useState} from "react";
 import { useUser } from "@/app/context/UserContext";
 import {useRouter} from "next/navigation";
-import { getGraphqlUrl } from "@/app/lib/apiUrls";
+import { getLoginUrl } from "@/app/lib/apiUrls";
 import { setAccessToken } from "@/app/lib/auth";
 
 export default function LoginPage() {
@@ -51,37 +51,24 @@ export default function LoginPage() {
 
         console.log(`Login med: ${email}`);
 
-        const query = `
-            mutation Login($email: String!, $password: String!) {
-                login(email: $email, password: $password) {
-                    token
-                    name
-                }
-            }
-        `;
-
         try {
-        const res = await fetch(getGraphqlUrl(), {
+            const res = await fetch(getLoginUrl(), {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 credentials: "include",
-                body: JSON.stringify({
-                    query,
-                    variables: {email: email, password: password},
-                }),
+                body: JSON.stringify({ email, password }),
             });
 
             const data = await res.json();
-            if (data.errors) {
-                setError(data.errors[0].message || 'Login failed');
+            if (!res.ok) {
+                setError(new Error(data?.error || 'Login failed'));
                 return;
             }
 
-            const loginData = data.data.login;
-            if (loginData) {
-                setAccessToken(loginData.token);
+            if (data?.token) {
+                setAccessToken(data.token);
                 setUser({
-                    name: loginData.name,
+                    name: data.name,
                     avatarUrl: null,
                 });
             }

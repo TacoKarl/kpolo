@@ -52,13 +52,6 @@ export type DivisionInput = {
   name: Scalars['String']['input'];
 };
 
-export type LoginResponse = {
-  __typename?: 'LoginResponse';
-  name: Scalars['String']['output'];
-  token: Scalars['String']['output'];
-  userId: Scalars['Int']['output'];
-};
-
 export type Match = {
   __typename?: 'Match';
   division?: Maybe<Division>;
@@ -77,8 +70,6 @@ export type Mutation = {
   createClub: Club;
   createTeam: Team;
   createTournament: Tournament;
-  login: LoginResponse;
-  register: RegisterResponse;
   setClubActive: Club;
   setTeamActive: Team;
   updateClub: Club;
@@ -104,19 +95,6 @@ export type MutationCreateTeamArgs = {
 
 export type MutationCreateTournamentArgs = {
   input?: InputMaybe<CreateTournamentInput>;
-};
-
-
-export type MutationLoginArgs = {
-  email: Scalars['String']['input'];
-  password: Scalars['String']['input'];
-};
-
-
-export type MutationRegisterArgs = {
-  email: Scalars['String']['input'];
-  name: Scalars['String']['input'];
-  password: Scalars['String']['input'];
 };
 
 
@@ -178,13 +156,6 @@ export type QueryClubsArgs = {
 export type QueryTeamArgs = {
   id: Scalars['ID']['input'];
   includeInactive?: InputMaybe<Scalars['Boolean']['input']>;
-};
-
-export type RegisterResponse = {
-  __typename?: 'RegisterResponse';
-  email: Scalars['String']['output'];
-  id: Scalars['Int']['output'];
-  name: Scalars['String']['output'];
 };
 
 export type Team = {

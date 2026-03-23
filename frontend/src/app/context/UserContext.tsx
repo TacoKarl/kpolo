@@ -1,7 +1,7 @@
 'use client';
 
 import {createContext, useContext, useEffect, useState, ReactNode} from 'react';
-import { refreshAccessToken } from "@/app/lib/auth";
+import { getAccessToken, refreshAccessToken, subscribeToAccessToken } from "@/app/lib/auth";
 
 type User = {
     name: string;
@@ -12,6 +12,7 @@ type UserContextType = {
     user: User | null;
     setUser: (user: User | null) => void;
     authReady: boolean;
+    accessToken: string | null;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -23,6 +24,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         return savedUser ? JSON.parse(savedUser) : null;
     });
     const [authReady, setAuthReady] = useState(false);
+    const [accessToken, setAccessTokenState] = useState<string | null>(() => getAccessToken());
 
     const setUser = (user: User | null) => {
         if (user) {
@@ -44,8 +46,14 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         };
     }, []);
 
+    useEffect(() => {
+        return subscribeToAccessToken((token) => {
+            setAccessTokenState(token);
+        });
+    }, []);
+
     return (
-        <UserContext.Provider value={{ user, setUser, authReady }}>
+        <UserContext.Provider value={{ user, setUser, authReady, accessToken }}>
             {children}
         </UserContext.Provider>
     )

@@ -1,15 +1,7 @@
 import type { Pool } from "pg";
 import type { Request, Response } from "express";
-import { PrismaClient } from "../generated/prisma/index.js";
-import bcrypt from "bcrypt"
-import { PrismaPg } from '@prisma/adapter-pg';
-import { signAccessToken, signRefreshToken, setRefreshTokenCookie, type TokenPayload } from "../auth/tokens.js";
-
-const adapter = new PrismaPg({
-    connectionString: process.env.DATABASE_URL!,
-});
-
-const prisma = new PrismaClient({ adapter });
+import { prisma } from "../db/prisma.js";
+import { type TokenPayload } from "../auth/tokens.js";
 
 export type GraphQLContext = {
     pool: Pool;
@@ -405,47 +397,6 @@ const resolvers = {
             });
         },
 
-        register: async (_: any, { email, name, password }: { email: string, name: string, password: string}) => {
-            const existingUser = await prisma.user.findUnique({ where: { email } });
-            if (existingUser) throw new Error(`User with email ${email} already exists`);
-
-            // Hash
-            const saltRounds = 12;
-            const password_hash = await bcrypt.hash(password, saltRounds);
-
-            const user = await prisma.user.create({
-                data: {
-                    email,
-                    name,
-                    password_hash,
-                }
-            });
-
-            return user;
-        },
-        login: async (_: any, { email, password }: {email: string; password: string}, ctx: GraphQLContext) => {
-            const user = await prisma.user.findUnique({ 
-                where: { email },
-                include: { roles: true }, // fetches the related Role[] array
-            });
-            if (!user) throw new Error("Email or Password does not match");
-
-            const valid = await bcrypt.compare(password, user.password_hash);
-            if (!valid) throw new Error("Email or Password does not match");
-
-            const userRoles = user.roles.map((r) => r.role);
-
-            const isDev = process.env.NODE_ENV === "development";
-            const token = signAccessToken({ userId: user.id, userRoles });
-            const refreshToken = signRefreshToken({ userId: user.id, userRoles });
-            setRefreshTokenCookie(ctx.res, refreshToken, isDev);
-
-            return {
-                token,
-                userId: user.id,
-                name: user.name
-            };
-        },
     },
 };
 export default resolvers

@@ -94,9 +94,6 @@ scalar DateTime
     # MUTATIONS
     #########################
     type Mutation {
-        login(email: String!, password: String!): LoginResponse!
-        register(email: String!, name: String!, password: String!): RegisterResponse!
-        
         createClub(name: String!, address: String!, region: String!, managerEmail: String!): Club!
         updateClub(id: Int!, name: String, address: String, region: String): Club!
         
@@ -108,18 +105,6 @@ scalar DateTime
         
         createTournament(input: CreateTournamentInput): Tournament!
         updateTournament(id: Int!, input: UpdateTournamentInput): Tournament!
-    }
-    
-    type LoginResponse {
-        token: String!
-        userId: Int!
-        name: String!
-    }
-      
-    type RegisterResponse {
-        id: Int!
-        name: String!
-        email: String!
     }
     
     ########################

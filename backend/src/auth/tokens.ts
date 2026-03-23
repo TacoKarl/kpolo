@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import jwt, { type SignOptions, type Secret } from "jsonwebtoken";
+import jwt, { type SignOptions, type Secret, type JwtPayload } from "jsonwebtoken";
 
 export type TokenPayload = {
     userId: number;
@@ -26,11 +26,18 @@ export function signRefreshToken(payload: TokenPayload) {
 }
 
 export function verifyAccessToken(token: string) {
-    return jwt.verify(token, jwtSecret as Secret) as TokenPayload;
+    return jwt.verify(token, jwtSecret as Secret) as TokenPayload & JwtPayload;
 }
 
 export function verifyRefreshToken(token: string) {
-    return jwt.verify(token, jwtRefreshSecret as Secret) as TokenPayload;
+    return jwt.verify(token, jwtRefreshSecret as Secret) as TokenPayload & JwtPayload;
+}
+
+export function extractTokenPayload(payload: TokenPayload & JwtPayload): TokenPayload {
+    return {
+        userId: payload.userId,
+        userRoles: payload.userRoles,
+    };
 }
 
 export function setRefreshTokenCookie(res: Response, token: string, isDev: boolean) {

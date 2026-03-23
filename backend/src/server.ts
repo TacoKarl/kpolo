@@ -4,6 +4,7 @@ dotenv.config();
 
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import bcrypt from "bcrypt";
 import { ApolloServer } from "@apollo/server";
 import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
 import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin/landingPage/default";
@@ -11,8 +12,10 @@ import { expressMiddleware } from "@as-integrations/express5";
 
 import { pool } from "./db/pool.js";
 import healthRoutes from "./modules/health/health.routes.js";
+import { prisma } from "./db/prisma.js";
 import {
     clearRefreshTokenCookie,
+    extractTokenPayload,
     getAccessTokenFromRequest,
     getRefreshTokenFromRequest,
     setRefreshTokenCookie,
@@ -51,7 +54,7 @@ app.use(
     })
 );
 
-// Health stays as-is
+// Health stays as-isw
 app.use("/health", healthRoutes);
 
 app.post("/refresh", (req, res) => {
@@ -59,15 +62,73 @@ app.post("/refresh", (req, res) => {
     if (!token) return res.status(401).json({ error: "Missing refresh token" });
 
     try {
-        const payload = verifyRefreshToken(token);
+        const payload = extractTokenPayload(verifyRefreshToken(token));
         const accessToken = signAccessToken(payload);
         const refreshToken = signRefreshToken(payload);
         setRefreshTokenCookie(res, refreshToken, isDev);
         return res.json({ accessToken });
     } catch (err) {
+        if (isDev && err instanceof Error) {
+            console.error("Refresh token error:", err.message);
+        }
         clearRefreshTokenCookie(res, isDev);
-        return res.status(401).json({ error: "Invalid refresh token" });
+        return res.status(401).json({
+            error: "Invalid refresh token",
+            ...(isDev && err instanceof Error ? { reason: err.message } : {}),
+        });
     }
+});
+
+app.post("/auth/register", async (req, res) => {
+    const { email, name, password } = req.body ?? {};
+    if (!email || !name || !password) {
+        return res.status(400).json({ error: "Missing email, name, or password" });
+    }
+
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+        return res.status(409).json({ error: `User with email ${email} already exists` });
+    }
+
+    const saltRounds = 12;
+    const password_hash = await bcrypt.hash(password, saltRounds);
+
+    const user = await prisma.user.create({
+        data: {
+            email,
+            name,
+            password_hash,
+        },
+    });
+
+    return res.status(201).json({ id: user.id, name: user.name, email: user.email });
+});
+
+app.post("/auth/login", async (req, res) => {
+    const { email, password } = req.body ?? {};
+    if (!email || !password) {
+        return res.status(400).json({ error: "Missing email or password" });
+    }
+
+    const user = await prisma.user.findUnique({
+        where: { email },
+        include: { roles: true },
+    });
+    if (!user) return res.status(401).json({ error: "Email or Password does not match" });
+
+    const valid = await bcrypt.compare(password, user.password_hash);
+    if (!valid) return res.status(401).json({ error: "Email or Password does not match" });
+
+    const userRoles = user.roles.map((r) => r.role);
+    const accessToken = signAccessToken({ userId: user.id, userRoles });
+    const refreshToken = signRefreshToken({ userId: user.id, userRoles });
+    setRefreshTokenCookie(res, refreshToken, isDev);
+
+    return res.json({
+        token: accessToken,
+        userId: user.id,
+        name: user.name,
+    });
 });
 
 app.post("/logout", (_req, res) => {

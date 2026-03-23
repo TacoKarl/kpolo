@@ -1,6 +1,6 @@
 const graphQlUrl =
     process.env.NEXT_PUBLIC_API_URL ??
-    "http://localhost:3000/graphql";
+    "/graphql";
 
 export function getGraphqlUrl() {
     return graphQlUrl;
@@ -22,4 +22,12 @@ export function getRefreshUrl() {
 
 export function getLogoutUrl() {
     return `${getApiBaseUrl()}/logout`;
+}
+
+export function getLoginUrl() {
+    return `${getApiBaseUrl()}/auth/login`;
+}
+
+export function getRegisterUrl() {
+    return `${getApiBaseUrl()}/auth/register`;
 }

@@ -1,15 +1,12 @@
 // app/components/Navbar.jsx
 'use client';
 import Link from 'next/link';
-import {useEffect, useState} from "react";
 import { useUser } from "@/app/context/UserContext";
 import Image from "next/image";
-import {jwtDecode} from "jwt-decode";
-import {MyJwtPayload} from "@/app/components/interfaces/MyJwtPayload";
 import {useIsAdmin} from "@/app/components/hooks/useIsAdmin";
 
 export default function Navbar() {
-    const { user, setUser } = useUser();
+    const { user } = useUser();
     const isAdmin = useIsAdmin();
   const getInitials = (name: string) => {
     const parts = name.trim().split(' ');

@@ -2,6 +2,7 @@ import { getRefreshUrl } from "./apiUrls";
 
 let accessToken: string | null = null;
 let refreshPromise: Promise<string | null> | null = null;
+const listeners = new Set<(token: string | null) => void>();
 
 export function getAccessToken() {
     return accessToken;
@@ -9,10 +10,19 @@ export function getAccessToken() {
 
 export function setAccessToken(token: string | null) {
     accessToken = token;
+    listeners.forEach((listener) => listener(accessToken));
 }
 
 export function clearAccessToken() {
     accessToken = null;
+    listeners.forEach((listener) => listener(accessToken));
+}
+
+export function subscribeToAccessToken(listener: (token: string | null) => void) {
+    listeners.add(listener);
+    return () => {
+        listeners.delete(listener);
+    };
 }
 
 export async function refreshAccessToken() {

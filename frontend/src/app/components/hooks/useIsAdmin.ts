@@ -2,15 +2,14 @@ import { useMemo } from "react";
 import { useUser } from "@/app/context/UserContext";
 import { jwtDecode } from "jwt-decode";
 import {MyJwtPayload} from "@/app/components/interfaces/MyJwtPayload";
-import { getAccessToken } from "@/app/lib/auth";
 
 export function useIsAdmin() {
-    const { authReady } = useUser();
+    const { authReady, accessToken } = useUser();
 
     return useMemo(() => {
         if (!authReady) return false;
 
-        const token = getAccessToken();
+        const token = accessToken;
         if (!token) return false;
 
         try {
@@ -22,5 +21,5 @@ export function useIsAdmin() {
             console.error("Kunne ikke dekode JWT:", err);
             return false;
         }
-    }, [authReady]);
+    }, [authReady, accessToken]);
 }
