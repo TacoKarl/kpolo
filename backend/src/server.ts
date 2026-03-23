@@ -13,9 +13,16 @@ import healthRoutes from "./modules/health/health.routes.js";
 
 import { typeDefs } from "./graphql/typeDefs.js";
 import resolvers from "./graphql/resolvers.js";
+import rateLimit from "express-rate-limit";
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+const limiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute(s)
+    limit: 100, // 100 requests per window
+    message: "Too many requests! Try again later."
+})
 
 const isDev = process.env.NODE_ENV === "development";
 
@@ -24,7 +31,7 @@ const allowedOrigins = isDev
     : ["https://olros.online", "https://www.olros.online"];
 
 // Usual middleware
-app.use(express.json());
+app.use(express.json(), limiter);
 
 // Optional: if you want to lock CORS down, replace "*" with your frontend dev URL
 // e.g. "http://localhost:3001" or "http://localhost:5173"

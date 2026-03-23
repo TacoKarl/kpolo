@@ -21,9 +21,7 @@ services:
       - .env
     volumes:
       - ./src:/app/src
-      - ./prisma:/app/prisma
       - ./tsconfig.json:/app/tsconfig.json
-      - /app/node_modules
 
 
   pgAdmin:
