@@ -69,7 +69,7 @@ jobs:
           sudo apt-get install -y docker-compose
 
       - name: Start backend via docker
-        run: docker-compose -f kpolo/backend/compose.yml up -d
+        run: docker-compose -f backend/compose.yml up -d
 
       - name: Wait for API
         run: |
@@ -81,11 +81,11 @@ jobs:
           exit 1
 
       - name: Run Bruno tests
-        working-directory: kpolo/bruno-apitests/local
+        working-directory: bruno-apitests/local
         run: bru run .
 
       - name: Stop backend
-        run: docker-compose -f kpolo/backend/compose.yml down
+        run: docker-compose -f backend/compose.yml down
 
   # Run only if rapport files changed
   rapport:
