@@ -122,7 +122,7 @@ app.post("/refresh", (req, res) => {
         };
 
         const accessToken = signAccessToken(payload);
-        const refreshToken = signRefreshToken(payload);
+        //const refreshToken = signRefreshToken(payload);
         setRefreshTokenCookie(res, refreshToken, isDev);
         return res.json({ accessToken });
     } catch (err) {
