@@ -143,7 +143,7 @@ app.post("/refresh", async (req, res) => {
         return res.json({ accessToken });
     } catch (err) {
         clearRefreshTokenCookie(res, isDev);
-        return res.status(401).json({ error: `Invalid refresh token ${err}` });
+        return res.status(401).json({ error: `Invalid refresh token` });
     }
 });
 
