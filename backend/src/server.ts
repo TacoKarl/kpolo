@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import { ApolloServer } from "@apollo/server";
 import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
 import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin/landingPage/default";
@@ -10,19 +11,26 @@ import { expressMiddleware } from "@as-integrations/express5";
 
 import { pool } from "./db/pool.js";
 import healthRoutes from "./modules/health/health.routes.js";
+import {
+    clearRefreshTokenCookie,
+    getAccessTokenFromRequest,
+    getRefreshTokenFromRequest,
+    setRefreshTokenCookie,
+    signAccessToken,
+    signRefreshToken,
+    TokenPayload,
+    verifyAccessToken,
+    verifyRefreshToken,
+} from "./auth/tokens.js";
 
 import { typeDefs } from "./graphql/typeDefs.js";
 import resolvers from "./graphql/resolvers.js";
-import rateLimit from "express-rate-limit";
+import bcrypt from "bcrypt"
+import { PrismaClient, Role } from "./generated/prisma/index.js";
+import { PrismaPg } from "@prisma/adapter-pg";
 
 const app = express();
 const port = process.env.PORT || 3000;
-
-const limiter = rateLimit({
-    windowMs: 60 * 1000, // 1 minute(s)
-    limit: 100, // 100 requests per window
-    message: "Too many requests! Try again later."
-})
 
 const isDev = process.env.NODE_ENV === "development";
 
@@ -31,7 +39,8 @@ const allowedOrigins = isDev
     : ["https://olros.online", "https://www.olros.online"];
 
 // Usual middleware
-app.use(express.json(), limiter);
+app.use(express.json());
+app.use(cookieParser());
 
 // Optional: if you want to lock CORS down, replace "*" with your frontend dev URL
 // e.g. "http://localhost:3001" or "http://localhost:5173"
@@ -46,9 +55,86 @@ app.use(
     })
 );
 
-
 // Health stays as-is
 app.use("/health", healthRoutes);
+
+
+
+
+
+// Route handler:
+app.post("/login", async (req, res) => {
+
+    // At module level (outside any route handler):
+    const adapter = new PrismaPg({
+        connectionString: process.env.DATABASE_URL!,
+    });
+    const prisma = new PrismaClient({ adapter });
+
+
+    try {
+        const { email, password } = req.body;
+
+        const user = await prisma.user.findUnique({
+            where: { email },
+            include: { roles: true },
+        });
+        if (!user) {
+            return res.status(401).json({ error: "Email or Password does not match" });
+        }
+
+        const valid = await bcrypt.compare(password, user.password_hash);
+        if (!valid) {
+            return res.status(401).json({ error: "Email or Password does not match" });
+        }
+
+        const userRoles = user.roles.map((r: Role) => r.role);
+
+        const isDev = process.env.NODE_ENV === "development";
+        const token = signAccessToken({ userId: user.id, userRoles });
+        const refreshToken = signRefreshToken({ userId: user.id, userRoles });
+        setRefreshTokenCookie(res, refreshToken, isDev);
+
+        return res.status(200).json({
+            token,
+            userId: user.id,
+            name: user.name,
+            roles: userRoles,
+        });
+    } catch (err) {
+        return res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+
+app.post("/refresh", (req, res) => {
+    const token = getRefreshTokenFromRequest(req);
+    if (!token) return res.status(401).json({ error: "Missing refresh token" });
+
+    try {
+//        const payload = verifyRefreshToken(token);
+
+        const decoded = verifyRefreshToken(token);
+
+        const payload: TokenPayload = {
+        userId: decoded.userId,
+        userRoles: decoded.userRoles,
+        };
+
+        const accessToken = signAccessToken(payload);
+        //const refreshToken = signRefreshToken(payload);
+        setRefreshTokenCookie(res, refreshToken, isDev);
+        return res.json({ accessToken });
+    } catch (err) {
+        clearRefreshTokenCookie(res, isDev);
+        return res.status(401).json({ error: `Invalid refresh token ${err}` });
+    }
+});
+
+app.post("/logout", (_req, res) => {
+    clearRefreshTokenCookie(res, isDev);
+    res.json({ ok: true });
+});
 // Apollo Server
 const apollo = new ApolloServer({
     typeDefs,
@@ -65,7 +151,18 @@ await apollo.start();
 app.use(
     "/graphql",
     expressMiddleware(apollo, {
-        context: async () => ({ pool }),
+        context: async ({ req, res }) => {
+            const token = getAccessTokenFromRequest(req);
+            let user = null;
+            if (token) {
+                try {
+                    user = verifyAccessToken(token);
+                } catch {
+                    user = null;
+                }
+            }
+            return { pool, req, res, user };
+        },
     })
 );
 
