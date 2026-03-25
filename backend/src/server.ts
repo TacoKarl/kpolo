@@ -18,12 +18,16 @@ import {
     setRefreshTokenCookie,
     signAccessToken,
     signRefreshToken,
+    TokenPayload,
     verifyAccessToken,
     verifyRefreshToken,
 } from "./auth/tokens.js";
 
 import { typeDefs } from "./graphql/typeDefs.js";
 import resolvers from "./graphql/resolvers.js";
+import bcrypt from "bcrypt"
+import { PrismaClient, Role } from "./generated/prisma/index.js";
+import { PrismaPg } from "@prisma/adapter-pg";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -54,19 +58,76 @@ app.use(
 // Health stays as-is
 app.use("/health", healthRoutes);
 
+
+
+
+
+// Route handler:
+app.post("/login", async (req, res) => {
+
+    // At module level (outside any route handler):
+    const adapter = new PrismaPg({
+        connectionString: process.env.DATABASE_URL!,
+    });
+    const prisma = new PrismaClient({ adapter });
+
+
+    try {
+        const { email, password } = req.body;
+
+        const user = await prisma.user.findUnique({
+            where: { email },
+            include: { roles: true },
+        });
+        if (!user) {
+            return res.status(401).json({ error: "Email or Password does not match" });
+        }
+
+        const valid = await bcrypt.compare(password, user.password_hash);
+        if (!valid) {
+            return res.status(401).json({ error: "Email or Password does not match" });
+        }
+
+        const userRoles = user.roles.map((r: Role) => r.role);
+
+        const isDev = process.env.NODE_ENV === "development";
+        const token = signAccessToken({ userId: user.id, userRoles });
+        const refreshToken = signRefreshToken({ userId: user.id, userRoles });
+        setRefreshTokenCookie(res, refreshToken, isDev);
+
+        return res.status(200).json({
+            token,
+            userId: user.id,
+            name: user.name,
+            roles: userRoles,
+        });
+    } catch (err) {
+        return res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+
 app.post("/refresh", (req, res) => {
     const token = getRefreshTokenFromRequest(req);
     if (!token) return res.status(401).json({ error: "Missing refresh token" });
 
     try {
-        const payload = verifyRefreshToken(token);
+//        const payload = verifyRefreshToken(token);
+
+        const decoded = verifyRefreshToken(token);
+
+        const payload: TokenPayload = {
+        userId: decoded.userId,
+        userRoles: decoded.userRoles,
+        };
+
         const accessToken = signAccessToken(payload);
         const refreshToken = signRefreshToken(payload);
         setRefreshTokenCookie(res, refreshToken, isDev);
         return res.json({ accessToken });
     } catch (err) {
         clearRefreshTokenCookie(res, isDev);
-        return res.status(401).json({ error: "Invalid refresh token" });
+        return res.status(401).json({ error: `Invalid refresh token ${err}` });
     }
 });
 

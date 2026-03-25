@@ -6,7 +6,7 @@ export type TokenPayload = {
     userRoles: string[];
 };
 
-const refreshCookieName = "refresh_token";
+const refreshCookieName = "kpolo_refresh_token";
 const accessTokenTtl = (process.env.ACCESS_TOKEN_TTL ?? "15m") as SignOptions["expiresIn"];
 const refreshTokenTtl = (process.env.REFRESH_TOKEN_TTL ?? "7d") as SignOptions["expiresIn"];
 const refreshCookieTtlMs = Number(process.env.REFRESH_COOKIE_TTL_MS ?? 1000 * 60 * 60 * 24 * 7);
