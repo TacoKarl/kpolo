@@ -38,6 +38,13 @@ const allowedOrigins = isDev
     ? ["http://localhost:3000", "http://localhost:3001"]
     : ["https://olros.online", "https://www.olros.online"];
 
+
+
+const adapter = new PrismaPg({
+        connectionString: process.env.DATABASE_URL!,
+});
+const prisma = new PrismaClient({ adapter });
+
 // Usual middleware
 app.use(express.json());
 app.use(cookieParser());
@@ -64,14 +71,6 @@ app.use("/health", healthRoutes);
 
 // Route handler:
 app.post("/login", async (req, res) => {
-
-    // At module level (outside any route handler):
-    const adapter = new PrismaPg({
-        connectionString: process.env.DATABASE_URL!,
-    });
-    const prisma = new PrismaClient({ adapter });
-
-
     try {
         const { email, password } = req.body;
 
@@ -107,23 +106,40 @@ app.post("/login", async (req, res) => {
 });
 
 
-app.post("/refresh", (req, res) => {
+app.post("/refresh", async (req, res) => {
     const token = getRefreshTokenFromRequest(req);
     if (!token) return res.status(401).json({ error: "Missing refresh token" });
 
     try {
-//        const payload = verifyRefreshToken(token);
-
         const decoded = verifyRefreshToken(token);
 
+        const id = decoded.userId;
+        const user = await prisma.user.findUnique({
+            where: { id },
+            include: { roles: true },
+        });
+
+        if (!user) {
+            return res.status(404).json({ error: "User does not exist anymore" });
+        }
+
+        const userRoles = user.roles.map((r: Role) => r.role);
+        
+        //See if user roles have changed on database compared to the given refresh token
+        const userRolesChanged = JSON.stringify([...decoded.userRoles].sort()) !== JSON.stringify([...userRoles].sort());
+
         const payload: TokenPayload = {
-        userId: decoded.userId,
-        userRoles: decoded.userRoles,
+        userId: user.id,
+        userRoles: userRoles,
         };
 
         const accessToken = signAccessToken(payload);
-        //const refreshToken = signRefreshToken(payload);
-        setRefreshTokenCookie(res, refreshToken, isDev);
+        
+        if (userRolesChanged){
+            const refreshToken = signRefreshToken(payload);
+            setRefreshTokenCookie(res, refreshToken, isDev); //Set new refresh token if roles have changed
+        }
+        
         return res.json({ accessToken });
     } catch (err) {
         clearRefreshTokenCookie(res, isDev);
