@@ -7,9 +7,11 @@ import { from, mergeMap } from "rxjs";
 import { getAccessToken, refreshAccessToken } from "./auth";
 import { getGraphqlUrl } from "./apiUrls";
 
-export function makeApolloClient() {
-    const authLink = new SetContextLink((prevContext) => {
+export  function makeApolloClient() {
+    const authLink = new SetContextLink( async (prevContext) => {
         const token = getAccessToken();
+
+
         return {
             headers: {
                 ...prevContext.headers,
@@ -23,7 +25,7 @@ export function makeApolloClient() {
             ? error.errors.some((err) => err.extensions?.code === "UNAUTHENTICATED")
             : false;
 
-        if (!hasAuthError) return;
+        //if (!hasAuthError) return;
 
         const { refreshAttempted } = operation.getContext();
         if (refreshAttempted) return;

@@ -5,6 +5,7 @@ import {createContext, useContext, useState, ReactNode} from 'react';
 type User = {
     name: string;
     avatarUrl: string | null;
+    roles: string[];
 }
 
 type UserContextType = {

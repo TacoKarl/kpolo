@@ -4,14 +4,17 @@ import { useRouter } from "next/navigation";
 import { clearAccessToken } from "@/app/lib/auth";
 import { getLogoutUrl } from "@/app/lib/apiUrls";
 import Image from "next/image";
+import { useAuth } from "../components/authProvider";
 
 export default function ProfilePage () {
     const { user, setUser } = useUser();
     const router = useRouter();
+    const { updateRoles } = useAuth();
 
     const handleLogout = async () => {
         clearAccessToken();
         setUser(null);
+        updateRoles();
         try {
             await fetch(getLogoutUrl(), { method: "POST", credentials: "include" });
         } catch {

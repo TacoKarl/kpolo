@@ -1,9 +1,31 @@
+"use client"
 import { jwtDecode } from "jwt-decode";
 import { getRefreshUrl } from "./apiUrls";
 import { MyJwtPayload } from "../components/interfaces/MyJwtPayload";
 
 let accessToken: string | null = null;
 let refreshPromise: Promise<string | null> | null = null;
+let userRoles: string[] = ["Guest"];
+
+
+
+export function getUserRoles(): string[] {
+    return userRoles;
+}
+
+function setUserRoles(roles: string[]) {
+    userRoles = roles;
+}
+
+function clearUserRoles() {
+    userRoles = ["Guest"];
+}
+
+
+export function checkIfUserHasRoles(roles: string[]): boolean {
+    return userRoles.some(role => roles.includes(role));
+};
+  
 
 export function getAccessToken() {
     return accessToken;
@@ -11,11 +33,21 @@ export function getAccessToken() {
 
 export function setAccessToken(token: string | null) {
     accessToken = token;
+    if (!token){
+        clearUserRoles();
+    } else {
+        const decoded = jwtDecode<MyJwtPayload>(token);
+        setUserRoles( decoded.userRoles || ["Guest"] )
+    }
+    
 }
 
 export function clearAccessToken() {
     accessToken = null;
+    clearUserRoles();
 }
+
+
 
 export async function refreshAccessToken() {
     if (refreshPromise) return refreshPromise;
@@ -52,38 +84,3 @@ export async function refreshAccessToken() {
 
     return refreshPromise;
 }
-
-
-export async function getUserRoles(): Promise<string[]> {
-     let token = getAccessToken();
-        if (!token) {
-            token = await refreshAccessToken();
-        }    
-         
-        if (!token) {
-            return ["Guest"];
-        }
-    
-        try {
-            const decoded = jwtDecode<MyJwtPayload>(token);
-            if (decoded.exp && decoded.exp * 1000 < Date.now()) { //Check if token is expired
-                clearAccessToken();
-                return ["Guest"];
-            }
-
-            const roles = decoded.userRoles || ["Guest"];
-
-            return roles;
-
-        } catch (err) {
-            console.error("Kunne ikke dekode JWT:", err);
-            return ["Guest"];
-        }
-};
-
-
-export async function checkIfUserHasRoles(roles: string[]): Promise<boolean> {
-    const userRoles = await getUserRoles();
-    return userRoles.some(role => roles.includes(role));
-};
-  

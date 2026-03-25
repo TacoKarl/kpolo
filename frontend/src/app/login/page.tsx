@@ -3,8 +3,9 @@
 import {useCallback, useEffect, useRef, useState} from "react";
 import { useUser } from "@/app/context/UserContext";
 import {useRouter} from "next/navigation";
-import { getGraphqlUrl } from "@/app/lib/apiUrls";
-import { setAccessToken } from "@/app/lib/auth";
+import { getGraphqlUrl, getRefreshCookieUrl } from "@/app/lib/apiUrls";
+import { refreshAccessToken, setAccessToken } from "@/app/lib/auth";
+import { useAuth } from "../components/authProvider";
 
 export default function LoginPage() {
     const isDev = process.env.NODE_ENV === 'development';
@@ -16,6 +17,7 @@ export default function LoginPage() {
     const {setUser} = useUser();
     const [error, setError] = useState<Error | null>(null);
     const router = useRouter();
+    const { updateRoles } = useAuth();
 
     const handleVerify = useCallback(() => {
         setVerified(true);
@@ -61,29 +63,29 @@ export default function LoginPage() {
         `;
 
         try {
-        const res = await fetch(getGraphqlUrl(), {
+        const res = await fetch(getRefreshCookieUrl(), {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 credentials: "include",
                 body: JSON.stringify({
-                    query,
-                    variables: {email: email, password: password},
+                    email: email, 
+                    password: password
                 }),
             });
 
-            const data = await res.json();
-            if (data.errors) {
-                setError(data.errors[0].message || 'Login failed');
+            const loginData  = await res.json();
+            if (loginData.errors) {
+                setError(loginData.errors[0].message || 'Login failed');
                 return;
             }
-
-            const loginData = data.data.login;
+            console.log(loginData);
             if (loginData) {
-                setAccessToken(loginData.token);
                 setUser({
                     name: loginData.name,
                     avatarUrl: null,
+                    roles: loginData.roles
                 });
+                updateRoles();
             }
 
         } catch (err) {

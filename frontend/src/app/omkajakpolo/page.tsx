@@ -1,6 +1,7 @@
 import Image from "next/image";
+import { getAccessToken, getUserRoles, refreshAccessToken } from "../lib/auth";
 
-export default function Home() {
+export default async function Home() {
   return (
         <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
             <Image className="filter brightness-90 contrast-15 dark:brightness-100 dark:contrast-100"

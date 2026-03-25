@@ -7,10 +7,14 @@ import Image from "next/image";
 import {jwtDecode} from "jwt-decode";
 import {MyJwtPayload} from "@/app/components/interfaces/MyJwtPayload";
 import {useIsAdmin} from "@/app/components/hooks/useIsAdmin";
+import { checkIfUserHasRoles, getAccessToken, getUserRoles } from '../lib/auth';
+import { useAuth } from './authProvider';
 
 export default function Navbar() {
     const { user, setUser } = useUser();
-    const isAdmin = useIsAdmin();
+    const { roles } = useAuth();
+    const isAdmin = roles.includes("System Admin") || roles.includes("Club Admin");
+
   const getInitials = (name: string) => {
     const parts = name.trim().split(' ');
     if (parts.length === 1) return parts[0][0].toUpperCase();
@@ -18,6 +22,10 @@ export default function Navbar() {
     const last = parts[parts.length - 1][0];
     return (first + last).toUpperCase();
   };
+
+  console.log("navbar:")
+  console.log(roles);
+
 
   return (
     <nav className="sticky top-0 left-0 z-50 bg-gray-800 p-4 w-full">

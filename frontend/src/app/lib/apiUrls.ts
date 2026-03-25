@@ -16,6 +16,10 @@ export function getApiBaseUrl() {
     }
 }
 
+export function getRefreshCookieUrl() {
+    return `${getApiBaseUrl()}/login`;
+}
+
 export function getRefreshUrl() {
     return `${getApiBaseUrl()}/refresh`;
 }

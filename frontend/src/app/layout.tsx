@@ -6,6 +6,7 @@ import Footer from "./components/footer";
 import Script from "next/script";
 import { UserProvider } from "@/app/context/UserContext";
 import ApolloAppProvider from "@/app/providers/ApolloProvider";
+import { AuthProvider } from "./components/authProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,10 +38,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
       <ApolloAppProvider>
+        <AuthProvider>
         <UserProvider>
           <Navbar />
           {children}
         </UserProvider>
+        </AuthProvider>
       </ApolloAppProvider>
         <Footer />
         <Script
