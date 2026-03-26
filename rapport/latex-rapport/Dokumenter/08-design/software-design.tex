@@ -1,1 +1,146 @@
 \section{Software design}
+
+Dette afsnit beskriver den interne opbygning af systemet, samt de designprincipper og mønstre,
+der er anvendt i implementeringen.
+Hvor arkitekturafsnittet fokuserer på systemets overordnede struktur, fokuserer dette afsnit på den
+konkrete realisering af komponenter og deres indbyrdes samarbejde.
+
+\subsection{Designprincipper}
+
+Systemet er designet med udgangspunkt i centrale software designprincipper med henblik på at sikre en
+vedligeholdsbar og skalerbar kodebase.
+
+\textbf{Separation of concerns:}
+Ansvarsområder er opdelt mellem forskellige lag og komponenter.
+Præsentationslaget håndterer udelukkende UI og brugerinteraktion, applikationslaget håndterer
+forretningslogik, og datalaget står for persistens.
+
+\textbf{Single Responsibility Principle (SRP):}
+Hver komponent har ét veldefineret ansvar.
+Eksempelvis håndterer \texttt{GraphQL} resolvers kun mapping mellem API-kald og service-laget,
+mens services indeholder forretningslogik.
+
+\textbf{Loose Coupling:}
+Komponenter er designet med lav kobling, hvilket gør det muligt at ændre implementeringen af én
+komponent uden at påvirke resten af systemet i væsentlig grad.
+
+\textbf{DRY (Don't Repeat Yourself):}
+Genbrug af kode er prioriteret gennem abstrahering af fælles funktionalitet i services og hjælpefunktioner.
+Dette er også gjort brug af i præsentationslaget hvor der er implementeret forskellige components,
+som kan genbruges, som \texttt{Button} eller \texttt{Card}.
+
+\subsection{Intern struktur i applikationslaget}
+
+Applikationslaget er opdelt i tre centrale lag: resolvers, services og dataadgang.
+
+\textbf{Resolvers:}
+\texttt{GraphQL} resolvers fungerer som indgangspunkt for klientforespørgsler.
+De modtager queries og mutationer fra klienten og videresender disse til relevante services.
+Resolvers indeholder minimal logik og fungerer primært som et forbindelsesled mellem API og
+forretningslogik.
+
+\textbf{Services:}
+Service-laget indeholder systemets forretningslogik.
+Her håndteres validering, databehandling og koordinering af kald til databasen.
+Denne opdeling gør det muligt at genbruge logik på tværs af flere resolvers.
+
+\textbf{Dataadgang:}
+Dataadgang håndteres via Prisma, som fungerer som et abstraktionslag over PostgreSQL-databasen.
+Prisma anvendes både til forespørgsler, migrationer og seeding af data.
+Dette sikrer en konsistent og typesikker tilgang til databasen.
+
+\subsection{Anvendte designmønstre}
+
+Følgende designmønstre er anvendt i systemet:
+
+\textbf{Layered Architecture Pattern:}
+Systemet er struktureret i lag, hvor hvert lag har et klart defineret ansvar.
+Dette forbedrer overskueligheden og vedligeholdbarheden.
+
+\textbf{Resolver-Service Pattern:}
+\texttt{GraphQL} resolvers er adskilt fra forretningslogikken, som er placeret i services.
+Dette gør det muligt at teste logik uafhængigt af API-laget.
+
+\textbf{Middleware Pattern:}
+Middleware anvendes i \texttt{Express} til håndtering af tværgående funktionalitet som autentifikation,
+logging og fejlbehandling.
+
+\subsection{Dataflow og API-design}
+
+Systemet anvender en kombination af \texttt{GraphQL} og \texttt{REST} til håndtering af klient-server
+kommunikation.
+
+Ved en typisk \texttt{GraphQL}-forespørgsel foregår dataflowet som følger:
+
+\begin{enumerate}
+    \item Klienten sender en query eller mutation via \texttt{Apollo Client}.
+    \item Forespørgslen modtages af en \texttt{GraphQL} resolver.
+    \item Resolveren kalder en relevant service.
+    \item Servicen udfører nødvendig logik og interagerer med databasen via \texttt{Prisma}.
+    \item Resultatet returneres gennem resolveren til klienten.
+\end{enumerate}
+
+Autentifikation håndteres separat via et \texttt{REST}-endpoint, hvor klienten sender login-oplysninger
+gennem en \texttt{POST}-request.
+Ved succesfuld autentifikation returneres en \texttt{JWT}, som efterfølgende anvendes i \texttt{GraphQL}-forespørgsler
+til autorisation.
+
+\subsection{Frontend design}
+
+Frontend-applikationen er implementeret i \texttt{Next.js} og er opbygget omkring komponentbaseret udvikling.
+
+UI'et består af genanvendelige komponenter, som hver især har et afgrænset ansvar.
+State management håndteres primært gennem \texttt{Reacts useState} og Context API, hvilket er tilstrækkeligt,
+givet systemets kompleksitet.
+
+Datahentning foretages via \texttt{Apollo CLient}, som muliggør effektiv kommunikation med \texttt{GraphQL} API'et
+samt caching af forespørgsler.
+
+\subsection{Databasetilgang og persistens}
+
+Databasen tilgås udelukkende gennem applikationslaget via \texttt{Prisma}.
+Dette sikrer, at al adgang til data går gennem kontrollerede lag, hvor validering og forretningslogik
+kan håndhæves.
+
+\texttt{Prisma} anvendes til:
+\begin{itemize}
+    \item Databaseforespørgsler
+    \item Migration af databasestruktur
+    \item Seeding af initial data
+\end{itemize}
+
+Denne tilgang reducerer risikoen for inkonsistens og sikrer en struktureret udviklingsproces.
+
+\subsection{Fejlhåndtering}
+
+Fejlhåndtering er centraliseret gennem middleware i applikationslaget.
+Dette sikrer ensartet håndtering af fejl og gør det muligt at returnere konsistente fejlmeddelelser
+til klienten.
+
+\texttt{GraphQL}-fejl håndteres i resolvers og services, hvor fejl enten håndteres lokalt eller videresendes
+til central håndtering.
+
+\subsection{Trade-offs}
+I designet af systemet er der truffet en række bevidste valg, som indebærer forskellige trade-offs.
+Valget af en monolitisk arkitektur reducerer kompleksiteten i både udvikling og deployment sammenlignet
+med microservices.
+Til gengæld kan det på sigt begrænse skalerbarheden, hvis systemet vokser betydeligt, hvor der
+vil være brug for microservices.
+Anvendelsen af \texttt{GraphQL} giver høj fleksibilitet i datahentning og reducerer over-fetching,
+men introducerer samtidig øget kompleksitet i \texttt{API}'et, herunder håndtering af queries,
+resolvers og performance optimering.
+Kombinationen af \texttt{GraphQL} til datahåndtering og \texttt{REST} til autentifikation skaber en klar
+ansvarsopdeling, men medfører også, at systemet anvender to forskellige \texttt{API}-paradigmer, hvilket
+øger den samlede kompleksitet.
+Endelig er der foretaget enkelte denormaliseringer i databasen for at forbedre performance, hvilket
+sker på bekostning af streng normalisering og kan øge risikoen for inkonsistens, hvis det
+ikke håndteres korrekt.
+
+\subsection{Opsummering}
+
+Softwaredesignet understøtter en modulær og vedligeholdbar struktur gennem klar ansvarsopdeling
+og anvendelse af velkendte designprincipper og mønstre.
+Kombination af \texttt{GraphQL}, \texttt{REST} og \texttt{Prisma} muliggør en fleksibel og effektiv
+håndtering af data og forretningslogik.
+Der er udarbejdet et C4 container diagram for at visualisere systemets overordnede struktur og interaktion
+mellem centrale komponenter.
