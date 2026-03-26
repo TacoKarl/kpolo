@@ -5,8 +5,6 @@ import { cookies } from "next/headers";
 
 let accessToken: string | null = null;
 let refreshPromise: Promise<string | null> | null = null;
-//let userRoles: string[] = ["Guest"];
-
 
 
 export async function getUserRoles(): Promise<string[]> {
@@ -25,15 +23,6 @@ export async function getUserRoles(): Promise<string[]> {
     }
 }
 
-/*
-function setUserRoles(roles: string[]) {
-    userRoles = roles;
-}
-
-function clearUserRoles() {
-    userRoles = ["Guest"];
-}
-*/
 
 
 export async function checkIfUserHasRoles(roles: string[]): Promise<boolean> {
