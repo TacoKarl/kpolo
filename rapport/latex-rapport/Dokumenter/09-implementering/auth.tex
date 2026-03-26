@@ -1,0 +1,20 @@
+\subsection{Authentication og Authorization}
+
+\subsubsection{Authentication}
+Flowet for authentication fungere således at et bruger logger ind med email og password. Herefter hvis de bliver bekræftet som en eksisterende user i backend, vil de modtage en Refresh Token i JWT (JSON WEB TOKEN) format der indeholder deres UserID, som bliver gemt i cookies.
+Denne Refresh Token vil have en levetid på 7 dage, hvilket vil sige at brugeren kun behøver at logge ind en gang om ugen. Cookieen bliver gemt som HTTP-only, hvilket beskytter mod Cross-Site Scripting.
+Derudover bliver tokenen signeret af backenden, således at den ikke kan forfalskes.
+Dette er en meget standard måde at håndtere authentication på FIND KILDE
+Det er også normalt at man gemmer en kopi af hver Refresh Token på backenden for at holde styr på udgivede tokens og eventuelt blackliste komprimerede Refresh Tokens, har vi ikke valgt at gøre MED MINDRE THOR KOMMER TIL AT COOK LIDT?
+\\
+
+
+\subsubsection{Authorization}
+Til authorization bruger vi Refresh Tokenen fra authentication til at anmode om en Access Token. Denne kan bruges til at interagere med dataen i databasen, og er derfor meget farlig hvis den bliver opsnappet af uvedkommende.
+Derfor har Access Tokenen kun en levetid på 15 minuter, herefter må man bruge Refresh Tokenen til anmode om en ny.
+Hver Access Token, vil udover at have et UserID, også indeholde hvilke roller brugeren har i databasen. Disse roler bliver brugt til RBAC (Role Based Access Control) på både frontend og backend.
+En Access Token er også signeret af backenden, således at den ikke kan forfalsks.
+\\
+Flowet kan ses i REFERENCE TIL SEQUENCE DIAGRAM
+\\
+INDSÆT SD HER
