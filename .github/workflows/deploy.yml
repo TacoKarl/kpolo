@@ -31,16 +31,10 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Pull latest code
-        run: |
-          cd /home/appuser/kpolo
-          git fetch origin main
-          git reset --hard origin/main
-
-      - name: Build and start container
+      - name: Deploy
         run: |
           cd /home/appuser/kpolo/backend
-          podman compose up --build api -d
+          ./deploy.sh
 
       - name: Wait for
         run: |

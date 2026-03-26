@@ -402,8 +402,20 @@ const resolvers = {
         },
 
         register: async (_: any, { email, name, password }: { email: string, name: string, password: string}) => {
-            const existingUser = await prisma.user.findUnique({ where: { email } });
+
+            const normalizedEmail = email.toLowerCase().trim();
+
+            const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+
             if (existingUser) throw new Error(`User with email ${email} already exists`);
+
+            if (!email.includes("@")) {
+                throw new Error("Invalid email");
+            }
+
+            if (password.length < 8) {
+                throw new Error("Password too short");
+            }
 
             // Hash
             const saltRounds = 12;
@@ -411,17 +423,23 @@ const resolvers = {
 
             const user = await prisma.user.create({
                 data: {
-                    email,
+                    email: normalizedEmail,
                     name,
                     password_hash,
                 }
             });
 
-            return user;
+            return {
+                id: user.id,
+                email: user.email,
+                name: user.name
+            };
         },
         login: async (_: any, { email, password }: {email: string; password: string}) => {
+
+            const normalizedEmail = email.toLowerCase().trim();
             const user = await prisma.user.findUnique({ 
-                where: { email },
+                where: { email: normalizedEmail },
                 include: { roles: true }, // fetches the related Role[] array
             });
             if (!user) throw new Error("Email or Password does not match");
