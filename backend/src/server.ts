@@ -12,13 +12,16 @@ import { expressMiddleware } from "@as-integrations/express5";
 import { pool } from "./db/pool.js";
 import healthRoutes from "./modules/health/health.routes.js";
 import {
+    AccessTokenPayload,
+    clearAccessTokenCookie,
     clearRefreshTokenCookie,
     getAccessTokenFromRequest,
+    getDeviceID,
     getRefreshTokenFromRequest,
+    setAccessTokenCookie,
     setRefreshTokenCookie,
     signAccessToken,
     signRefreshToken,
-    TokenPayload,
     verifyAccessToken,
     verifyRefreshToken,
 } from "./auth/tokens.js";
@@ -28,6 +31,8 @@ import resolvers from "./graphql/resolvers.js";
 import bcrypt from "bcrypt"
 import { PrismaClient, Role } from "./generated/prisma/index.js";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { hashToken } from "./util/hash.js";
+import { ref } from "node:process";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -74,6 +79,13 @@ app.post("/login", async (req, res) => {
     try {
         const { email, password } = req.body;
 
+
+        const deviceId = getDeviceID(req);
+
+         if (!deviceId) {
+            return res.status(400).json({ error: "No Device ID" });
+        }
+
         const user = await prisma.user.findUnique({
             where: { email },
             include: { roles: true },
@@ -89,16 +101,35 @@ app.post("/login", async (req, res) => {
 
         const userRoles = user.roles.map((r: Role) => r.role);
 
-        const token = signAccessToken({ userId: user.id, userRoles });
-        const refreshToken = signRefreshToken({ userId: user.id, userRoles });
-        setRefreshTokenCookie(res, refreshToken, isDev);
+        const refreshToken = signRefreshToken({ userId: user.id, deviceId});
+        const accessToken = signAccessToken({ userId: user.id, deviceId, userRoles });
 
-        return res.status(200).json({
-            token,
-            userId: user.id,
-            name: user.name,
-            roles: userRoles,
-        });
+
+
+        await prisma.refreshTokens.upsert({
+            where: {
+                user_id_device_id: { user_id: user.id, device_id: deviceId }
+            },
+            create: {
+                user_id: user.id,
+                device_id: deviceId,
+                token_hashed: hashToken(refreshToken),
+                created_at: new Date(Date.now()),
+                expires_at: new Date(Date.now() + (1000 * 60 * 60 * 24 * 7)) //TODO: take from env
+            },
+            update: {
+                token_hashed: hashToken(refreshToken),
+                created_at: new Date(Date.now()),
+                expires_at: new Date(Date.now() + (1000 * 60 * 60 * 24 * 7)) //TODO: env
+            }
+        })
+
+
+
+        setRefreshTokenCookie(res, refreshToken, isDev);
+        setAccessTokenCookie(res, accessToken, isDev)
+
+        return res.status(200);
     } catch (err) {
         return res.status(500).json({ error: "Internal server error" });
     }
@@ -106,15 +137,27 @@ app.post("/login", async (req, res) => {
 
 
 app.post("/refresh", async (req, res) => {
-    const token = getRefreshTokenFromRequest(req);
-    if (!token) return res.status(401).json({ error: "Missing refresh token" });
+    const refreshToken = getRefreshTokenFromRequest(req);
+    if (!refreshToken) return res.status(401).json({ error: "Missing refresh token" });
 
     try {
-        const decoded = verifyRefreshToken(token);
+        const decoded = verifyRefreshToken(refreshToken);
 
-        const id = decoded.userId;
+        const userId = decoded.userId;
+        const deviceId = getDeviceID(req);
+
+        const databaseRefreshToken = await prisma.refreshTokens.findUnique({
+            where: { user_id_device_id: { user_id: userId, device_id: deviceId } },
+        });
+
+
+        if (!databaseRefreshToken || databaseRefreshToken?.token_hashed != hashToken(refreshToken)){
+            clearRefreshTokenCookie(res, isDev);
+            return res.status(403).json({ error: "Token mismatch" });
+        }
+
         const user = await prisma.user.findUnique({
-            where: { id },
+            where: { id: userId },
             include: { roles: true },
         });
 
@@ -123,33 +166,50 @@ app.post("/refresh", async (req, res) => {
         }
 
         const userRoles = user.roles.map((r: Role) => r.role);
-        
-        //See if user roles have changed on database compared to the given refresh token
-        const userRolesChanged = JSON.stringify([...decoded.userRoles].sort()) !== JSON.stringify([...userRoles].sort());
-
-        const payload: TokenPayload = {
+       
+        const payload: AccessTokenPayload = {
         userId: user.id,
+        deviceId: deviceId,
         userRoles: userRoles,
         };
 
+
+
+
+
         const accessToken = signAccessToken(payload);
+
+        setAccessTokenCookie(res, accessToken, isDev);
         
-        if (userRolesChanged){
-            const refreshToken = signRefreshToken(payload);
-            setRefreshTokenCookie(res, refreshToken, isDev); //Set new refresh token if roles have changed
-        }
-        
-        return res.json({ accessToken });
+        return res.status(200);
     } catch (err) {
         clearRefreshTokenCookie(res, isDev);
         return res.status(401).json({ error: `Invalid refresh token` });
     }
 });
 
-app.post("/logout", (_req, res) => {
-    clearRefreshTokenCookie(res, isDev);
-    res.json({ ok: true });
-});
+app.post("/logout", async (req, res) => {
+    try {
+        const refreshToken = getRefreshTokenFromRequest(req);
+        const decoded = verifyRefreshToken(refreshToken);
+        const userId = decoded.userId;
+        const deviceId = getDeviceID(req);
+        clearRefreshTokenCookie(res, isDev);
+        clearAccessTokenCookie(res,isDev);
+
+        await prisma.refreshTokens.delete({
+            where: {
+                user_id_device_id: { user_id: userId, device_id: deviceId }
+        }})
+
+
+        res.status(200);
+    } catch (err) {
+        clearRefreshTokenCookie(res, isDev);
+        return res.status(400);
+    }
+}
+);
 // Apollo Server
 const apollo = new ApolloServer({
     typeDefs,

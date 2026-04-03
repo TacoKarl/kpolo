@@ -35,6 +35,7 @@ model User {
   roles         Role[]
   teams         TeamMembership[]
   managed_clubs Club?            @relation("ClubManager")
+  refresh_tokens  RefreshTokens[] @relation("UserRefreshTokens")
 
   club Club? @relation("ClubMemberships", fields: [club_id], references: [id])
 }
@@ -129,4 +130,17 @@ model TournamentDate {
   date          DateTime
 
   tournament Tournament @relation(fields: [tournament_id], references: [id])
+}
+
+model RefreshTokens {
+  id Int @id @default(autoincrement())
+  token_hashed String @unique
+  user_id Int
+  device_id String
+  created_at DateTime
+  expires_at DateTime
+
+  user User @relation("UserRefreshTokens", fields: [user_id], references: [id])
+
+  @@unique([user_id, device_id])
 }
