@@ -7,6 +7,7 @@ export type TokenPayload = {
 };
 
 const refreshCookieName = "kpolo_refresh_token";
+const accessCookieName = "kpolo_access_token";
 const accessTokenTtl = (process.env.ACCESS_TOKEN_TTL ?? "15m") as SignOptions["expiresIn"];
 const refreshTokenTtl = (process.env.REFRESH_TOKEN_TTL ?? "7d") as SignOptions["expiresIn"];
 const refreshCookieTtlMs = Number(process.env.REFRESH_COOKIE_TTL_MS ?? 1000 * 60 * 60 * 24 * 7);
@@ -43,6 +44,16 @@ export function setRefreshTokenCookie(res: Response, token: string, isDev: boole
     });
 }
 
+export function setAccessTokenCookie(res: Response, token: string, isDev: boolean) {
+    res.cookie(accessCookieName, token, {
+        httpOnly: true,
+        secure: !isDev,
+        sameSite: isDev ? "lax" : "none",
+        path: "/",
+        maxAge: refreshCookieTtlMs,
+    });
+}
+
 export function clearRefreshTokenCookie(res: Response, isDev: boolean) {
     res.clearCookie(refreshCookieName, {
         httpOnly: true,
@@ -51,6 +62,16 @@ export function clearRefreshTokenCookie(res: Response, isDev: boolean) {
         path: "/refresh",
     });
 }
+
+export function clearAccessTokenCookie(res: Response, isDev: boolean) {
+    res.clearCookie(accessCookieName, {
+        httpOnly: true,
+        secure: !isDev,
+        sameSite: isDev ? "lax" : "none",
+        path: "/",
+    });
+}
+
 
 export function getAccessTokenFromRequest(req: Request) {
     const header = req.headers.authorization;

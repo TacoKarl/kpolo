@@ -89,7 +89,6 @@ app.post("/login", async (req, res) => {
 
         const userRoles = user.roles.map((r: Role) => r.role);
 
-        const isDev = process.env.NODE_ENV === "development";
         const token = signAccessToken({ userId: user.id, userRoles });
         const refreshToken = signRefreshToken({ userId: user.id, userRoles });
         setRefreshTokenCookie(res, refreshToken, isDev);
