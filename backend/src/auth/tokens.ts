@@ -1,6 +1,14 @@
 import type { Request, Response } from "express";
 import jwt, { type SignOptions, type Secret } from "jsonwebtoken";
 import { createHash } from "crypto";
+import { hashToken } from "../util/hash.js";
+import {PrismaPg} from "@prisma/adapter-pg";
+import { PrismaClient } from "../generated/prisma/index.js";
+
+const adapter = new PrismaPg({
+    connectionString: process.env.DATABASE_URL!,
+});
+const prisma = new PrismaClient({ adapter });
 
 export type RefreshTokenPayload = {
     userId: number;
@@ -71,6 +79,28 @@ export function setRefreshTokenCookie(res: Response, token: string, isDev: boole
         path: "/refresh",
         maxAge: refreshCookieTtlMs,
     });
+
+
+}
+
+export async function updateRefreshTokenDatabase(refreshToken: string, userId: number, deviceId: string) {
+    await prisma.refreshTokens.upsert({
+        where: {
+            user_id_device_id: { user_id: userId, device_id: deviceId }
+        },
+        create: {
+            user_id: userId,
+            device_id: deviceId,
+            token_hashed: hashToken(refreshToken),
+            created_at: new Date(Date.now()),
+            expires_at: new Date(Date.now() + (1000 * 60 * 60 * 24 * 7)) //TODO: take from env
+        },
+        update: {
+            token_hashed: hashToken(refreshToken),
+            created_at: new Date(Date.now()),
+            expires_at: new Date(Date.now() + (1000 * 60 * 60 * 24 * 7)) //TODO: env
+        }
+    })
 }
 
 

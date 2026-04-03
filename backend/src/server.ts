@@ -21,7 +21,7 @@ import {
     setAccessTokenCookie,
     setRefreshTokenCookie,
     signAccessToken,
-    signRefreshToken,
+    signRefreshToken, updateRefreshTokenDatabase,
     verifyAccessToken,
     verifyRefreshToken,
 } from "./auth/tokens.js";
@@ -104,29 +104,9 @@ app.post("/login", async (req, res) => {
         const refreshToken = signRefreshToken({ userId: user.id, deviceId});
         const accessToken = signAccessToken({ userId: user.id, deviceId, userRoles });
 
-
-
-        await prisma.refreshTokens.upsert({
-            where: {
-                user_id_device_id: { user_id: user.id, device_id: deviceId }
-            },
-            create: {
-                user_id: user.id,
-                device_id: deviceId,
-                token_hashed: hashToken(refreshToken),
-                created_at: new Date(Date.now()),
-                expires_at: new Date(Date.now() + (1000 * 60 * 60 * 24 * 7)) //TODO: take from env
-            },
-            update: {
-                token_hashed: hashToken(refreshToken),
-                created_at: new Date(Date.now()),
-                expires_at: new Date(Date.now() + (1000 * 60 * 60 * 24 * 7)) //TODO: env
-            }
-        })
-
-
-
         setRefreshTokenCookie(res, refreshToken, isDev);
+        await updateRefreshTokenDatabase(refreshToken, user.id, deviceId);
+
         setAccessTokenCookie(res, accessToken, isDev)
 
         return res.status(200);
@@ -147,7 +127,10 @@ app.post("/refresh", async (req, res) => {
         const deviceId = getDeviceID(req);
 
         const databaseRefreshToken = await prisma.refreshTokens.findUnique({
-            where: { user_id_device_id: { user_id: userId, device_id: deviceId } },
+            where: { user_id_device_id: { user_id: userId, device_id: deviceId },
+                    expires_at: { gt: new Date(Date.now()) }
+            },
+
         });
 
 
@@ -174,11 +157,10 @@ app.post("/refresh", async (req, res) => {
         };
 
 
-
-
+        setRefreshTokenCookie(res, refreshToken, isDev);
+        await updateRefreshTokenDatabase(refreshToken, user.id, deviceId);
 
         const accessToken = signAccessToken(payload);
-
         setAccessTokenCookie(res, accessToken, isDev);
         
         return res.status(200);
