@@ -1,18 +1,17 @@
-// app/components/Navbar.jsx
-'use client';
 import Link from 'next/link';
-import {useEffect, useState} from "react";
-import { useUser } from "@/app/context/UserContext";
+//import {useEffect, useState} from "react";
+//import { useUser } from "@/app/context/UserContext";
 import Image from "next/image";
-import {jwtDecode} from "jwt-decode";
-import {MyJwtPayload} from "@/app/components/interfaces/MyJwtPayload";
-import {useIsAdmin} from "@/app/components/hooks/useIsAdmin";
+//import {useIsAdmin} from "@/app/components/hooks/useIsAdmin";
 import {Button} from "@/components/Button";
+import {checkIfUserHasRoles} from "@/app/lib/auth";
 
-export default function Navbar() {
-    const { user, setUser } = useUser();
-    const isAdmin = useIsAdmin();
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
+export default async function Navbar() {
+    //const { user, setUser } = useUser();
+    //const isAdmin = useIsAdmin();
+    const  user  = null
+    const isAdmin = await checkIfUserHasRoles(["System Admin", "Club Admin"])
+    //const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const getInitials = (name: string) => {
     const parts = name.trim().split(' ');
@@ -22,7 +21,7 @@ export default function Navbar() {
     return (first + last).toUpperCase();
   };
 
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  //onst toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   return (
     <nav className="sticky top-0 left-0 z-50 bg-gray-800 p-4 w-full">
