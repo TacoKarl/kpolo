@@ -11,16 +11,12 @@ const adapter = new PrismaPg({
 });
 const prisma = new PrismaClient({ adapter });
 
-export type RefreshTokenPayload = {
+export type TokenPayload = {
     userId: number;
     deviceId: string;
 };
 
-export type AccessTokenPayload = {
-    userId: number;
-    deviceId: string;
-    userRoles: string[];
-};
+
 
 
 const refreshCookieName = "kpolo_refresh_token";
@@ -36,12 +32,12 @@ if (!jwtSecret || !jwtRefreshSecret) {
     throw new Error("JWT_SECRET and JWT_REFRESH_SECRET must be set");
 }
 
-export function signAccessToken(payload: AccessTokenPayload) {
+export function signAccessToken(payload: TokenPayload) {
     return jwt.sign(payload, jwtSecret as Secret, { expiresIn: accessTokenTtl });
 }
 
 export function verifyAccessToken(token: string) {
-    return jwt.verify(token, jwtSecret as Secret) as AccessTokenPayload;
+    return jwt.verify(token, jwtSecret as Secret) as TokenPayload;
 }
 
 export function setAccessTokenCookie(res: Response, token: string, isDev: boolean) {
@@ -64,12 +60,12 @@ export function clearAccessTokenCookie(res: Response, isDev: boolean) {
 }
 
 
-export function signRefreshToken(payload: RefreshTokenPayload) {
+export function signRefreshToken(payload: TokenPayload) {
     return jwt.sign(payload, jwtRefreshSecret as Secret, { expiresIn: refreshTokenTtl });
 }
 
 export function verifyRefreshToken(token: string) {
-    return jwt.verify(token, jwtRefreshSecret as Secret) as RefreshTokenPayload;
+    return jwt.verify(token, jwtRefreshSecret as Secret) as TokenPayload;
 }
 
 export function setRefreshTokenCookie(res: Response, token: string, isDev: boolean) {

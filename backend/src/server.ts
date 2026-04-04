@@ -12,7 +12,7 @@ import { expressMiddleware } from "@as-integrations/express5";
 import { pool } from "./db/pool.js";
 import healthRoutes from "./modules/health/health.routes.js";
 import {
-    AccessTokenPayload,
+    TokenPayload,
     clearAccessTokenCookie,
     clearRefreshTokenCookie,
     getAccessTokenFromRequest,
@@ -21,7 +21,8 @@ import {
     setAccessTokenCookie,
     setRefreshTokenCookie,
     signAccessToken,
-    signRefreshToken, updateRefreshTokenDatabase,
+    signRefreshToken, 
+    updateRefreshTokenDatabase,
     verifyAccessToken,
     verifyRefreshToken,
 } from "./auth/tokens.js";
@@ -97,8 +98,13 @@ app.post("/login", async (req, res) => {
 
         const userRoles = user.roles.map((r: Role) => r.role);
 
-        const refreshToken = signRefreshToken({ userId: user.id, deviceId});
-        const accessToken = signAccessToken({ userId: user.id, deviceId, userRoles });
+        const payload: TokenPayload = {
+            userId: user.id,
+            deviceId
+        }
+
+        const refreshToken = signRefreshToken(payload);
+        const accessToken = signAccessToken(payload);
 
         setRefreshTokenCookie(res, refreshToken, isDev);
         await updateRefreshTokenDatabase(refreshToken, user.id, deviceId);
@@ -137,24 +143,20 @@ app.post("/refresh", async (req, res) => {
 
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            include: { roles: true },
         });
 
         if (!user) {
             return res.status(404).json({ error: "User does not exist anymore" });
         }
 
-        const userRoles = user.roles.map((r: Role) => r.role);
-       
-        const payload: AccessTokenPayload = {
-        userId: user.id,
-        deviceId: deviceId,
-        userRoles: userRoles,
-        };
-
-
         setRefreshTokenCookie(res, refreshToken, isDev);
         await updateRefreshTokenDatabase(refreshToken, user.id, deviceId);
+
+
+        const payload: TokenPayload = {
+            userId: user.id,
+            deviceId
+        }
 
         const accessToken = signAccessToken(payload);
         setAccessTokenCookie(res, accessToken, isDev);
