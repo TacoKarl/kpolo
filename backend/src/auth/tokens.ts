@@ -48,7 +48,7 @@ export function setAccessTokenCookie(res: Response, token: string, isDev: boolea
     res.cookie(accessCookieName, token, {
         httpOnly: true,
         secure: !isDev,
-        sameSite: !isDev ? "lax" : "none",
+        sameSite: "lax",
         path: "/",
         maxAge: refreshCookieTtlMs,
     });
@@ -58,7 +58,7 @@ export function clearAccessTokenCookie(res: Response, isDev: boolean) {
     res.clearCookie(accessCookieName, {
         httpOnly: true,
         secure: !isDev,
-        sameSite: !isDev ? "lax" : "none",
+        sameSite: "lax",
         path: "/",
     });
 }
@@ -76,7 +76,7 @@ export function setRefreshTokenCookie(res: Response, token: string, isDev: boole
     res.cookie(refreshCookieName, token, {
         httpOnly: true,
         secure: !isDev,
-        sameSite: !isDev ? "lax" : "none",
+        sameSite: "lax",
         path: "/refresh",
         maxAge: refreshCookieTtlMs,
     });
@@ -110,7 +110,7 @@ export function clearRefreshTokenCookie(res: Response, isDev: boolean) {
     res.clearCookie(refreshCookieName, {
         httpOnly: true,
         secure: !isDev,
-        sameSite: !isDev ? "lax" : "none",
+        sameSite: "lax",
         path: "/refresh",
     });
 }
@@ -134,9 +134,9 @@ export function getOrCreateDeviceID(req: Request, res: Response, isDev: boolean 
         res.cookie(deviceIdCookieName, deviceId, {
             httpOnly: true,
             secure: !isDev,
-            sameSite: !isDev ? "lax" : "none",
+            sameSite: "lax",
             path: "/",
-            maxAge: refreshCookieTtlMs,
+            maxAge: 1000*60*60*24*365,
         });
     }
     return deviceId;

@@ -49,22 +49,14 @@ export default function LoginPage() {
 
         console.log(`Login med: ${email}`);
 
-        const query = `
-            mutation Login($email: String!, $password: String!) {
-                login(email: $email, password: $password) {
-                    token
-                    name
-                }
-            }
-        `;
-
         try {
-            const res = await fetch(process.env.NEXT_PUBLIC_API_URL!, {
+            const res = await fetch("http://localhost:3000/login", {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
+                credentials: 'include',
                 body: JSON.stringify({
-                    query,
-                    variables: {email: email, password: password},
+                    email: email,
+                    password: password,
                 }),
             });
 
@@ -72,16 +64,6 @@ export default function LoginPage() {
             if (data.errors) {
                 setError(data.errors[0].message || 'Login failed');
                 return;
-            }
-
-            const loginData = data.data.login;
-            if (loginData) {
-                localStorage.setItem('token', loginData.token);
-                setUser({
-                    name: loginData.name,
-                    avatarUrl: null,
-                    token: loginData.token,
-                });
             }
 
         } catch (err) {

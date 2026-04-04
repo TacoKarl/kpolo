@@ -83,7 +83,7 @@ app.post("/login", async (req, res) => {
         const deviceId = getOrCreateDeviceID(req, res, isDev);
 
         const user = await prisma.user.findUnique({
-            where: { email },
+            where: { email: email },
             include: { roles: true },
         });
         if (!user) {
@@ -105,9 +105,9 @@ app.post("/login", async (req, res) => {
 
         setAccessTokenCookie(res, accessToken, isDev)
 
-        return res.status(200);
+        return res.status(200).json({response: 'Login successful'});
     } catch (err) {
-        return res.status(500).json({ error: "Internal server error" });
+        return res.status(500).json({ error: `Internal server error ${err}` });
     }
 });
 

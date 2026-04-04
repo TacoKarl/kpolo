@@ -16,6 +16,7 @@ services:
       DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}"
       PORT: ${PORT}
       JWT_SECRET: ${JWT_SECRET}
+      NODE_ENV: ${NODE_ENV}
       PRISMA_CLIENT_ENABLE_ACCELERATE: "false"
     env_file:
       - .env
