@@ -16,7 +16,7 @@ import {
     clearAccessTokenCookie,
     clearRefreshTokenCookie,
     getAccessTokenFromRequest,
-    getDeviceID,
+    getOrCreateDeviceID,
     getRefreshTokenFromRequest,
     setAccessTokenCookie,
     setRefreshTokenCookie,
@@ -80,11 +80,7 @@ app.post("/login", async (req, res) => {
         const { email, password } = req.body;
 
 
-        const deviceId = getDeviceID(req);
-
-         if (!deviceId) {
-            return res.status(400).json({ error: "No Device ID" });
-        }
+        const deviceId = getOrCreateDeviceID(req, res, isDev);
 
         const user = await prisma.user.findUnique({
             where: { email },
@@ -124,7 +120,7 @@ app.post("/refresh", async (req, res) => {
         const decoded = verifyRefreshToken(refreshToken);
 
         const userId = decoded.userId;
-        const deviceId = getDeviceID(req);
+        const deviceId = getOrCreateDeviceID(req, res, isDev);
 
         const databaseRefreshToken = await prisma.refreshTokens.findUnique({
             where: { user_id_device_id: { user_id: userId, device_id: deviceId },
@@ -175,7 +171,7 @@ app.post("/logout", async (req, res) => {
         const refreshToken = getRefreshTokenFromRequest(req);
         const decoded = verifyRefreshToken(refreshToken);
         const userId = decoded.userId;
-        const deviceId = getDeviceID(req);
+        const deviceId = getOrCreateDeviceID(req, res, isDev);
         clearRefreshTokenCookie(res, isDev);
         clearAccessTokenCookie(res,isDev);
 

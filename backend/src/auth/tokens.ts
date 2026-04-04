@@ -4,6 +4,7 @@ import { createHash } from "crypto";
 import { hashToken } from "../util/hash.js";
 import {PrismaPg} from "@prisma/adapter-pg";
 import { PrismaClient } from "../generated/prisma/index.js";
+import { v4 as uuidv4 } from 'uuid';
 
 const adapter = new PrismaPg({
     connectionString: process.env.DATABASE_URL!,
@@ -126,6 +127,17 @@ export function getRefreshTokenFromRequest(req: Request) {
     return req.cookies?.[refreshCookieName] ?? null;
 }
 
-export function getDeviceID(req: Request) {
-    return req.cookies?.[deviceIdCookieName] ?? null;
+export function getOrCreateDeviceID(req: Request, res: Response, isDev: boolean = false) {
+    let deviceId = req.cookies?.[deviceIdCookieName] ?? null;
+    if (!deviceId){
+        deviceId = uuidv4();
+        res.cookie(deviceIdCookieName, deviceId, {
+            httpOnly: true,
+            secure: !isDev,
+            sameSite: !isDev ? "lax" : "none",
+            path: "/",
+            maxAge: refreshCookieTtlMs,
+        });
+    }
+    return deviceId;
 }
