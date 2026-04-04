@@ -30,6 +30,7 @@ export async function proxy(request: NextRequest) {
                     // Pass the encrypted cookies directly to Express
                 //    'Cookie': `refresh_token=${refreshToken}`,
                 },
+                credentials: 'include',
             });
 
             if (refreshRes.ok) {
@@ -60,5 +61,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ['/logout', '/admin/:path*'],
+    matcher: ['/logout', '/admin/:path*', '/profile/:path*'],
 };

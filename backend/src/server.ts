@@ -159,7 +159,7 @@ app.post("/refresh", async (req, res) => {
         const accessToken = signAccessToken(payload);
         setAccessTokenCookie(res, accessToken, isDev);
         
-        return res.status(200);
+        return res.status(200).json({response: 'Refresh successful'});
     } catch (err) {
         clearRefreshTokenCookie(res, isDev);
         return res.status(401).json({ error: `Invalid refresh token` });
@@ -181,7 +181,7 @@ app.post("/logout", async (req, res) => {
         }})
 
 
-        res.status(200);
+        res.status(200).json({response: 'Logout successful'});
     } catch (err) {
         clearRefreshTokenCookie(res, isDev);
         return res.status(400);
