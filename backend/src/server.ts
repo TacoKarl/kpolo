@@ -33,7 +33,8 @@ import bcrypt from "bcrypt"
 import { PrismaClient, Role } from "./generated/prisma/index.js";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { hashToken } from "./util/hash.js";
-import { ref } from "node:process";
+import { User, UserRoles } from "./auth/graphqlPermissions.js";
+import { Context } from "./graphql/context.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -206,16 +207,37 @@ await apollo.start();
 app.use(
     "/graphql",
     expressMiddleware(apollo, {
-        context: async ({ req, res }) => {
+        context: async ({ req, res }): Promise<Context> => {
             const token = getAccessTokenFromRequest(req);
-            let user = null;
+            let decoded = null;
+            let user: User | null = null;
             if (token) {
                 try {
-                    user = verifyAccessToken(token);
+                    decoded = verifyAccessToken(token);
+                    if (decoded){
+                        const userDB = await prisma.user.findUnique({
+                            where: { id: decoded.userId },
+                            include: { roles: true },
+                        });
+                        if (userDB){
+
+                            const userRoles: UserRoles[] = userDB.roles
+                                .map(entity => entity.role) // Extract "System Admin" strings
+                                .filter((r): r is UserRoles => Object.values(UserRoles).includes(r as UserRoles));
+
+                            user = {
+                                id: userDB.id,
+                                clubId: userDB.club_id,
+                                roles: userRoles
+                            }
+
+                        }
+                    }
                 } catch {
-                    user = null;
+                    user = null
                 }
             }
+            
             return { pool, req, res, user };
         },
     })

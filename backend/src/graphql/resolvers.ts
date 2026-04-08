@@ -3,6 +3,8 @@ import { PrismaClient } from "../generated/prisma/index.js";
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 import { PrismaPg } from '@prisma/adapter-pg';
+import { Context } from "./context.js";
+import { requireRole, requireUser, UserRoles } from "../auth/graphqlPermissions.js";
 
 const adapter = new PrismaPg({
     connectionString: process.env.DATABASE_URL!,
@@ -127,8 +129,12 @@ const resolvers = {
                 address,
                 region,
                 managerEmail,
-            }: { name: string; address: string; region: string; managerEmail: string }
+            }: { name: string; address: string; region: string; managerEmail: string },
+            context: Context
+            
         ) => {
+            requireRole(context.user, [UserRoles.SystemAdmin]);
+
             const manager = await prisma.user.findUnique({ where: { email: managerEmail } });
             if (!manager) throw new Error(`No user found with email ${managerEmail}`);
 

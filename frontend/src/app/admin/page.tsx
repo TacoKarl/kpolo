@@ -9,7 +9,7 @@ import AdminTeamsPage from "@/app/admin/components/AdminTeamsPage";
 type ActiveTab = "tournament" | "clubs" | "teams";
 
 export default function AdminPage() {
-    const isAdmin = useIsAdmin();
+    const isAdmin = true;
 
     const tabsId = useId();
     const tournamentTabId = `${tabsId}-tab-tournament`;

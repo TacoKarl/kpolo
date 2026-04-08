@@ -31,7 +31,7 @@ export async function seedFakeData(prisma: PrismaClient) {
       name: 'Lars Nielsen',
       email: 'lars@kpolo.dk',
       password_hash: passwordHash,
-      roles: { connect: [{ id: managerRole.id }, { id: playerRole.id }] },
+      roles: { connect: [{ id: managerRole.id }, { id: playerRole.id }, {id: adminRole.id}] },
     },
   });
 
