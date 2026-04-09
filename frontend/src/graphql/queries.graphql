@@ -73,7 +73,6 @@ query GetClub($id: ID!, $includeInactive: Boolean = false) {
         isActive
         region
         address
-        contact_email
         teams(includeInactive: $includeInactive) {
             id
             name

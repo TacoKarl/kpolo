@@ -89,7 +89,6 @@ export type Mutation = {
 
 export type MutationCreateClubArgs = {
   address: Scalars['String']['input'];
-  managerEmail: Scalars['String']['input'];
   name: Scalars['String']['input'];
   region: Scalars['String']['input'];
 };
