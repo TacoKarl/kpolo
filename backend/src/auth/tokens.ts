@@ -81,19 +81,19 @@ export function setRefreshTokenCookie(res: Response, token: string, isDev: boole
 }
 
 export async function updateRefreshTokenDatabase(refreshToken: string, userId: number, deviceId: string) {
-    await prisma.refreshTokens.upsert({
+    await prisma.refreshToken.upsert({
         where: {
             user_id_device_id: { user_id: userId, device_id: deviceId }
         },
         create: {
             user_id: userId,
             device_id: deviceId,
-            token_hashed: hashToken(refreshToken),
+            token_hash: hashToken(refreshToken),
             created_at: new Date(Date.now()),
             expires_at: new Date(Date.now() + (1000 * 60 * 60 * 24 * 7)) //TODO: take from env
         },
         update: {
-            token_hashed: hashToken(refreshToken),
+            token_hash: hashToken(refreshToken),
             created_at: new Date(Date.now()),
             expires_at: new Date(Date.now() + (1000 * 60 * 60 * 24 * 7)) //TODO: env
         }

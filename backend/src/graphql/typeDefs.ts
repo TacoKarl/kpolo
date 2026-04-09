@@ -97,7 +97,7 @@ scalar DateTime
         login(email: String!, password: String!): LoginResponse!
         register(email: String!, name: String!, password: String!): RegisterResponse!
         
-        createClub(name: String!, address: String!, region: String!, managerEmail: String!): Club!
+        createClub(name: String!, address: String!, region: String!): Club!
         updateClub(id: Int!, name: String, address: String, region: String): Club!
         
         createTeam(name: String!, clubId: Int!, memberIds: [Int!]!): Team!

@@ -6,6 +6,7 @@ services:
       context: ./
       dockerfile: Dockerfile
     image: kpolo-backend
+    restart: unless-stopped
     entrypoint: []
     command: sh -c 'if [ "$NODE_ENV" = "development" ]; then npm run dev; else npm run start; fi'
     ports:

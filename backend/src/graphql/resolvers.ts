@@ -70,7 +70,6 @@ const resolvers = {
         },
         users: async () => {
             return prisma.user.findMany({
-                where: { managed_clubs: null },
                 select: {
                     id: true,
                     name: true,
@@ -144,7 +143,6 @@ const resolvers = {
                     address,
                     region,
                     is_active: true,
-                    user_manager_id: manager.id,
                 },
             });
         },

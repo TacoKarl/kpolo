@@ -25,6 +25,15 @@ export async function seedFakeData(prisma: PrismaClient) {
   // Hash password for all users
   const passwordHash = await bcrypt.hash('password123', 10);
 
+  const admin1 = await prisma.user.create({
+    data: {
+      name: 'Armin The Admin',
+      email: 'armin@kpolo.dk',
+      password_hash: passwordHash,
+      roles: { connect: [ {id: adminRole.id}] },
+    },
+  });
+
   // Create users for Club 1
   const manager1 = await prisma.user.create({
     data: {
@@ -96,7 +105,6 @@ export async function seedFakeData(prisma: PrismaClient) {
   const club1 = await prisma.club.create({
     data: {
       name: 'Copenhagen Kayak Polo Club',
-      user_manager_id: manager1.id,
       region: 'Sjælland',
       address: 'Strandvej 123, 2100 København Ø',
     },
@@ -105,7 +113,6 @@ export async function seedFakeData(prisma: PrismaClient) {
   const club2 = await prisma.club.create({
     data: {
       name: 'Aarhus Kayak Club',
-      user_manager_id: manager2.id,
       region: 'Jylland',
       address: 'Havnevej 45, 8000 Aarhus C',
     },

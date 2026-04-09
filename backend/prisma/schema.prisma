@@ -10,14 +10,12 @@ datasource db {
 model Club {
   id              Int     @id @default(autoincrement())
   name            String
-  user_manager_id Int     @unique
   is_active       Boolean @default(true)
   region          String
   address         String?
+  contact_email   String?
   members         User[]  @relation("ClubMemberships")
   teams           Team[]
-
-  manager User @relation("ClubManager", fields: [user_manager_id], references: [id])
 }
 
 model Role {
@@ -34,8 +32,7 @@ model User {
   club_id       Int?
   roles         Role[]
   teams         TeamMembership[]
-  managed_clubs Club?            @relation("ClubManager")
-  refresh_tokens  RefreshTokens[] @relation("UserRefreshTokens")
+  refresh_tokens  RefreshToken[] @relation("UserRefreshTokens")
 
   club Club? @relation("ClubMemberships", fields: [club_id], references: [id])
 }
@@ -132,9 +129,9 @@ model TournamentDate {
   tournament Tournament @relation(fields: [tournament_id], references: [id])
 }
 
-model RefreshTokens {
+model RefreshToken {
   id Int @id @default(autoincrement())
-  token_hashed String @unique
+  token_hash String @unique
   user_id Int
   device_id String
   created_at DateTime

@@ -129,7 +129,7 @@ app.post("/refresh", async (req, res) => {
         const userId = decoded.userId;
         const deviceId = getOrCreateDeviceID(req, res, isDev);
 
-        const databaseRefreshToken = await prisma.refreshTokens.findUnique({
+        const databaseRefreshToken = await prisma.refreshToken.findUnique({
             where: { user_id_device_id: { user_id: userId, device_id: deviceId },
                     expires_at: { gt: new Date(Date.now()) }
             },
@@ -137,7 +137,7 @@ app.post("/refresh", async (req, res) => {
         });
 
 
-        if (!databaseRefreshToken || databaseRefreshToken?.token_hashed != hashToken(refreshToken)){
+        if (!databaseRefreshToken || databaseRefreshToken?.token_hash != hashToken(refreshToken)){
             clearRefreshTokenCookie(res, isDev);
             return res.status(403).json({ error: "Token mismatch" });
         }
@@ -178,7 +178,7 @@ app.post("/logout", async (req, res) => {
         clearRefreshTokenCookie(res, isDev);
         clearAccessTokenCookie(res,isDev);
 
-        await prisma.refreshTokens.delete({
+        await prisma.refreshToken.delete({
             where: {
                 user_id_device_id: { user_id: userId, device_id: deviceId }
         }})
