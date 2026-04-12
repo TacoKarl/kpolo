@@ -2,6 +2,7 @@ FROM node:24-alpine
 
 LABEL version="1.0"
 WORKDIR /app 
+RUN apk add --no-cache postgresql-client
 
 COPY package*.json .
 
