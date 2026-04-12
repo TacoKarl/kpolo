@@ -69,6 +69,8 @@ app.use(
     })
 );
 
+app.set('trust proxy', 1);
+
 pool.connect()
     .then(() => {
         console.log("Forbundet til PostgreSQL");

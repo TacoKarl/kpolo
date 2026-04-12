@@ -7,7 +7,12 @@ services:
       dockerfile: Dockerfile
     image: kpolo-backend
     entrypoint: []
-    command: sh -c 'if [ "$NODE_ENV" = "development" ]; then npm run dev; else npm run start; fi'
+    command: sh -c "
+      until pg_isready -h postgres -p 5432; do
+        echo 'Waiting for postgres...';
+        sleep 2;
+      done;
+      if [ '$NODE_ENV' = 'development' ]; then npm run dev; else npm run start; fi"
     ports:
       - "3000:3000"
     depends_on:
@@ -46,6 +51,11 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 volumes:
   postgres-kpolo:
   pgadmin-data:
