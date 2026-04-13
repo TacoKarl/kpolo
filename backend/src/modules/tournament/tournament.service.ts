@@ -14,9 +14,9 @@ function minutesToTime(totalMinutes: number): string {
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
 }
 
-function generateGrundspil(teamList: Team[], fields: 2, days: 3 ): Match[] {
+function generateGrundspil(teamList: Team[], fields: number, days: number, startTime: number): Match[] {
     const SLOT_DURATION = 30;
-    const BASE_MINUTES = 10 * 60;
+    const BASE_MINUTES = startTime * 60;
 
     const firstPass: [string, string][] = [];
     const secondPass: [string, string][] = [];
@@ -85,7 +85,7 @@ function generateGrundspil(teamList: Team[], fields: 2, days: 3 ): Match[] {
                     matchNumber: matchNumber++,
                     team1,
                     team2,
-                    round: dayIndex +1,
+                    round: dayIndex + 1,
                     field: fieldIdx + 1,
                     startTime,
                 });
@@ -112,7 +112,7 @@ const teamList: Team[] = [
 
 
 
-const grundspilKampe = generateGrundspil(teamList, 2, 3);
+const grundspilKampe = generateGrundspil(teamList, 2, 3, 10);
 
 function printSchedule(matches: Match[]): void {
     const days: Record<number, Match[]> = {};
@@ -150,7 +150,3 @@ function printSchedule(matches: Match[]): void {
 }
 
 printSchedule(grundspilKampe);
-
-console.log('Antal kampe:', grundspilKampe.length);
-//console.log(grundspilKampe);
-
