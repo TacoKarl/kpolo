@@ -24,6 +24,9 @@ services:
       PRISMA_CLIENT_ENABLE_ACCELERATE: "false"
     env_file:
       - .env
+    volumes:
+      - ./src:/app/src
+      - ./tsconfig.json:/app/tsconfig.json
 
   pgAdmin:
     image: docker.io/dpage/pgadmin4
