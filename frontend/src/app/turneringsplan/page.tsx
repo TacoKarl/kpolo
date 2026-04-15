@@ -3,8 +3,19 @@
 import { useMemo, useState } from "react";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
+import {
+    DndContext,
+    DragEndEvent,
+    DragOverlay,
+    DragStartEvent,
+    closestCenter,
+    useDroppable,
+    useDraggable,
+} from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
 
 type PlanRow = {
+    id: string;
     slot: string;
     match: string;
     division: string;
@@ -12,17 +23,96 @@ type PlanRow = {
     status: string;
 };
 
-const dummyRows: PlanRow[] = [
-    { slot: "08:00 - 08:30", match: "Team A vs Team B", division: "U12", court: "Bane 1", status: "Planned" },
-    { slot: "08:30 - 09:00", match: "Team C vs Team D", division: "U12", court: "Bane 2", status: "Planned" },
-    { slot: "09:00 - 09:30", match: "Team E vs Team F", division: "U14", court: "Bane 1", status: "Planned" },
-    { slot: "09:30 - 10:00", match: "Team G vs Team H", division: "U14", court: "Bane 2", status: "Planned" },
-    { slot: "10:00 - 10:30", match: "Team I vs Team J", division: "U16", court: "Bane 3", status: "Planned" },
+type SlotCell = {
+    id: string;
+    slot: string;
+    match: PlanRow | null;
+};
+
+const initialRows: PlanRow[] = [
+    { id: "row-1", slot: "08:00 - 08:30", match: "Team A vs Team B", division: "U12", court: "Bane 1", status: "Planned" },
+    { id: "row-2", slot: "08:30 - 09:00", match: "Team C vs Team D", division: "U12", court: "Bane 2", status: "Planned" },
+    { id: "row-3", slot: "09:00 - 09:30", match: "Team E vs Team F", division: "U14", court: "Bane 1", status: "Planned" },
+    { id: "row-4", slot: "09:30 - 10:00", match: "Team G vs Team H", division: "U14", court: "Bane 2", status: "Planned" },
 ];
+
+function MatchCard({
+                       match,
+                       dragging = false,
+                   }: {
+    match: PlanRow;
+    dragging?: boolean;
+}) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        isDragging,
+    } = useDraggable({
+        id: match.id,
+        data: { match },
+    });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition: isDragging ? "none" : "transform 500ms ease",
+        opacity: isDragging || dragging ? 0.5 : 1,
+    };
+
+    return (
+        <button
+            ref={setNodeRef}
+            type="button"
+            {...attributes}
+            {...listeners}
+            style={style}
+            className="w-full cursor-grab active:cursor-grabbing rounded border border-zinc-200 bg-white px-3 py-2 text-left shadow-sm hover:bg-zinc-50"
+        >
+            <div className="font-medium">{match.match}</div>
+            <div className="text-xs text-gray-500">{match.division} · {match.status}</div>
+        </button>
+    );
+}
+
+function SlotCellView({
+                          courtId,
+                          slot,
+                          match,
+                      }: {
+    courtId: string;
+    slot: SlotCell;
+    match: PlanRow | null;
+}) {
+    const { setNodeRef, isOver } = useDroppable({
+        id: `${courtId}-${slot.slot}`,
+        data: { courtId, slot: slot.slot },
+    });
+
+    return (
+        <tr>
+            <td className="border px-3 py-2 whitespace-nowrap bg-gray-50">
+                {slot.slot}
+            </td>
+            <td
+                ref={setNodeRef}
+                className={`border px-3 py-2 align-top ${isOver ? "bg-blue-50" : ""}`}
+            >
+                {match ? (
+                    <MatchCard match={match} />
+                ) : (
+                    <div className="min-h-12 rounded border border-dashed border-gray-200 bg-gray-50" />
+                )}
+            </td>
+        </tr>
+    );
+}
 
 export default function Page() {
     const [selectedTournamentId, setSelectedTournamentId] = useState("");
     const [selectedAlgorithm, setSelectedAlgorithm] = useState("");
+    const [activeMatch, setActiveMatch] = useState<PlanRow | null>(null);
+
 
     const tournaments = useMemo(
         () => [
@@ -42,17 +132,86 @@ export default function Page() {
         []
     );
 
-    const courts = useMemo(
-        () => Array.from(new Set(dummyRows.map((row) => row.court))),
+    const slotDefinitions = useMemo(
+        () => ["08:00 - 08:30", "08:30 - 09:00", "09:00 - 09:30", "09:30 - 10:00", "10:00 - 10:30", "10:30 - 11:00"],
         []
     );
+
+    const courts = useMemo(
+        () => Array.from(new Set(initialRows.map((row) => row.court))),
+        []
+    );
+
+    const [courtSlots, setCourtSlots] = useState<Record<string, SlotCell[]>>(() => {
+        const byCourt = courts.reduce<Record<string, SlotCell[]>>((acc, court) => {
+            acc[court] = slotDefinitions.map((slot) => ({
+                id: `${court}-${slot}`,
+                slot,
+                match: null,
+            }));
+            return acc;
+        }, {});
+
+        initialRows.forEach((row) => {
+            const court = byCourt[row.court];
+            if (!court) return;
+            const cell = court.find((slot) => slot.slot === row.slot);
+            if (cell) cell.match = row;
+        });
+
+        return byCourt;
+    });
+
+    const handleDragStart = (event: DragStartEvent) => {
+        const match = event.active.data.current?.match as PlanRow | undefined;
+        if (match) setActiveMatch(match);
+    };
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+        setActiveMatch(null);
+
+        if (!over) return;
+
+        const draggedMatch = active.data.current?.match as PlanRow | undefined;
+        const overData = over.data.current as { courtId?: string; slot?: string } | undefined;
+
+        if (!draggedMatch || !overData?.courtId || !overData?.slot) return;
+
+        const sourceCourtId = draggedMatch.court;
+        const sourceSlotId = draggedMatch.slot;
+        const targetCourtId = overData.courtId;
+        const targetSlotId = overData.slot;
+
+        setCourtSlots((current) => {
+            const next = structuredClone(current);
+
+            const sourceCourt = next[sourceCourtId];
+            const targetCourt = next[targetCourtId];
+            if (!sourceCourt || !targetCourt) return current;
+
+            const sourceCell = sourceCourt.find((cell) => cell.slot === sourceSlotId);
+            const targetCell = targetCourt.find((cell) => cell.slot === targetSlotId);
+            if (!sourceCell || !targetCell) return current;
+
+            const targetMatch = targetCell.match;
+
+            sourceCell.match = targetMatch
+                ? { ...targetMatch, court: sourceCourtId, slot: sourceSlotId }
+                : null;
+
+            targetCell.match = { ...draggedMatch, court: targetCourtId, slot: targetSlotId };
+
+            return next;
+        });
+    };
 
     const groupedByCourt = useMemo(() => {
         return courts.map((court) => ({
             court,
-            rows: dummyRows.filter((row) => row.court === court),
+            slots: courtSlots[court] ?? [],
         }));
-    }, [courts]);
+    }, [courts, courtSlots]);
 
     return (
         <div className="space-y-6">
@@ -108,42 +267,47 @@ export default function Page() {
                     </div>
                 </div>
             </Card>
+            <DndContext
+                collisionDetection={closestCenter}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+                autoScroll={false} // Skal muligvis tilbage til true hvis tabellen skal scrolles på en mindre skærm?
+            >
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                    {groupedByCourt.map(({ court, slots }) => (
+                        <Card key={court}>
+                            <div className="mb-4">
+                                <h2 className="text-lg font-semibold">{court}</h2>
+                            </div>
 
-            <div className="space-y-4">
-                {groupedByCourt.map(({ court, rows }) => (
-                    <Card key={court}>
-                        <div className="mb-4">
-                            <h2 className="text-lg font-semibold">{court}</h2>
-                            <p className="text-sm text-gray-600">
-                                Her kommer senere cell view og drag-and-drop for denne bane.
-                            </p>
-                        </div>
-
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full border-collapse">
-                                <thead>
-                                <tr className="bg-gray-100 text-left">
-                                    <th className="border px-3 py-2">Tidsrum</th>
-                                    <th className="border px-3 py-2">Kamp</th>
-                                    <th className="border px-3 py-2">Division</th>
-                                    <th className="border px-3 py-2">Status</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {rows.map((row, index) => (
-                                    <tr key={`${court}-${row.slot}-${index}`} className="odd:bg-white even:bg-gray-50">
-                                        <td className="border px-3 py-2 whitespace-nowrap">{row.slot}</td>
-                                        <td className="border px-3 py-2">{row.match}</td>
-                                        <td className="border px-3 py-2">{row.division}</td>
-                                        <td className="border px-3 py-2">{row.status}</td>
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full border-collapse">
+                                    <thead>
+                                    <tr className="bg-gray-100 text-left">
+                                        <th className="border px-3 py-2 w-44">Tidsrum</th>
+                                        <th className="border px-3 py-2">Kamp</th>
                                     </tr>
-                                ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </Card>
-                ))}
-            </div>
+                                    </thead>
+                                    <tbody>
+                                    {slots.map((slot) => (
+                                        <SlotCellView
+                                            key={slot.id}
+                                            courtId={court}
+                                            slot={slot}
+                                            match={slot.match}
+                                        />
+                                    ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </Card>
+                    ))}
+                </div>
+
+                <DragOverlay>
+                    {activeMatch ? <MatchCard match={activeMatch} dragging /> : null}
+                </DragOverlay>
+            </DndContext>
         </div>
     );
 }
