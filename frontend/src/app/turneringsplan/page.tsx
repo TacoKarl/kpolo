@@ -112,6 +112,8 @@ export default function Page() {
     const [selectedTournamentId, setSelectedTournamentId] = useState("");
     const [selectedAlgorithm, setSelectedAlgorithm] = useState("");
     const [activeMatch, setActiveMatch] = useState<PlanRow | null>(null);
+    const [dragOrigin, setDragOrigin] = useState<{ courtId: string; slot: string } | null>(null);
+
 
 
     const tournaments = useMemo(
@@ -164,7 +166,10 @@ export default function Page() {
 
     const handleDragStart = (event: DragStartEvent) => {
         const match = event.active.data.current?.match as PlanRow | undefined;
+        const origin = event.active.data.current?.origin as { courtId: string; slot: string } | undefined;
+
         if (match) setActiveMatch(match);
+        if (origin) setDragOrigin(origin);
     };
 
     const handleDragEnd = (event: DragEndEvent) => {
