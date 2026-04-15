@@ -44,7 +44,7 @@ const initialRows: PlanRow[] = [
 function MatchCard({
                        match,
                        origin,
-                       dragging = false, // This prop is true ONLY when rendered inside DragOverlay
+                       dragging = false,
                    }: {
     match: PlanRow;
     origin?: DragOrigin;
@@ -59,17 +59,16 @@ function MatchCard({
     } = useDraggable({
         id: match.id,
         data: { match, origin },
-        disabled: dragging, // Disable dragging logic for the card inside the overlay
+        disabled: dragging,
     });
 
     const style = {
-        /* CRITICAL: If it's the item being dragged (isDragging),
-           we do NOT apply the transform. This keeps the 'ghost' in the slot.
-        */
+        // Keeps the ghost in place
         transform: isDragging ? undefined : CSS.Transform.toString(transform),
         transition: isDragging ? undefined : "transform 500ms ease",
-        /* Ghost is translucent (0.3), Overlay/Normal is solid (1) */
         opacity: isDragging ? 0.3 : 1,
+        // LOCK HEIGHT: This prevents the cell from expanding/contracting
+        height: "58px",
     };
 
     return (
@@ -79,12 +78,12 @@ function MatchCard({
             {...attributes}
             {...listeners}
             style={style}
-            className={`w-full cursor-grab active:cursor-grabbing rounded border border-zinc-200 bg-white px-3 py-2 text-left shadow-sm hover:bg-zinc-50 ${
-                dragging ? "shadow-xl border-blue-400" : ""
+            className={`w-full flex flex-col justify-center rounded border border-zinc-200 bg-white px-3 py-2 text-left shadow-sm ${
+                dragging ? "shadow-xl border-blue-400 z-50" : "hover:bg-zinc-50"
             }`}
         >
-            <div className="font-medium">{match.match}</div>
-            <div className="text-xs text-gray-500">
+            <div className="font-medium text-sm truncate">{match.match}</div>
+            <div className="text-[10px] text-gray-500 truncate">
                 {match.division} · {match.status}
             </div>
         </button>
@@ -116,27 +115,24 @@ function SlotCellView({
 
     return (
         <tr>
-            <td className="border px-3 py-2 whitespace-nowrap bg-gray-50">
+            <td className="border px-3 py-2 whitespace-nowrap bg-gray-50 text-sm w-32">
                 {slot.slot}
             </td>
             <td
                 ref={setNodeRef}
-                className={`border px-3 py-2 align-top ${isOver ? "bg-blue-50" : ""}`}
+                className={`border px-2 py-2 align-middle transition-colors ${
+                    isOver ? "bg-blue-50" : ""
+                }`}
             >
-                {isDraggedOrigin ? (
-                    <MatchCard
-                        match={activeMatch}
-                        origin={dragOrigin!}
-                        dragging
-                    />
-                ) : match ? (
-                    <MatchCard
-                        match={match}
-                        origin={{ courtId, slot: slot.slot }}
-                    />
-                ) : (
-                    <div className="min-h-12 rounded border border-dashed border-gray-200 bg-gray-50" />
-                )}
+                <div className="relative w-full h-14.5"> {/* Container keeps row height stable */}
+                    {isDraggedOrigin ? (
+                        <MatchCard match={activeMatch} origin={dragOrigin!} dragging />
+                    ) : match ? (
+                        <MatchCard match={match} origin={{ courtId, slot: slot.slot }} />
+                    ) : (
+                        <div className="h-14.5 w-full rounded border border-dashed border-gray-200 bg-gray-50/50" />
+                    )}
+                </div>
             </td>
         </tr>
     );
@@ -260,7 +256,7 @@ export default function Page() {
                 </p>
             </div>
 
-            <Card>
+            <Card hoverable={false}>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="flex flex-col gap-2">
                         <label className="text-sm font-medium">Turnering</label>
@@ -314,7 +310,7 @@ export default function Page() {
             >
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                     {groupedByCourt.map(({ court, slots }) => (
-                        <Card key={court}>
+                        <Card hoverable={false} key={court}>
                             <div className="mb-4">
                                 <h2 className="text-lg font-semibold">{court}</h2>
                             </div>
