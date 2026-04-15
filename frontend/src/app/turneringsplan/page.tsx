@@ -29,6 +29,11 @@ type SlotCell = {
     match: PlanRow | null;
 };
 
+type DragOrigin = {
+    courtId: string;
+    slot: string;
+};
+
 const initialRows: PlanRow[] = [
     { id: "row-1", slot: "08:00 - 08:30", match: "Team A vs Team B", division: "U12", court: "Bane 1", status: "Planned" },
     { id: "row-2", slot: "08:30 - 09:00", match: "Team C vs Team D", division: "U12", court: "Bane 2", status: "Planned" },
@@ -38,9 +43,11 @@ const initialRows: PlanRow[] = [
 
 function MatchCard({
                        match,
-                       dragging = false,
+                       origin,
+                       dragging = false, // This prop is true ONLY when rendered inside DragOverlay
                    }: {
     match: PlanRow;
+    origin?: DragOrigin;
     dragging?: boolean;
 }) {
     const {
@@ -51,13 +58,18 @@ function MatchCard({
         isDragging,
     } = useDraggable({
         id: match.id,
-        data: { match },
+        data: { match, origin },
+        disabled: dragging, // Disable dragging logic for the card inside the overlay
     });
 
     const style = {
-        transform: CSS.Transform.toString(transform),
-        transition: isDragging ? "none" : "transform 500ms ease",
-        opacity: isDragging || dragging ? 0.5 : 1,
+        /* CRITICAL: If it's the item being dragged (isDragging),
+           we do NOT apply the transform. This keeps the 'ghost' in the slot.
+        */
+        transform: isDragging ? undefined : CSS.Transform.toString(transform),
+        transition: isDragging ? undefined : "transform 500ms ease",
+        /* Ghost is translucent (0.3), Overlay/Normal is solid (1) */
+        opacity: isDragging ? 0.3 : 1,
     };
 
     return (
@@ -67,10 +79,14 @@ function MatchCard({
             {...attributes}
             {...listeners}
             style={style}
-            className="w-full cursor-grab active:cursor-grabbing rounded border border-zinc-200 bg-white px-3 py-2 text-left shadow-sm hover:bg-zinc-50"
+            className={`w-full cursor-grab active:cursor-grabbing rounded border border-zinc-200 bg-white px-3 py-2 text-left shadow-sm hover:bg-zinc-50 ${
+                dragging ? "shadow-xl border-blue-400" : ""
+            }`}
         >
             <div className="font-medium">{match.match}</div>
-            <div className="text-xs text-gray-500">{match.division} · {match.status}</div>
+            <div className="text-xs text-gray-500">
+                {match.division} · {match.status}
+            </div>
         </button>
     );
 }
@@ -79,15 +95,24 @@ function SlotCellView({
                           courtId,
                           slot,
                           match,
+                          activeMatch,
+                          dragOrigin,
                       }: {
     courtId: string;
     slot: SlotCell;
     match: PlanRow | null;
+    activeMatch: PlanRow | null;
+    dragOrigin: DragOrigin | null;
 }) {
     const { setNodeRef, isOver } = useDroppable({
         id: `${courtId}-${slot.slot}`,
         data: { courtId, slot: slot.slot },
     });
+
+    const isDraggedOrigin =
+        !!activeMatch &&
+        dragOrigin?.courtId === courtId &&
+        dragOrigin?.slot === slot.slot;
 
     return (
         <tr>
@@ -98,8 +123,17 @@ function SlotCellView({
                 ref={setNodeRef}
                 className={`border px-3 py-2 align-top ${isOver ? "bg-blue-50" : ""}`}
             >
-                {match ? (
-                    <MatchCard match={match} />
+                {isDraggedOrigin ? (
+                    <MatchCard
+                        match={activeMatch}
+                        origin={dragOrigin!}
+                        dragging
+                    />
+                ) : match ? (
+                    <MatchCard
+                        match={match}
+                        origin={{ courtId, slot: slot.slot }}
+                    />
                 ) : (
                     <div className="min-h-12 rounded border border-dashed border-gray-200 bg-gray-50" />
                 )}
@@ -112,9 +146,7 @@ export default function Page() {
     const [selectedTournamentId, setSelectedTournamentId] = useState("");
     const [selectedAlgorithm, setSelectedAlgorithm] = useState("");
     const [activeMatch, setActiveMatch] = useState<PlanRow | null>(null);
-    const [dragOrigin, setDragOrigin] = useState<{ courtId: string; slot: string } | null>(null);
-
-
+    const [dragOrigin, setDragOrigin] = useState<DragOrigin | null>(null);
 
     const tournaments = useMemo(
         () => [
@@ -166,7 +198,7 @@ export default function Page() {
 
     const handleDragStart = (event: DragStartEvent) => {
         const match = event.active.data.current?.match as PlanRow | undefined;
-        const origin = event.active.data.current?.origin as { courtId: string; slot: string } | undefined;
+        const origin = event.active.data.current?.origin as DragOrigin | undefined;
 
         if (match) setActiveMatch(match);
         if (origin) setDragOrigin(origin);
@@ -175,6 +207,7 @@ export default function Page() {
     const handleDragEnd = (event: DragEndEvent) => {
         const { active, over } = event;
         setActiveMatch(null);
+        setDragOrigin(null);
 
         if (!over) return;
 
@@ -272,11 +305,12 @@ export default function Page() {
                     </div>
                 </div>
             </Card>
+
             <DndContext
                 collisionDetection={closestCenter}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
-                autoScroll={false} // Skal muligvis tilbage til true hvis tabellen skal scrolles på en mindre skærm?
+                autoScroll={false}
             >
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                     {groupedByCourt.map(({ court, slots }) => (
@@ -300,6 +334,8 @@ export default function Page() {
                                             courtId={court}
                                             slot={slot}
                                             match={slot.match}
+                                            activeMatch={activeMatch}
+                                            dragOrigin={dragOrigin}
                                         />
                                     ))}
                                     </tbody>
@@ -310,7 +346,9 @@ export default function Page() {
                 </div>
 
                 <DragOverlay>
-                    {activeMatch ? <MatchCard match={activeMatch} dragging /> : null}
+                    {activeMatch && dragOrigin ? (
+                        <MatchCard match={activeMatch} origin={dragOrigin} dragging />
+                    ) : null}
                 </DragOverlay>
             </DndContext>
         </div>
