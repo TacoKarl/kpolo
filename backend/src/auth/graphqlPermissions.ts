@@ -1,9 +1,4 @@
-export enum UserRoles {
-    SystemAdmin = "System Admin",
-    ClubAdmin = "Club Admin",
-    ClubMember = "Club Member",
-    Guest = "Guest"
-}
+import { UserRoles } from "./userRoles.js";
 
 export type User = {
     id: number,
@@ -22,6 +17,13 @@ export function requireRole(user: User, roles: UserRoles[]){
     requireUser(user);
     if(!user!.roles.some(role => roles.includes(role))){
         throw new Error("User has insufficient permisions");
+    }
+}
+
+export function requireClubMembership(user: User, clubId: number){
+    requireUser(user);
+    if (user!.clubId !== clubId || !user!.roles.includes(UserRoles.SystemAdmin)){
+        throw new Error("User not in club");
     }
 }
 

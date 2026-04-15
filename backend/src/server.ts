@@ -33,7 +33,8 @@ import bcrypt from "bcrypt"
 import { PrismaClient, Role } from "./generated/prisma/index.js";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { hashToken } from "./util/hash.js";
-import { User, UserRoles } from "./auth/graphqlPermissions.js";
+import { User } from "./auth/graphqlPermissions.js";
+import { UserRoles } from "./auth/userRoles.js";
 import { Context } from "./graphql/context.js";
 
 const app = express();

@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { PrismaClient } from '../../src/generated/prisma';
 import * as bcrypt from "bcrypt"
+import {UserRoles} from '../../src/auth/userRoles'
 
 
 
@@ -8,16 +9,28 @@ export async function seedFakeData(prisma: PrismaClient) {
   console.log('START seeding fakeData...');
 
   // Create roles
-  const playerRole = await prisma.role.findUniqueOrThrow({
-    where: { role: 'Club Member' },
+  const clubMemberRole = await prisma.role.findUniqueOrThrow({
+    where: { role: UserRoles.ClubMember },
   });
 
-  const managerRole = await prisma.role.findUniqueOrThrow({
-    where: { role: 'Club Admin' },
+  const clubAdminRole = await prisma.role.findUniqueOrThrow({
+    where: { role: UserRoles.ClubAdmin },
   });
 
-  const adminRole = await prisma.role.findUniqueOrThrow({
-    where: { role: 'System Admin' },
+  const systemAdminRole = await prisma.role.findUniqueOrThrow({
+    where: { role: UserRoles.SystemAdmin },
+  });
+
+  const trainerRole = await prisma.role.findUniqueOrThrow({
+    where: { role: UserRoles.ClubTrainer },
+  });
+
+  const eventManagerRole = await prisma.role.findUniqueOrThrow({
+    where: { role: UserRoles.EventManager },
+  });
+
+    const guestRole = await prisma.role.findUniqueOrThrow({
+    where: { role: UserRoles.Guest },
   });
 
   console.log('Fetched roles');
@@ -30,7 +43,16 @@ export async function seedFakeData(prisma: PrismaClient) {
       name: 'Armin The Admin',
       email: 'armin@kpolo.dk',
       password_hash: passwordHash,
-      roles: { connect: [ {id: adminRole.id}] },
+      roles: { connect: [ {id: systemAdminRole.id}] },
+    },
+  });
+
+  const eventManager1 = await prisma.user.create({
+    data: {
+      name: 'Even T. Man',
+      email: 'even@kpolo.dk',
+      password_hash: passwordHash,
+      roles: { connect: [ {id: eventManagerRole.id}] },
     },
   });
 
@@ -40,7 +62,7 @@ export async function seedFakeData(prisma: PrismaClient) {
       name: 'Lars Nielsen',
       email: 'lars@kpolo.dk',
       password_hash: passwordHash,
-      roles: { connect: [{ id: managerRole.id }, { id: playerRole.id }, {id: adminRole.id}] },
+      roles: { connect: [{ id: clubAdminRole.id }, { id: clubMemberRole.id }, {id: systemAdminRole.id}] },
     },
   });
 
@@ -49,7 +71,7 @@ export async function seedFakeData(prisma: PrismaClient) {
       name: 'Anna Hansen',
       email: 'anna@kpolo.dk',
       password_hash: passwordHash,
-      roles: { connect: { id: playerRole.id } },
+      roles: { connect: { id: clubMemberRole.id } },
     },
   });
 
@@ -58,7 +80,7 @@ export async function seedFakeData(prisma: PrismaClient) {
       name: 'Mikkel Andersen',
       email: 'mikkel@kpolo.dk',
       password_hash: passwordHash,
-      roles: { connect: { id: playerRole.id } },
+      roles: { connect: { id: clubMemberRole.id } },
     },
   });
 
@@ -67,7 +89,7 @@ export async function seedFakeData(prisma: PrismaClient) {
       name: 'Sofia Jensen',
       email: 'sofia@kpolo.dk',
       password_hash: passwordHash,
-      roles: { connect: { id: playerRole.id } },
+      roles: { connect: { id: clubMemberRole.id } },
     },
   });
 
@@ -77,7 +99,7 @@ export async function seedFakeData(prisma: PrismaClient) {
       name: 'Peter Larsen',
       email: 'peter@aarhuskayak.dk',
       password_hash: passwordHash,
-      roles: { connect: [{ id: managerRole.id }, { id: playerRole.id }] },
+      roles: { connect: [{ id: clubAdminRole.id }, { id: clubMemberRole.id }] },
     },
   });
 
@@ -86,7 +108,7 @@ export async function seedFakeData(prisma: PrismaClient) {
       name: 'Emma Christensen',
       email: 'emma@aarhuskayak.dk',
       password_hash: passwordHash,
-      roles: { connect: { id: playerRole.id } },
+      roles: { connect: { id: clubMemberRole.id } },
     },
   });
 
@@ -95,7 +117,7 @@ export async function seedFakeData(prisma: PrismaClient) {
       name: 'Oliver Pedersen',
       email: 'oliver@aarhuskayak.dk',
       password_hash: passwordHash,
-      roles: { connect: { id: playerRole.id } },
+      roles: { connect: { id: clubMemberRole.id } },
     },
   });
 
