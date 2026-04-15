@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import {Button} from "@/components/Button";
 import { type MeUser } from "@/app/lib/getMe"
+import { canAccessAdmin } from "@/app/lib/authorization";
 
 export default async function Navbar({user,} : {user: MeUser | null}) {
   const getInitials = (name: string) => {
@@ -12,6 +13,7 @@ export default async function Navbar({user,} : {user: MeUser | null}) {
   };
 
   //const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const canSeeAdmin = canAccessAdmin(user);
 
   return (
     <nav className="sticky top-0 left-0 z-50 bg-gray-800 p-4 w-full">
@@ -28,7 +30,7 @@ export default async function Navbar({user,} : {user: MeUser | null}) {
         </ul>
       </div>
       <div className="flex items-center gap-4">
-          {user && (
+          {canSeeAdmin && (
               <Link href="/admin" className="text-white font-semibold">
                   Admin
               </Link>
