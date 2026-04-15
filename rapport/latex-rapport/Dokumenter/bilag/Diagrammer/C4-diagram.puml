@@ -1,0 +1,17 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(user, "User")
+
+Container(frontend, "Next.js Frontend", "React", "UI + Apollo Client")
+Container(api, "Node.js API", "Express + Apollo", "GraphQL + REST")
+Container(prisma, "Prisma ORM", "ORM", "Database access layer")
+ContainerDb(db, "PostgreSQL", "Database")
+
+Rel(user, frontend, "Uses")
+
+Rel(frontend, api, "GraphQL / REST over HTTPS\n(via Cloudflare Tunnel)")
+Rel(api, prisma, "Database queries via Prisma")
+Rel(prisma, db, "SQL")
+
+@enduml
