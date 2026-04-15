@@ -172,6 +172,12 @@ app.post("/refresh", async (req, res) => {
 app.post("/logout", async (req, res) => {
     try {
         const refreshToken = getRefreshTokenFromRequest(req);
+        if (!refreshToken) {
+            clearRefreshTokenCookie(res, isDev);
+            clearAccessTokenCookie(res, isDev);
+            return res.status(200).json({ response: "Logout successful" });
+        }
+
         const decoded = verifyRefreshToken(refreshToken);
         const userId = decoded.userId;
         const deviceId = getOrCreateDeviceID(req, res, isDev);
@@ -186,8 +192,10 @@ app.post("/logout", async (req, res) => {
 
         res.status(200).json({response: 'Logout successful'});
     } catch (err) {
+        console.error("Logout failed:", err);
         clearRefreshTokenCookie(res, isDev);
-        return res.status(400);
+        clearAccessTokenCookie(res, isDev);
+        return res.status(400).json({ error: "Logout failed" });
     }
 }
 );

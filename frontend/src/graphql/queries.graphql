@@ -1,5 +1,14 @@
 # graphql/queries.graphql
 
+query GetMe {
+    me {
+        name
+        clubId
+        clubName
+        roles
+    }
+}
+
 query GetTournaments {
     tournaments {
         id

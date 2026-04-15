@@ -1,7 +1,5 @@
 'use client';
-
 import { useId, useState } from "react";
-import { useIsAdmin } from "@/app/components/hooks/useIsAdmin";
 import AdminClubsPage from "@/app/admin/components/AdminClubsPage";
 import AdminTournamentsPage from "@/app/admin/components/AdminTournamentsPage";
 import AdminTeamsPage from "@/app/admin/components/AdminTeamsPage";

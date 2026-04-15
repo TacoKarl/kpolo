@@ -1,8 +1,8 @@
 'use client';
 
 import {useCallback, useEffect, useRef, useState} from "react";
-import { useUser } from "@/app/context/UserContext";
 import {useRouter} from "next/navigation";
+import { getApiBaseUrl } from "@/app/lib/apiUrls";
 
 export default function LoginPage() {
     const isDev = process.env.NODE_ENV === 'development';
@@ -11,7 +11,6 @@ export default function LoginPage() {
     const [verified, setVerified] = useState(isDev);
     const ref = useRef<HTMLDivElement>(null);
     const widgetIdRef = useRef<string | null>(null);
-    const {setUser} = useUser();
     const [error, setError] = useState<Error | null>(null);
     const router = useRouter();
 
@@ -50,7 +49,7 @@ export default function LoginPage() {
         console.log(`Login med: ${email}`);
 
         try {
-            const res = await fetch("http://localhost:3000/login", {
+            const res = await fetch(getApiBaseUrl() + "/login", {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 credentials: 'include',
@@ -59,6 +58,12 @@ export default function LoginPage() {
                     password: password,
                 }),
             });
+
+            if (!res.ok) {
+                const data = await res.json().catch(() => null);
+                setError(new Error(data?.error ?? 'Login failed'));
+                return;
+            }
 
             const data = await res.json();
             if (data.errors) {
@@ -70,7 +75,8 @@ export default function LoginPage() {
             console.error(err);
             setError(new Error('Login fejlede - prøv igen'));
         }
-        router.push('/profil');
+        router.replace('/profil');
+        router.refresh();
     };
 
     return (

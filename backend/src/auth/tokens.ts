@@ -73,7 +73,7 @@ export function setRefreshTokenCookie(res: Response, token: string, isDev: boole
         httpOnly: true,
         secure: !isDev,
         sameSite: "lax",
-        path: "/refresh",
+        path: "/",
         maxAge: refreshCookieTtlMs,
     });
 
@@ -107,7 +107,7 @@ export function clearRefreshTokenCookie(res: Response, isDev: boolean) {
         httpOnly: true,
         secure: !isDev,
         sameSite: "lax",
-        path: "/refresh",
+        path: "/",
     });
 }
 

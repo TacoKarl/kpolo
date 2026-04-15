@@ -6,11 +6,10 @@ export const typeDefs = gql`
     #########################
     type Query {
         hello: String!
-        
         dbTime: String!
         
+        me: Me
         tournaments: [Tournament!]!
-    
         clubs(includeInactive: Boolean = false): [Club!]!
         club(id: ID!, includeInactive: Boolean = false): Club
         team(id: ID!, includeInactive: Boolean = false): Team
@@ -20,6 +19,13 @@ export const typeDefs = gql`
     #########################
     # TYPES
     #########################
+    type Me {
+        name: String!
+        clubId: ID
+        clubName: String
+        roles: [String!]
+    }
+    
     type Tournament {
         id: Int!
         name: String!

@@ -28,6 +28,27 @@ const resolvers = {
             return result.rows[0].now;
         },
 
+        me: async (_: unknown, _args: unknown, context: Context) => {
+            requireUser(context.user);
+
+            const user = await prisma.user.findUnique({
+                where: {id: Number(context.user!.id) },
+                include: {
+                    club: true,
+                    roles: true,
+                }
+            });
+
+            if (!user) throw new Error("User not found");
+
+            return {
+                name: user.name,
+                clubId: user.club?.id ?? null,
+                clubName: user.club?.name ?? null,
+                roles: user.roles.map((r) => r.role),
+            }
+        },
+
         tournaments: async () => {
             return prisma.tournament.findMany({
                 include: {

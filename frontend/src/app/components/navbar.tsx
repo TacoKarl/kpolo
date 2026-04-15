@@ -1,18 +1,8 @@
 import Link from 'next/link';
-//import {useEffect, useState} from "react";
-//import { useUser } from "@/app/context/UserContext";
-import Image from "next/image";
-//import {useIsAdmin} from "@/app/components/hooks/useIsAdmin";
 import {Button} from "@/components/Button";
-import {checkIfUserHasRoles} from "@/app/lib/auth";
+import { type MeUser } from "@/app/lib/getMe"
 
-export default async function Navbar() {
-    //const { user, setUser } = useUser();
-    //const isAdmin = useIsAdmin();
-    const  user  = null
-    const isAdmin = await checkIfUserHasRoles(["System Admin", "Club Admin"])
-    //const [isMenuOpen, setIsMenuOpen] = useState(false);
-
+export default async function Navbar({user,} : {user: MeUser | null}) {
   const getInitials = (name: string) => {
     const parts = name.trim().split(' ');
     if (parts.length === 1) return parts[0][0].toUpperCase();
@@ -21,7 +11,7 @@ export default async function Navbar() {
     return (first + last).toUpperCase();
   };
 
-  //onst toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  //const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   return (
     <nav className="sticky top-0 left-0 z-50 bg-gray-800 p-4 w-full">
@@ -38,25 +28,28 @@ export default async function Navbar() {
         </ul>
       </div>
       <div className="flex items-center gap-4">
-          {isAdmin && (
+          {user && (
               <Link href="/admin" className="text-white font-semibold">
                   Admin
               </Link>
           )}
         {user ? (
             <Link href="/profil" className="flex items-center gap-2 bg-gray-700 rounded-full text-white">
-              {user.avatarUrl ? (
-                  <Image
-                      src={user.avatarUrl}
-                      alt="Profilbillede"
-                      width={32}
-                      height={32}
-                      className="rounded-full" />
-              ) : (
+
+              {/*  {user.avatarUrl ? (*/}
+              {/*    <Image*/}
+              {/*        src={user.avatarUrl}*/}
+              {/*        alt="Profilbillede"*/}
+              {/*        width={32}*/}
+              {/*        height={32}*/}
+              {/*        className="rounded-full" />*/}
+              {/*) : */}
+                    (
                   <span className="w-8 h-8 rounded-full bg-gray-500 flex items-center justify-center">
                   {getInitials(user.name)}
                 </span>
-              )}
+              )
+            {/*}*/}
             </Link>
         ) : (
             <Button><Link href="/login">Sign in</Link></Button>

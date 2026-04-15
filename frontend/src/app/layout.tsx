@@ -4,8 +4,8 @@ import "./globals.css";
 import Navbar from "./components/navbar";
 import Footer from "./components/footer";
 import Script from "next/script";
-import { UserProvider } from "@/app/context/UserContext";
 import ApolloAppProvider from "@/app/providers/ApolloProvider";
+import { getMe } from "@/app/lib/getMe";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,11 +22,12 @@ export const metadata: Metadata = {
   description: "Kajakpolo Danmarks forside",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const initialUser = await getMe();
   return (
     <html lang="en">
     <head>
@@ -37,10 +38,8 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
       <ApolloAppProvider>
-        <UserProvider>
-          <Navbar />
+          <Navbar user={initialUser}/>
           {children}
-        </UserProvider>
       </ApolloAppProvider>
         <Footer />
         <Script
