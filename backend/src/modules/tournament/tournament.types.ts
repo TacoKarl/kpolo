@@ -1,17 +1,25 @@
+/*
 enum TournamentTypes {
     GROUP_PLAY = 'GROUP_PLAY',
     ROUND_ROBIN = 'ROUND_ROBIN',
 }
+ */
 
-type Team = { name: string };
+type Team = {
+    id: number;
+    name: string
+};
 
 type Match = {
-    matchNumber: number
-    team1: string;
-    team2: string;
-    round: number;
+    tournament_id: number;
+    division_id: number | null;
+    team1_id: number;
+    team1_score: number | null;
+    team2_id: number;
+    team2_score: number | null;
+    winner_team_id: number | null;
     field: number;
-    startTime: string
+    match_date: string;
 };
 
 type Standing = {

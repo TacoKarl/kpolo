@@ -58,14 +58,14 @@ function printStandings(standings: Record<string, Standing>): void {
 }
 
 const teamList: Team[] = [
-    { name: 'Hold A' },
-    { name: 'Hold B' },
-    { name: 'Hold C' },
-    { name: 'Hold D' },
-    { name: 'Hold E' },
-    { name: 'Hold F' },
-    { name: 'Hold G' },
-    { name: 'Hold H' },
+    { id: 1, name: 'Hold A' },
+    { id: 2, name: 'Hold B' },
+    { id: 3, name: 'Hold C' },
+    { id: 4, name: 'Hold D' },
+    { id: 5, name: 'Hold E' },
+    { id: 6, name: 'Hold F' },
+    { id: 7, name: 'Hold G' },
+    { id: 8, name: 'Hold H' },
 ];
 
 const standings = createStandings(teamList);
