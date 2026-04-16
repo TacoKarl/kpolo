@@ -1,3 +1,8 @@
+enum TournamentTypes {
+    GROUP_PLAY = 'GROUP_PLAY',
+    ROUND_ROBIN = 'ROUND_ROBIN',
+}
+
 type Team = { name: string };
 
 type Match = {

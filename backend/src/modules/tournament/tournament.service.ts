@@ -9,6 +9,12 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 function minutesToTime(totalMinutes: number): string {
+    if (totalMinutes <= 0) {
+        return "00:00"
+    }
+    while (totalMinutes > 1440) {
+        totalMinutes -= 1440;
+    }
     const h = Math.floor(totalMinutes / 60);
     const m = totalMinutes % 60;
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
@@ -44,6 +50,7 @@ function generateGrundspil(teamList: Team[], fields: number, days: number, start
     let matchNumber = 1;
 
     dayBuckets.forEach((dayPairs, dayIndex) => {
+        const teamConsecutive: Record<string, number> = {};
         const remaining = [...dayPairs];
         let slotIndex = 0;
         const lastSlotPairs = new Set<string>();
@@ -58,7 +65,16 @@ function generateGrundspil(teamList: Team[], fields: number, days: number, start
             for (let i = 0; i < remaining.length && slotMatches.length < fields; i++) {
                 const [t1, t2] = remaining[i];
                 const pairKey = `${t1}|${t2}`;
-                if (!usedTeams.has(t1) && !usedTeams.has(t2) && !lastSlotPairs.has(pairKey)) {
+
+                const t1Consecutive = teamConsecutive[t1] ?? 0;
+                const t2Consecutive = teamConsecutive[t2] ?? 0;
+
+                if (
+                    !usedTeams.has(t1) &&
+                    !usedTeams.has(t2) &&
+                    !lastSlotPairs.has(pairKey) &&
+                    t1Consecutive < 2 &&   // ← ny check
+                    t2Consecutive < 2 ) {
                     slotMatches.push([t1, t2]);
                     usedTeams.add(t1);
                     usedTeams.add(t2);
@@ -66,6 +82,16 @@ function generateGrundspil(teamList: Team[], fields: number, days: number, start
                     toRemove.push(i);
                 }
             }
+            slotMatches.forEach(([t1, t2]) => {
+                teamConsecutive[t1] = (teamConsecutive[t1] ?? 0) + 1;
+                teamConsecutive[t2] = (teamConsecutive[t2] ?? 0) + 1;
+            });
+
+            teamList.forEach(({ name }) => {
+                if (!usedTeams.has(name)) {
+                    teamConsecutive[name] = 0;
+                }
+            });
 
             // Safety: if guard blocks everything, clear it and retry
             if (slotMatches.length === 0) {
@@ -150,3 +176,5 @@ function printSchedule(matches: Match[]): void {
 }
 
 printSchedule(grundspilKampe);
+
+export {shuffle, minutesToTime, generateGrundspil}
