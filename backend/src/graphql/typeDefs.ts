@@ -14,6 +14,8 @@ export const typeDefs = gql`
         clubs(includeInactive: Boolean = false): [Club!]!
         club(id: ID!, includeInactive: Boolean = false): Club
         team(id: ID!, includeInactive: Boolean = false): Team
+        matches(tournamentId: ID): [Match!]!
+        match: [Match!]!
         users: [User!]!
     }
     

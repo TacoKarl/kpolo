@@ -3,6 +3,7 @@ import { PrismaClient } from "../generated/prisma/index.js";
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 import { PrismaPg } from '@prisma/adapter-pg';
+import { match } from "node:assert";
 
 const adapter = new PrismaPg({
     connectionString: process.env.DATABASE_URL!,
@@ -66,6 +67,29 @@ const resolvers = {
                     : { id: Number(args.id), is_active: true },
             });
         },
+        matches: async (_: any, args: { tournamentId?: number }) => {
+            return prisma.match.findMany({
+                where: args.tournamentId ? {tournament_id: Number(args.tournamentId)} : { },
+                include: {
+                    tournament: true,
+                    team1: true,
+                    team2: true,
+                    winner_team: true,
+                },
+                orderBy: {match_date: "asc"}
+            });
+        },
+        match: async (_: any, args: { id: string; }) => {
+            return prisma.match.findFirst({
+                where: { id: Number(args.id) },
+                include: {
+                    tournament: true,
+                    team1: true,
+                    team2: true,
+                    winner_team: true,
+                }
+            });
+        },
         users: async () => {
             return prisma.user.findMany({
                 where: { managed_clubs: null },
@@ -116,6 +140,28 @@ const resolvers = {
                     email: true,
                 },
                 orderBy: { name: "asc" },
+            });
+        },
+    },
+    Match: {
+        tournament: async (match: { tournament_id: number }) => {
+            return prisma.tournament.findMany({
+                where: { id: match.tournament_id }   
+            });
+        },
+        team1: async (match: { team1_id: number }) => {
+            return prisma.team.findMany({
+                where: { id: match.team1_id }   
+            });
+        },
+        team2: async (match: { team2_id: number }) => {
+            return prisma.team.findMany({
+                where: { id: match.team2_id }
+            });
+        },
+        winner_team: async (match: { winner_team_id: number }) => {
+            return prisma.team.findMany({
+                where: { id: match.winner_team_id }
             });
         },
     },
