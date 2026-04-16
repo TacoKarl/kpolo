@@ -37,12 +37,6 @@ type DragOrigin = {
     slot: string;
 };
 
-// Dummy data with dates
-const tournamentDates = [
-    { id: "date-1", date: "2026-05-10", displayName: "Lørdag 10. maj 2026" },
-    { id: "date-2", date: "2026-05-11", displayName: "Søndag 11. maj 2026" },
-];
-
 const initialRows: PlanRow[] = [
     { id: "row-1", slot: "08:00 - 08:30", match: "Team A vs Team B", division: "Dame", court: "Bane 1", status: "Planned" },
     { id: "row-2", slot: "08:30 - 09:00", match: "Team C vs Team D", division: "Dame", court: "Bane 2", status: "Planned" },
@@ -155,6 +149,12 @@ export default function Page() {
     const [selectedAlgorithm, setSelectedAlgorithm] = useState("");
     const [activeMatch, setActiveMatch] = useState<PlanRow | null>(null);
     const [dragOrigin, setDragOrigin] = useState<DragOrigin | null>(null);
+    const [overrides, setOverrides] = useState<Record<string, Record<string, SlotCell[]>> | null>(null);
+
+    const handleTournamentChange = (id: string) => {
+        setSelectedTournamentId(id);
+        setOverrides(null); // This is the "Reset Pattern"
+    };
 
     // Fetch tournaments for selector
     const { data: tournamentsData, loading: tournamentsLoading } = useQuery(GetTournamentsForSelectorDocument);
@@ -166,6 +166,9 @@ export default function Page() {
         skip: !selectedTournamentId,
     });
 
+    const selectedTournament = matchesData?.tournament;
+    const tournamentDatesFromData = useMemo(() => selectedTournament?.dates ?? [], [selectedTournament?.dates]);
+
     const algorithms = useMemo(
         () => [
             { id: "simple-seed", name: "Simple seed" },
@@ -175,25 +178,16 @@ export default function Page() {
         []
     );
 
-    const slotDefinitions = useMemo(
-        () => ["08:00 - 08:30", "08:30 - 09:00", "09:00 - 09:30", "09:30 - 10:00", "10:00 - 10:30", "10:30 - 11:00"],
-        []
-    );
+    const slotDefinitions = useMemo(() => ["08:00 - 08:30", "08:30 - 09:00", "09:00 - 09:30", "09:30 - 10:00", "10:00 - 10:30", "10:30 - 11:00"], []);
+    const courts = useMemo(() => Array.from(new Set(initialRows.map((row) => row.court))), []);
 
-    const courts = useMemo(
-        () => Array.from(new Set(initialRows.map((row) => row.court))),
-        []
-    );
-
-    // Structure: dateId -> courtId -> SlotCell[]
-    const [dateCourtSlots, setDateCourtSlots] = useState<Record<string, Record<string, SlotCell[]>>>(() => {
+    const baseDateCourtSlots = useMemo(() => {
         const byDate: Record<string, Record<string, SlotCell[]>> = {};
+        if (tournamentDatesFromData.length === 0) return byDate;
 
-        // Initialize structure for each date
-        tournamentDates.forEach((tournamentDate) => {
-            const dateId = tournamentDate.id;
+        tournamentDatesFromData.forEach((tournamentDate) => {
+            const dateId = String(tournamentDate.id);
             byDate[dateId] = {};
-
             courts.forEach((court) => {
                 byDate[dateId][court] = slotDefinitions.map((slot) => ({
                     id: `${dateId}-${court}-${slot}`,
@@ -203,9 +197,8 @@ export default function Page() {
             });
         });
 
-        // Populate with initial data (for now, put all in first date)
         initialRows.forEach((row) => {
-            const dateId = tournamentDates[0]?.id;
+            const dateId = String(tournamentDatesFromData[0]?.id);
             if (!dateId) return;
             const court = byDate[dateId]?.[row.court];
             if (!court) return;
@@ -214,7 +207,9 @@ export default function Page() {
         });
 
         return byDate;
-    });
+    }, [tournamentDatesFromData, courts, slotDefinitions]);
+
+    const dateCourtSlots = overrides ?? baseDateCourtSlots;
 
     const handleDragStart = (event: DragStartEvent) => {
         const match = event.active.data.current?.match as PlanRow | undefined;
@@ -237,35 +232,18 @@ export default function Page() {
 
         if (!draggedMatch || !sourceOrigin || !overData?.dateId || !overData?.courtId || !overData?.slot) return;
 
-        const sourceDateId = sourceOrigin.dateId;
-        const sourceCourtId = sourceOrigin.courtId;
-        const sourceSlotId = sourceOrigin.slot;
-        const targetDateId = overData.dateId;
-        const targetCourtId = overData.courtId;
-        const targetSlotId = overData.slot;
+        setOverrides((current) => {
+            // If overrides is null, start with a clone of the base structure
+            const next = structuredClone(current ?? baseDateCourtSlots);
 
-        setDateCourtSlots((current) => {
-            const next = structuredClone(current);
+            const sourceCell = next[sourceOrigin.dateId]?.[sourceOrigin.courtId]?.find(c => c.slot === sourceOrigin.slot);
+            const targetCell = next[overData.dateId!]?.[overData.courtId!]?.find(c => c.slot === overData.slot);
 
-            const sourceDate = next[sourceDateId];
-            const targetDate = next[targetDateId];
-            if (!sourceDate || !targetDate) return current;
-
-            const sourceCourt = sourceDate[sourceCourtId];
-            const targetCourt = targetDate[targetCourtId];
-            if (!sourceCourt || !targetCourt) return current;
-
-            const sourceCell = sourceCourt.find((cell) => cell.slot === sourceSlotId);
-            const targetCell = targetCourt.find((cell) => cell.slot === targetSlotId);
             if (!sourceCell || !targetCell) return current;
 
             const targetMatch = targetCell.match;
-
-            sourceCell.match = targetMatch
-                ? { ...targetMatch, court: sourceCourtId, slot: sourceSlotId }
-                : null;
-
-            targetCell.match = { ...draggedMatch, court: targetCourtId, slot: targetSlotId };
+            sourceCell.match = targetMatch ? { ...targetMatch, court: sourceOrigin.courtId, slot: sourceOrigin.slot } : null;
+            targetCell.match = { ...draggedMatch, court: overData.courtId!, slot: overData.slot! };
 
             return next;
         });
@@ -273,15 +251,27 @@ export default function Page() {
 
     // Group structure by date -> courts
     const groupedByDate = useMemo(() => {
-        return tournamentDates.map((tournamentDate) => ({
-            dateId: tournamentDate.id,
-            displayName: tournamentDate.displayName,
-            courts: courts.map((court) => ({
-                court,
-                slots: dateCourtSlots[tournamentDate.id]?.[court] ?? [],
-            })),
-        }));
-    }, [dateCourtSlots]);
+        return tournamentDatesFromData.map((tournamentDate) => {
+            const dateId = String(tournamentDate.id);
+            // Format date for display
+            const date = new Date(tournamentDate.date);
+            const displayName = date.toLocaleDateString('da-DK', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            return {
+                dateId,
+                displayName,
+                courts: courts.map((court) => ({
+                    court,
+                    slots: dateCourtSlots[dateId]?.[court] ?? [],
+                })),
+            };
+        });
+    }, [tournamentDatesFromData, dateCourtSlots, courts]);
 
     return (
         <div className="space-y-6">
@@ -298,7 +288,7 @@ export default function Page() {
                         <label className="text-sm font-medium">Turnering</label>
                         <select
                             value={selectedTournamentId}
-                            onChange={(e) => setSelectedTournamentId(e.target.value)}
+                            onChange={(e) => handleTournamentChange(e.target.value)}
                             className="border rounded p-2"
                             disabled={tournamentsLoading}
                         >
@@ -341,69 +331,78 @@ export default function Page() {
                 </div>
             </Card>
 
-            <DndContext
-                id="tournament-dnd-context"
-                collisionDetection={closestCenter}
-                onDragStart={handleDragStart}
-                onDragEnd={handleDragEnd}
-                autoScroll={{
-                    threshold: {
-                        x: 0.2,
-                        y: 0.2,
-                    },
-                    acceleration: 5,
-                }}
-            >
-                <div className="space-y-8">
-                    {groupedByDate.map(({ dateId, displayName, courts }) => (
-                        <div key={dateId} className="space-y-4">
-                            <div>
-                                <h2 className="text-xl font-semibold">{displayName}</h2>
+            {selectedTournamentId && tournamentDatesFromData.length === 0 && !matchesLoading ? (
+                <Card hoverable={false}>
+                    <div className="text-center py-8 text-gray-500">
+                        <p>Ingen datoer tilknyttet denne turnering.</p>
+                        <p className="text-sm mt-2">Tilføj datoer til turneringen for at oprette en kampplan.</p>
+                    </div>
+                </Card>
+            ) : (
+                <DndContext
+                    id="tournament-dnd-context"
+                    collisionDetection={closestCenter}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                    autoScroll={{
+                        threshold: {
+                            x: 0.2,
+                            y: 0.2,
+                        },
+                        acceleration: 5,
+                    }}
+                >
+                    <div className="space-y-8">
+                        {groupedByDate.map(({ dateId, displayName, courts }) => (
+                            <div key={dateId} className="space-y-4">
+                                <div>
+                                    <h2 className="text-xl font-semibold">{displayName}</h2>
+                                </div>
+
+                                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                                    {courts.map(({ court, slots }) => (
+                                        <Card hoverable={false} key={`${dateId}-${court}`}>
+                                            <div className="mb-4">
+                                                <h3 className="text-lg font-semibold">{court}</h3>
+                                            </div>
+
+                                            <div className="overflow-x-auto">
+                                                <table className="min-w-full border-collapse">
+                                                    <thead>
+                                                    <tr className="bg-gray-100 text-left">
+                                                        <th className="border px-3 py-2 w-44">Tidsrum</th>
+                                                        <th className="border px-3 py-2">Kamp</th>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                    {slots.map((slot) => (
+                                                        <SlotCellView
+                                                            key={slot.id}
+                                                            dateId={dateId}
+                                                            courtId={court}
+                                                            slot={slot}
+                                                            match={slot.match}
+                                                            activeMatch={activeMatch}
+                                                            dragOrigin={dragOrigin}
+                                                        />
+                                                    ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </Card>
+                                    ))}
+                                </div>
                             </div>
+                        ))}
+                    </div>
 
-                            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                                {courts.map(({ court, slots }) => (
-                                    <Card hoverable={false} key={`${dateId}-${court}`}>
-                                        <div className="mb-4">
-                                            <h3 className="text-lg font-semibold">{court}</h3>
-                                        </div>
-
-                                        <div className="overflow-x-auto">
-                                            <table className="min-w-full border-collapse">
-                                                <thead>
-                                                <tr className="bg-gray-100 text-left">
-                                                    <th className="border px-3 py-2 w-44">Tidsrum</th>
-                                                    <th className="border px-3 py-2">Kamp</th>
-                                                </tr>
-                                                </thead>
-                                                <tbody>
-                                                {slots.map((slot) => (
-                                                    <SlotCellView
-                                                        key={slot.id}
-                                                        dateId={dateId}
-                                                        courtId={court}
-                                                        slot={slot}
-                                                        match={slot.match}
-                                                        activeMatch={activeMatch}
-                                                        dragOrigin={dragOrigin}
-                                                    />
-                                                ))}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </Card>
-                                ))}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                <DragOverlay>
-                    {activeMatch && dragOrigin ? (
-                        <MatchCard match={activeMatch} origin={dragOrigin} dragging />
-                    ) : null}
-                </DragOverlay>
-            </DndContext>
+                    <DragOverlay>
+                        {activeMatch && dragOrigin ? (
+                            <MatchCard match={activeMatch} origin={dragOrigin} dragging />
+                        ) : null}
+                    </DragOverlay>
+                </DndContext>
+            )}
         </div>
     );
 }
