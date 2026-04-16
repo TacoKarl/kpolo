@@ -93,6 +93,7 @@ model Match {
   match_date     DateTime
 
   tournament  Tournament @relation(fields: [tournament_id], references: [id])
+  division    Division?  @relation(fields: [division_id], references: [id])
   team1       Team       @relation("MatchTeam1", fields: [team1_id], references: [id])
   team2       Team       @relation("MatchTeam2", fields: [team2_id], references: [id])
   winner_team Team?      @relation("MatchWinnerTeam", fields: [winner_team_id], references: [id])
@@ -104,6 +105,7 @@ model Division {
   name          String
 
   teams      TournamentTeam[]
+  matches    Match[]
   tournament Tournament       @relation(fields: [tournament_id], references: [id])
 
   @@unique([tournament_id, name])

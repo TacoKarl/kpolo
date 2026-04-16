@@ -32,15 +32,22 @@ type SlotCell = {
 };
 
 type DragOrigin = {
+    dateId: string;
     courtId: string;
     slot: string;
 };
 
+// Dummy data with dates
+const tournamentDates = [
+    { id: "date-1", date: "2026-05-10", displayName: "Lørdag 10. maj 2026" },
+    { id: "date-2", date: "2026-05-11", displayName: "Søndag 11. maj 2026" },
+];
+
 const initialRows: PlanRow[] = [
-    { id: "row-1", slot: "08:00 - 08:30", match: "Team A vs Team B", division: "U12", court: "Bane 1", status: "Planned" },
-    { id: "row-2", slot: "08:30 - 09:00", match: "Team C vs Team D", division: "U12", court: "Bane 2", status: "Planned" },
-    { id: "row-3", slot: "09:00 - 09:30", match: "Team E vs Team F", division: "U14", court: "Bane 1", status: "Planned" },
-    { id: "row-4", slot: "09:30 - 10:00", match: "Team G vs Team H", division: "U14", court: "Bane 2", status: "Planned" },
+    { id: "row-1", slot: "08:00 - 08:30", match: "Team A vs Team B", division: "Dame", court: "Bane 1", status: "Planned" },
+    { id: "row-2", slot: "08:30 - 09:00", match: "Team C vs Team D", division: "Dame", court: "Bane 2", status: "Planned" },
+    { id: "row-3", slot: "09:00 - 09:30", match: "Team E vs Team F", division: "Liga", court: "Bane 1", status: "Planned" },
+    { id: "row-4", slot: "09:30 - 10:00", match: "Team G vs Team H", division: "Liga", court: "Bane 2", status: "Planned" },
 ];
 
 function MatchCard({
@@ -93,12 +100,14 @@ function MatchCard({
 }
 
 function SlotCellView({
+                          dateId,
                           courtId,
                           slot,
                           match,
                           activeMatch,
                           dragOrigin,
                       }: {
+    dateId: string;
     courtId: string;
     slot: SlotCell;
     match: PlanRow | null;
@@ -106,12 +115,13 @@ function SlotCellView({
     dragOrigin: DragOrigin | null;
 }) {
     const { setNodeRef, isOver } = useDroppable({
-        id: `${courtId}-${slot.slot}`,
-        data: { courtId, slot: slot.slot },
+        id: `${dateId}-${courtId}-${slot.slot}`,
+        data: { dateId, courtId, slot: slot.slot },
     });
 
     const isDraggedOrigin =
         !!activeMatch &&
+        dragOrigin?.dateId === dateId &&
         dragOrigin?.courtId === courtId &&
         dragOrigin?.slot === slot.slot;
 
@@ -130,7 +140,7 @@ function SlotCellView({
                     {isDraggedOrigin ? (
                         <MatchCard match={activeMatch} origin={dragOrigin!} dragging />
                     ) : match ? (
-                        <MatchCard match={match} origin={{ courtId, slot: slot.slot }} />
+                        <MatchCard match={match} origin={{ dateId, courtId, slot: slot.slot }} />
                     ) : (
                         <div className="h-14.5 w-full rounded border border-dashed border-gray-200 bg-gray-50/50" />
                     )}
@@ -175,24 +185,35 @@ export default function Page() {
         []
     );
 
-    const [courtSlots, setCourtSlots] = useState<Record<string, SlotCell[]>>(() => {
-        const byCourt = courts.reduce<Record<string, SlotCell[]>>((acc, court) => {
-            acc[court] = slotDefinitions.map((slot) => ({
-                id: `${court}-${slot}`,
-                slot,
-                match: null,
-            }));
-            return acc;
-        }, {});
+    // Structure: dateId -> courtId -> SlotCell[]
+    const [dateCourtSlots, setDateCourtSlots] = useState<Record<string, Record<string, SlotCell[]>>>(() => {
+        const byDate: Record<string, Record<string, SlotCell[]>> = {};
 
+        // Initialize structure for each date
+        tournamentDates.forEach((tournamentDate) => {
+            const dateId = tournamentDate.id;
+            byDate[dateId] = {};
+
+            courts.forEach((court) => {
+                byDate[dateId][court] = slotDefinitions.map((slot) => ({
+                    id: `${dateId}-${court}-${slot}`,
+                    slot,
+                    match: null,
+                }));
+            });
+        });
+
+        // Populate with initial data (for now, put all in first date)
         initialRows.forEach((row) => {
-            const court = byCourt[row.court];
+            const dateId = tournamentDates[0]?.id;
+            if (!dateId) return;
+            const court = byDate[dateId]?.[row.court];
             if (!court) return;
             const cell = court.find((slot) => slot.slot === row.slot);
             if (cell) cell.match = row;
         });
 
-        return byCourt;
+        return byDate;
     });
 
     const handleDragStart = (event: DragStartEvent) => {
@@ -211,20 +232,27 @@ export default function Page() {
         if (!over) return;
 
         const draggedMatch = active.data.current?.match as PlanRow | undefined;
-        const overData = over.data.current as { courtId?: string; slot?: string } | undefined;
+        const sourceOrigin = active.data.current?.origin as DragOrigin | undefined;
+        const overData = over.data.current as { dateId?: string; courtId?: string; slot?: string } | undefined;
 
-        if (!draggedMatch || !overData?.courtId || !overData?.slot) return;
+        if (!draggedMatch || !sourceOrigin || !overData?.dateId || !overData?.courtId || !overData?.slot) return;
 
-        const sourceCourtId = draggedMatch.court;
-        const sourceSlotId = draggedMatch.slot;
+        const sourceDateId = sourceOrigin.dateId;
+        const sourceCourtId = sourceOrigin.courtId;
+        const sourceSlotId = sourceOrigin.slot;
+        const targetDateId = overData.dateId;
         const targetCourtId = overData.courtId;
         const targetSlotId = overData.slot;
 
-        setCourtSlots((current) => {
+        setDateCourtSlots((current) => {
             const next = structuredClone(current);
 
-            const sourceCourt = next[sourceCourtId];
-            const targetCourt = next[targetCourtId];
+            const sourceDate = next[sourceDateId];
+            const targetDate = next[targetDateId];
+            if (!sourceDate || !targetDate) return current;
+
+            const sourceCourt = sourceDate[sourceCourtId];
+            const targetCourt = targetDate[targetCourtId];
             if (!sourceCourt || !targetCourt) return current;
 
             const sourceCell = sourceCourt.find((cell) => cell.slot === sourceSlotId);
@@ -243,12 +271,17 @@ export default function Page() {
         });
     };
 
-    const groupedByCourt = useMemo(() => {
-        return courts.map((court) => ({
-            court,
-            slots: courtSlots[court] ?? [],
+    // Group structure by date -> courts
+    const groupedByDate = useMemo(() => {
+        return tournamentDates.map((tournamentDate) => ({
+            dateId: tournamentDate.id,
+            displayName: tournamentDate.displayName,
+            courts: courts.map((court) => ({
+                court,
+                slots: dateCourtSlots[tournamentDate.id]?.[court] ?? [],
+            })),
         }));
-    }, [courts, courtSlots]);
+    }, [dateCourtSlots]);
 
     return (
         <div className="space-y-6">
@@ -313,38 +346,55 @@ export default function Page() {
                 collisionDetection={closestCenter}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
-                autoScroll={false}
+                autoScroll={{
+                    threshold: {
+                        x: 0.2,
+                        y: 0.2,
+                    },
+                    acceleration: 5,
+                }}
             >
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                    {groupedByCourt.map(({ court, slots }) => (
-                        <Card hoverable={false} key={court}>
-                            <div className="mb-4">
-                                <h2 className="text-lg font-semibold">{court}</h2>
+                <div className="space-y-8">
+                    {groupedByDate.map(({ dateId, displayName, courts }) => (
+                        <div key={dateId} className="space-y-4">
+                            <div>
+                                <h2 className="text-xl font-semibold">{displayName}</h2>
                             </div>
 
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full border-collapse">
-                                    <thead>
-                                    <tr className="bg-gray-100 text-left">
-                                        <th className="border px-3 py-2 w-44">Tidsrum</th>
-                                        <th className="border px-3 py-2">Kamp</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {slots.map((slot) => (
-                                        <SlotCellView
-                                            key={slot.id}
-                                            courtId={court}
-                                            slot={slot}
-                                            match={slot.match}
-                                            activeMatch={activeMatch}
-                                            dragOrigin={dragOrigin}
-                                        />
-                                    ))}
-                                    </tbody>
-                                </table>
+                            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                                {courts.map(({ court, slots }) => (
+                                    <Card hoverable={false} key={`${dateId}-${court}`}>
+                                        <div className="mb-4">
+                                            <h3 className="text-lg font-semibold">{court}</h3>
+                                        </div>
+
+                                        <div className="overflow-x-auto">
+                                            <table className="min-w-full border-collapse">
+                                                <thead>
+                                                <tr className="bg-gray-100 text-left">
+                                                    <th className="border px-3 py-2 w-44">Tidsrum</th>
+                                                    <th className="border px-3 py-2">Kamp</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                {slots.map((slot) => (
+                                                    <SlotCellView
+                                                        key={slot.id}
+                                                        dateId={dateId}
+                                                        courtId={court}
+                                                        slot={slot}
+                                                        match={slot.match}
+                                                        activeMatch={activeMatch}
+                                                        dragOrigin={dragOrigin}
+                                                    />
+                                                ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </Card>
+                                ))}
                             </div>
-                        </Card>
+                        </div>
                     ))}
                 </div>
 
