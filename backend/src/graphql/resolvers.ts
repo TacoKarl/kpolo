@@ -18,6 +18,18 @@ export type GraphQLContext = {
 type DivisionInput = { name: string };
 type TournamentDateInput = { date: string };
 type TeamAssignmentInput = { teamId: number; divisionIndex: number };
+type MatchInput = {
+        id:             number | undefined,
+        tournament_id:  number,
+        division_id:    number | undefined,
+        team1_id:       number,
+        team2_id:       number,
+        team1_score:    number | undefined,
+        team2_score:    number | undefined,
+        winner_team_id: number | undefined,
+        match_date:     Date,
+    };
+
 
 const resolvers = {
     Query: {
@@ -69,7 +81,7 @@ const resolvers = {
         },
         matches: async (_: any, args: { tournamentId?: number }) => {
             return prisma.match.findMany({
-                where: args.tournamentId ? {tournament_id: Number(args.tournamentId)} : { },
+                where: args.tournamentId ? {tournament_id: Number(args.tournamentId), } : { },
                 include: {
                     tournament: true,
                     team1: true,
@@ -145,22 +157,23 @@ const resolvers = {
     },
     Match: {
         tournament: async (match: { tournament_id: number }) => {
-            return prisma.tournament.findMany({
+            return prisma.tournament.findFirst({
                 where: { id: match.tournament_id }   
             });
         },
         team1: async (match: { team1_id: number }) => {
-            return prisma.team.findMany({
-                where: { id: match.team1_id }   
+            return prisma.team.findFirst({
+                where: { id: match.team1_id },
             });
         },
         team2: async (match: { team2_id: number }) => {
-            return prisma.team.findMany({
-                where: { id: match.team2_id }
+            return prisma.team.findFirst({
+                where: { id: match.team2_id },
             });
         },
-        winner_team: async (match: { winner_team_id: number }) => {
-            return prisma.team.findMany({
+        winner_team: async (match: { winner_team_id?: number }) => {
+            if (!match.winner_team_id) return null;
+            return prisma.team.findFirst({
                 where: { id: match.winner_team_id }
             });
         },
@@ -443,6 +456,110 @@ const resolvers = {
                         dates: true,
                         teams: { include: { team: true, division: true } },
                     },
+                });
+            });
+        },
+
+        createMatches: async (_: any, args: { matches: MatchInput[] }) => {
+            return prisma.$transaction(async (tx) => {
+                // Validate all teams exist and belong to the tournament
+                const tournamentIds = [...new Set(args.matches.map(m => m.tournament_id))];
+                const tournaments = await tx.tournament.findMany({
+                    where: { id: { in: tournamentIds } }
+                });
+                
+                if (tournaments.length !== tournamentIds.length) {
+                    throw new Error("One or more tournaments not found");
+                }
+
+                const allTeamIds = [...new Set(args.matches.flatMap(m => [m.team1_id, m.team2_id]))];
+                const teams = await tx.team.findMany({
+                    where: { id: { in: allTeamIds } }
+                });
+
+                if (teams.length !== allTeamIds.length) {
+                    throw new Error("One or more teams not found");
+                }
+
+                // Optional: Validate teams belong to tournament (via TournamentTeam)
+                if (args.matches[0].division_id !== undefined) {
+                    const divisions = await tx.division.findMany({
+                        where: { id: { in: args.matches.map(m => m.division_id!).filter(Boolean) } }
+                    });
+                    
+                    if (divisions.length !== args.matches.filter(m => m.division_id).length) {
+                        throw new Error("One or more divisions not found");
+                    }
+                }
+
+                // Create all matches
+                return await tx.match.createManyAndReturn({
+                    data: args.matches.map(match => ({
+                        tournament_id: match.tournament_id,
+                        division_id: match.division_id,
+                        team1_id: match.team1_id,
+                        team2_id: match.team2_id,
+                        match_date: match.match_date,
+                    })),
+                    include:{
+                        tournament: true,
+                        team1: true,
+                        team2: true,
+                        winner_team: true,
+                    },
+                });
+            });
+        },
+
+        updateMatches: async (_: any, args: { matches: MatchInput[] }) => {
+            return prisma.$transaction(async (tx) => {
+                // Validate all matches exist
+                const matchIds = args.matches
+                    .filter(m => m.id !== undefined)
+                    .map(m => m.id!);
+                    
+                if (matchIds.length === 0) {
+                    throw new Error("No matches to update (all must have id)");
+                }
+
+                const existingMatches = await tx.match.findMany({
+                    where: { id: { in: matchIds } }
+                });
+
+                if (existingMatches.length !== matchIds.length) {
+                    throw new Error("One or more matches not found");
+                }
+
+
+                // Update matches individually to handle optional fields properly
+                const updatedMatches = await Promise.all(
+                    args.matches.map(async (match) => {
+                        if (match.id === undefined) {
+                            throw new Error("All matches must have an id for update");
+                        }
+
+                        return tx.match.update({
+                            where: { id: match.id },
+                            data: {
+                                team1_score: match.team1_score,
+                                team2_score: match.team2_score,
+                                winner_team_id: match.winner_team_id,
+                                match_date: match.match_date,
+                            }
+                        });
+                    })
+                );
+
+                // Return matches with relations
+                return prisma.match.findMany({
+                    where: { id: { in: updatedMatches.map(m => m.id) } },
+                    include: {
+                        tournament: true,
+                        team1: true,
+                        team2: true,
+                        winner_team: true,
+                    },
+                    orderBy: { match_date: 'asc' }
                 });
             });
         },
