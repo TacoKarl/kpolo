@@ -111,8 +111,8 @@ scalar DateTime
         createTournament(input: CreateTournamentInput): Tournament!
         updateTournament(id: Int!, input: UpdateTournamentInput): Tournament!
 
-        createMatches(matches: [MatchInput!]): [Match!]
-        updateMatches(matches: [MatchInput!]): [Match!]
+        createMatches(matches: [CreateMatchInput!]): [Match!]
+        updateMatches(matches: [UpdateMatchInput!]): [Match!]
     }
     
     type LoginResponse {
@@ -159,7 +159,7 @@ scalar DateTime
         teamAssignments: [TeamAssignmentInput!]
     }
 
-    input MatchInput {
+    input CreateMatchInput {
         id:             Int
         tournament_id:  Int!
         division_id:    Int
@@ -169,6 +169,18 @@ scalar DateTime
         team2_score:    Int
         winner_team_id: Int
         match_date:     DateTime!
+    }
+
+        input UpdateMatchInput {
+        id:             Int!
+        tournament_id:  Int
+        division_id:    Int
+        team1_id:       Int
+        team2_id:       Int
+        team1_score:    Int
+        team2_score:    Int
+        winner_team_id: Int
+        match_date:     DateTime
     }
     
 `;
