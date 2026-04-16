@@ -221,3 +221,41 @@ mutation UpdateTournament(
         }
     }
 }
+
+query GetTournamentsForSelector {
+    tournaments {
+        id
+        name
+        season
+    }
+}
+
+query GetTournamentMatches($tournamentId: ID!) {
+    tournament(id: $tournamentId) {
+        id
+        name
+        season
+        matches {
+            id
+            team1_score
+            team2_score
+            match_date
+            team1 {
+                id
+                name
+            }
+            team2 {
+                id
+                name
+            }
+            winner_team {
+                id
+                name
+            }
+            division {
+                id
+                name
+            }
+        }
+    }
+}

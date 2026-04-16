@@ -1,6 +1,8 @@
 'use client';
 
 import { useMemo, useState } from "react";
+import { useQuery } from "@apollo/client/react";
+import { GetTournamentsForSelectorDocument, GetTournamentMatchesDocument } from "@/generated/graphql";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import {
@@ -144,14 +146,15 @@ export default function Page() {
     const [activeMatch, setActiveMatch] = useState<PlanRow | null>(null);
     const [dragOrigin, setDragOrigin] = useState<DragOrigin | null>(null);
 
-    const tournaments = useMemo(
-        () => [
-            { id: "1", name: "Sommer Cup 2026" },
-            { id: "2", name: "Vinter Serie 2026" },
-            { id: "3", name: "Mesterskab 2026" },
-        ],
-        []
-    );
+    // Fetch tournaments for selector
+    const { data: tournamentsData, loading: tournamentsLoading } = useQuery(GetTournamentsForSelectorDocument);
+    const tournaments = tournamentsData?.tournaments ?? [];
+
+    // Fetch matches for selected tournament
+    const { data: matchesData, loading: matchesLoading } = useQuery(GetTournamentMatchesDocument, {
+        variables: { tournamentId: selectedTournamentId },
+        skip: !selectedTournamentId,
+    });
 
     const algorithms = useMemo(
         () => [
@@ -264,11 +267,14 @@ export default function Page() {
                             value={selectedTournamentId}
                             onChange={(e) => setSelectedTournamentId(e.target.value)}
                             className="border rounded p-2"
+                            disabled={tournamentsLoading}
                         >
-                            <option value="">Vælg turnering</option>
+                            <option value="">
+                                {tournamentsLoading ? "Indlæser..." : "Vælg turnering"}
+                            </option>
                             {tournaments.map((tournament) => (
                                 <option key={tournament.id} value={tournament.id}>
-                                    {tournament.name}
+                                    {tournament.name} ({tournament.season})
                                 </option>
                             ))}
                         </select>

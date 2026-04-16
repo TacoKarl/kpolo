@@ -159,6 +159,7 @@ export type Query = {
   dbTime: Scalars['String']['output'];
   hello: Scalars['String']['output'];
   team?: Maybe<Team>;
+  tournament?: Maybe<Tournament>;
   tournaments: Array<Tournament>;
   users: Array<User>;
 };
@@ -178,6 +179,11 @@ export type QueryClubsArgs = {
 export type QueryTeamArgs = {
   id: Scalars['ID']['input'];
   includeInactive?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
+export type QueryTournamentArgs = {
+  id: Scalars['ID']['input'];
 };
 
 export type RegisterResponse = {

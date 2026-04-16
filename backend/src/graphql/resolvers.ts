@@ -45,6 +45,33 @@ const resolvers = {
             });
         },
 
+        tournament: async (_: unknown, args: { id: string }) => {
+            return prisma.tournament.findUnique({
+                where: { id: Number(args.id) },
+                include: {
+                    divisions: {
+                        include: {
+                            teams: {
+                                include: { team: true }
+                            }
+                        }
+                    },
+                    dates: true,
+                    teams: {
+                        include: { team: true, division: true }
+                    },
+                    matches: {
+                        include: {
+                            team1: true,
+                            team2: true,
+                            winner_team: true,
+                            division: true,
+                        }
+                    },
+                }
+            });
+        },
+
         clubs: async (_: unknown, args: { includeInactive?: boolean }) => {
             return prisma.club.findMany({
                 where: args.includeInactive ? {} : { is_active: true },
