@@ -303,6 +303,7 @@ export default function Page() {
             </Card>
 
             <DndContext
+                id="tournament-dnd-context"
                 collisionDetection={closestCenter}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
