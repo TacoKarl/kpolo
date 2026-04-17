@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from "react";
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCenter } from "@dnd-kit/core";
+import { DndContext, DragEndEvent, DragOverlay, closestCenter } from "@dnd-kit/core";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { MatchCard, SlotCellView, PlanRow, SlotCell, DragOrigin } from "./components";

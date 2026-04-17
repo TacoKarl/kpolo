@@ -7,8 +7,12 @@ import { Card } from "@/components/Card";
 import { TournamentPlanner } from "./TournamentPlanner";
 
 const MOCK_MATCHES = [
-    { id: "row-1", slot: "08:00 - 08:30", match: "Team A vs Team B", division: "Dame", court: "Bane 1", status: "Planned" },
-    { id: "row-2", slot: "08:30 - 09:00", match: "Team C vs Team D", division: "Dame", court: "Bane 2", status: "Planned" },
+    { id: "1", slot: "08:00 - 08:30", match: "Team A vs Team B", division: "Liga", court: "Bane 1", status: "Planned" },
+    { id: "2", slot: "08:00 - 08:30", match: "Team B vs Team C", division: "Liga", court: "Bane 2", status: "Planned" },
+    { id: "3", slot: "08:30 - 09:00", match: "Team A vs Team C", division: "Liga", court: "Bane 1", status: "Planned" },
+    { id: "4", slot: "08:30 - 09:00", match: "Team B vs Team D", division: "Liga", court: "Bane 2", status: "Planned" },
+    { id: "5", slot: "09:00 - 09:30", match: "Team A vs Team D", division: "Lige", court: "Bane 1", status: "Planned" },
+    { id: "6", slot: "09:00 - 09:30", match: "Team B vs Team C", division: "Liga", court: "Bane 2", status: "Planned" },
 ];
 
 export default function Page() {

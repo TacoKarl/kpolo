@@ -234,6 +234,10 @@ query GetTournamentMatches($tournamentId: ID!) {
     tournament(id: $tournamentId) {
         id
         name
+        dates {
+            id
+            date
+        }
         season
         matches {
             id

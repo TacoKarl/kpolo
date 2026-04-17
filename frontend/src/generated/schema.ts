@@ -77,6 +77,8 @@ export type Mutation = {
   createClub: Club;
   createTeam: Team;
   createTournament: Tournament;
+  createTournamentDate: TournamentDate;
+  deleteTournamentDate: TournamentDate;
   login: LoginResponse;
   register: RegisterResponse;
   setClubActive: Club;
@@ -104,6 +106,17 @@ export type MutationCreateTeamArgs = {
 
 export type MutationCreateTournamentArgs = {
   input?: InputMaybe<CreateTournamentInput>;
+};
+
+
+export type MutationCreateTournamentDateArgs = {
+  date: Scalars['String']['input'];
+  tournamentId: Scalars['Int']['input'];
+};
+
+
+export type MutationDeleteTournamentDateArgs = {
+  id: Scalars['Int']['input'];
 };
 
 

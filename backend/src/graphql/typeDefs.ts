@@ -109,6 +109,9 @@ scalar DateTime
         
         createTournament(input: CreateTournamentInput): Tournament!
         updateTournament(id: Int!, input: UpdateTournamentInput): Tournament!
+        
+        createTournamentDate(tournamentId: Int!, date: String!): TournamentDate!
+        deleteTournamentDate(id: Int!): TournamentDate!
     }
     
     type LoginResponse {
