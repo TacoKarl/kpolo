@@ -263,3 +263,23 @@ query GetTournamentMatches($tournamentId: ID!) {
         }
     }
 }
+
+mutation CreateTournamentDate($tournamentId: Int!, $date: String!) {
+    createTournamentDate(tournamentId: $tournamentId, date: $date) {
+        id
+        date
+        tournament {
+            id
+        }
+    }
+}
+
+mutation DeleteTournamentDate($id: Int!) {
+    deleteTournamentDate(id: $id) {
+        id
+        tournament {
+            id
+        }
+    }
+}
+

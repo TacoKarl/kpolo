@@ -285,6 +285,37 @@ const resolvers = {
                 data: { is_active: isActive },
             });
         },
+
+        createTournamentDate: async (
+            _: any,
+            { tournamentId, date }: { tournamentId: number; date: string }
+        ) => {
+            return prisma.tournamentDate.create({
+                data: {
+                    tournament_id: tournamentId,
+                    date: new Date(date), // Converts the ISO string to a Date object
+                },
+                include: {
+                    tournament: true // Ensures the returned object matches the TournamentDate type
+                }
+            });
+        },
+
+        deleteTournamentDate: async (
+            _: any,
+            { id }: { id: number }
+        ) => {
+            // First check if it exists to provide a better error or simply let Prisma throw
+            const dateToDelete = await prisma.tournamentDate.findUnique({ where: { id } });
+            if (!dateToDelete) throw new Error(`Tournament Date with ID ${id} not found`);
+
+            return prisma.tournamentDate.delete({
+                where: { id },
+                include: {
+                    tournament: true
+                }
+            });
+        },
         createTournament: async (_: any, { input }: {
             input: {
                 name: string;
@@ -427,6 +458,8 @@ const resolvers = {
                 });
             });
         },
+
+
 
         register: async (_: any, { email, name, password }: { email: string, name: string, password: string}) => {
 

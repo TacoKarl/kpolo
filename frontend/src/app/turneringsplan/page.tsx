@@ -31,15 +31,22 @@ export default function Page() {
             <h1 className="text-3xl font-bold">Kampplanlægger</h1>
             <Card hoverable={false}>
                 <label className="block text-sm font-medium mb-1">Vælg Turnering</label>
-                <select value={selectedId} onChange={(e) => setSelectedId(e.target.value)} className="w-full md:w-1/3 border rounded p-2">
+                <select
+                    value={selectedId}
+                    onChange={(e) => setSelectedId(e.target.value)}
+                    className="w-full md:w-1/3 border rounded p-2"
+                >
                     <option value="">{loading ? "Indlæser..." : "Vælg..."}</option>
-                    {tournamentsData?.tournaments.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                    {tournamentsData?.tournaments.map(t => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
                 </select>
             </Card>
 
             {selectedId && !matchesLoading && (
                 <TournamentPlanner
-                    key={selectedId}
+                    key={selectedId} // Good use of key here to reset state on tournament change
+                    tournamentId={parseInt(selectedId)} // Pass the ID here
                     initialDates={dates}
                     courts={courts}
                     slotDefinitions={slots}
