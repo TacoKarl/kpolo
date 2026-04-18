@@ -6,7 +6,7 @@ import {PrismaPg} from "@prisma/adapter-pg";
 import { PrismaClient } from "../generated/prisma/index.js";
 import { v4 as uuidv4 } from 'uuid';
 
-const adapter = new PrismaPg({
+const adapter = new PrismaPg(pool)
     connectionString: process.env.DATABASE_URL!,
 });
 const prisma = new PrismaClient({ adapter });
