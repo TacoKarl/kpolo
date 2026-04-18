@@ -5,10 +5,9 @@ import { hashToken } from "../util/hash.js";
 import {PrismaPg} from "@prisma/adapter-pg";
 import { PrismaClient } from "../generated/prisma/index.js";
 import { v4 as uuidv4 } from 'uuid';
+import {pool} from "../db/pool.js";
 
-const adapter = new PrismaPg(pool)
-    connectionString: process.env.DATABASE_URL!,
-});
+const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 export type TokenPayload = {
