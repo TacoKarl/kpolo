@@ -89,12 +89,12 @@ export async function updateRefreshTokenDatabase(refreshToken: string, userId: n
             device_id: deviceId,
             token_hash: hashToken(refreshToken),
             created_at: new Date(Date.now()),
-            expires_at: new Date(Date.now() + (1000 * 60 * 60 * 24 * 7)) //TODO: take from env
+            expires_at: new Date(Date.now() + (1000 * 60 * 60 * 24 * 7)) //TODO: take from env. It's 7 days
         },
         update: {
             token_hash: hashToken(refreshToken),
             created_at: new Date(Date.now()),
-            expires_at: new Date(Date.now() + (1000 * 60 * 60 * 24 * 7)) //TODO: env
+            expires_at: new Date(Date.now() + (1000 * 60 * 60 * 24 * 7)) //TODO: env. It's 7 days.
         }
     })
 }
