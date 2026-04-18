@@ -29,6 +29,7 @@ import {
 
 import { typeDefs } from "./graphql/typeDefs.js";
 import resolvers from "./graphql/resolvers.js";
+import rateLimit from "express-rate-limit";
 import bcrypt from "bcrypt"
 import { PrismaClient, Role } from "./generated/prisma/index.js";
 import { PrismaPg } from "@prisma/adapter-pg";
@@ -39,6 +40,11 @@ import { Context } from "./graphql/context.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
+const limiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute(s)
+    limit: 100, // 100 requests per window
+    message: "Too many requests! Try again later."
+})
 
 const isDev = process.env.NODE_ENV === "development";
 
@@ -54,7 +60,7 @@ const adapter = new PrismaPg({
 const prisma = new PrismaClient({ adapter });
 
 // Usual middleware
-app.use(express.json());
+app.use(express.json(), limiter);
 app.use(cookieParser());
 
 // Optional: if you want to lock CORS down, replace "*" with your frontend dev URL
