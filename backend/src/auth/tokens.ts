@@ -1,6 +1,5 @@
 import type { Request, Response } from "express";
 import jwt, { type SignOptions, type Secret } from "jsonwebtoken";
-import ms from "ms"
 import { hashToken } from "../util/hash.js";
 import {PrismaPg} from "@prisma/adapter-pg";
 import { PrismaClient } from "../generated/prisma/index.js";
@@ -37,7 +36,7 @@ function parseTimeToMs(ttl: string): number {
 
 const accessTokenTtlStr = process.env.ACCESS_TOKEN_TTL ?? "15m";
 const refreshTokenTtlStr = process.env.REFRESH_TOKEN_TTL ?? "7d";
-const accessTokenTtlMs = parseTimeToMs(accessTokenTtlStr);
+//const accessTokenTtlMs = parseTimeToMs(accessTokenTtlStr);
 const refreshTokenTtlMs = parseTimeToMs(refreshTokenTtlStr);
 const accessTokenTtl = accessTokenTtlStr as SignOptions["expiresIn"];
 const refreshTokenTtl = refreshTokenTtlStr as SignOptions["expiresIn"];
@@ -107,12 +106,12 @@ export async function updateRefreshTokenDatabase(refreshToken: string, userId: n
             device_id: deviceId,
             token_hash: hashToken(refreshToken),
             created_at: new Date(Date.now()),
-            expires_at: new Date(Date.now() + (1000 * 60 * 60 * 24 * 7)) // 7 days
+            expires_at: new Date(Date.now() + refreshTokenTtlMs) // 7 days
         },
         update: {
             token_hash: hashToken(refreshToken),
             created_at: new Date(Date.now()),
-            expires_at: new Date(Date.now() + (1000 * 60 * 60 * 24 * 7)) // 7 days.
+            expires_at: new Date(Date.now() + refreshTokenTtlMs) // 7 days.
         }
     })
 }
@@ -149,7 +148,7 @@ export function getOrCreateDeviceID(req: Request, res: Response, isDev: boolean 
             secure: !isDev,
             sameSite: "lax",
             path: "/",
-            maxAge: 1000*60*60*24*365,
+            maxAge: 1000*60*60*24*365, //A Year
         });
     }
     return deviceId;
