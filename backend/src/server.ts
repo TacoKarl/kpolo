@@ -52,8 +52,6 @@ const allowedOrigins = isDev
     ? ["http://localhost:3000", "http://localhost:3001"]
     : ["https://olros.online", "https://www.olros.online"];
 
-
-
 const adapter = new PrismaPg({
         connectionString: process.env.DATABASE_URL!,
 });
@@ -78,10 +76,6 @@ app.use(
 
 // Health stays as-is
 app.use("/health", healthRoutes);
-
-
-
-
 
 // Route handler:
 app.post("/login", async (req, res) => {
@@ -125,7 +119,6 @@ app.post("/login", async (req, res) => {
     }
 });
 
-
 app.post("/refresh", async (req, res) => {
     const refreshToken = getRefreshTokenFromRequest(req);
     if (!refreshToken) return res.status(401).json({ error: "Missing refresh token" });
@@ -143,7 +136,6 @@ app.post("/refresh", async (req, res) => {
 
         });
 
-
         if (!databaseRefreshToken || databaseRefreshToken?.token_hash != hashToken(refreshToken)){
             clearRefreshTokenCookie(res, isDev);
             return res.status(403).json({ error: "Token mismatch" });
@@ -159,7 +151,6 @@ app.post("/refresh", async (req, res) => {
 
         setRefreshTokenCookie(res, refreshToken, isDev);
         await updateRefreshTokenDatabase(refreshToken, user.id, deviceId);
-
 
         const payload: TokenPayload = {
             userId: user.id,
