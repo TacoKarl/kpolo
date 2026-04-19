@@ -81,8 +81,6 @@ app.use("/health", healthRoutes);
 app.post("/login", async (req, res) => {
     try {
         const { email, password } = req.body;
-
-
         const deviceId = getOrCreateDeviceID(req, res, isDev);
 
         const user = await prisma.user.findUnique({
