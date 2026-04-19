@@ -16,7 +16,7 @@ export function requireUser(user: User){
 export function requireRole(user: User, roles: UserRoles[]){
     requireUser(user);
     if(!user!.roles.some(role => roles.includes(role))){
-        throw new Error("User has insufficient permisions");
+        throw new Error("User has insufficient permissions");
     }
 }
 
