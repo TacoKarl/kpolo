@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import jwt, { type SignOptions, type Secret } from "jsonwebtoken";
-import { createHash } from "crypto";
+import ms from "ms"
 import { hashToken } from "../util/hash.js";
 import {PrismaPg} from "@prisma/adapter-pg";
 import { PrismaClient } from "../generated/prisma/index.js";
@@ -21,9 +21,27 @@ export type TokenPayload = {
 const refreshCookieName = "kpolo_refresh_token";
 const accessCookieName = "kpolo_access_token";
 const deviceIdCookieName = "kpolo_device_id"
-const accessTokenTtl = (process.env.ACCESS_TOKEN_TTL ?? "15m") as SignOptions["expiresIn"];
-const refreshTokenTtl = (process.env.REFRESH_TOKEN_TTL ?? "7d") as SignOptions["expiresIn"];
-const refreshCookieTtlMs = Number(process.env.REFRESH_COOKIE_TTL_MS ?? 1000 * 60 * 60 * 24 * 7);
+
+//Nødt til at springe igennem bittesmå løkker for at få lavet token TTL til ms!!! ms library giver errors.
+function parseTimeToMs(ttl: string): number {
+    const unit = ttl.slice(-1);
+    const value = parseInt(ttl.slice(0, -1));
+
+    switch (unit) {
+        case 'm': return value * 60 * 1000;
+        case 'h': return value * 60 * 60 * 1000;
+        case 'd': return value * 24 * 60 * 60 * 1000;
+        default: return value; // Fallback to raw milliseconds
+    }
+}
+
+const accessTokenTtlStr = process.env.ACCESS_TOKEN_TTL ?? "15m";
+const refreshTokenTtlStr = process.env.REFRESH_TOKEN_TTL ?? "7d";
+const accessTokenTtlMs = parseTimeToMs(accessTokenTtlStr);
+const refreshTokenTtlMs = parseTimeToMs(refreshTokenTtlStr);
+const accessTokenTtl = accessTokenTtlStr as SignOptions["expiresIn"];
+const refreshTokenTtl = refreshTokenTtlStr as SignOptions["expiresIn"];
+
 const jwtSecret = process.env.JWT_SECRET;
 const jwtRefreshSecret = process.env.JWT_REFRESH_SECRET;
 
@@ -45,7 +63,7 @@ export function setAccessTokenCookie(res: Response, token: string, isDev: boolea
         secure: !isDev,
         sameSite: "lax",
         path: "/",
-        maxAge: refreshCookieTtlMs,
+        maxAge: refreshTokenTtlMs,
     });
 }
 
@@ -73,7 +91,7 @@ export function setRefreshTokenCookie(res: Response, token: string, isDev: boole
         secure: !isDev,
         sameSite: "lax",
         path: "/",
-        maxAge: refreshCookieTtlMs,
+        maxAge: refreshTokenTtlMs,
     });
 
 
@@ -89,12 +107,12 @@ export async function updateRefreshTokenDatabase(refreshToken: string, userId: n
             device_id: deviceId,
             token_hash: hashToken(refreshToken),
             created_at: new Date(Date.now()),
-            expires_at: new Date(Date.now() + (1000 * 60 * 60 * 24 * 7)) //TODO: take from env. It's 7 days
+            expires_at: new Date(Date.now() + (1000 * 60 * 60 * 24 * 7)) // 7 days
         },
         update: {
             token_hash: hashToken(refreshToken),
             created_at: new Date(Date.now()),
-            expires_at: new Date(Date.now() + (1000 * 60 * 60 * 24 * 7)) //TODO: env. It's 7 days.
+            expires_at: new Date(Date.now() + (1000 * 60 * 60 * 24 * 7)) // 7 days.
         }
     })
 }
