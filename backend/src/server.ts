@@ -166,35 +166,43 @@ app.post("/refresh", async (req, res) => {
 });
 
 app.post("/logout", async (req, res) => {
-    try {
-        const refreshToken = getRefreshTokenFromRequest(req);
-        if (!refreshToken) {
-            clearRefreshTokenCookie(res, isDev);
-            clearAccessTokenCookie(res, isDev);
-            return res.status(200).json({ response: "Logout successful" });
-        }
-
-        const decoded = verifyRefreshToken(refreshToken);
-        const userId = decoded.userId;
-        const deviceId = getOrCreateDeviceID(req, res, isDev);
-        clearRefreshTokenCookie(res, isDev);
-        clearAccessTokenCookie(res,isDev);
-
-        await prisma.refreshToken.delete({
-            where: {
-                user_id_device_id: { user_id: userId, device_id: deviceId }
-        }})
-
-
-        res.status(200).json({response: 'Logout successful'});
-    } catch (err) {
-        console.error("Logout failed:", err);
+    // Utility to clear both cookies at once
+    const clearAuthCookies = () => {
         clearRefreshTokenCookie(res, isDev);
         clearAccessTokenCookie(res, isDev);
-        return res.status(400).json({ error: "Logout failed" });
+    };
+
+    try {
+        const refreshToken = getRefreshTokenFromRequest(req);
+
+        if (refreshToken) {
+            const { userId } = verifyRefreshToken(refreshToken);
+            const deviceId = getOrCreateDeviceID(req, res, isDev);
+
+            // Delete the token from DB if it exists
+            await prisma.refreshToken.delete({
+                where: {
+                    user_id_device_id: {
+                        user_id: userId,
+                        device_id: deviceId
+                    }
+                }
+            }).catch(() => {
+                // Ignore errors if the record was already deleted or doesn't exist
+            });
+        }
+
+        clearAuthCookies();
+        return res.status(200).json({ response: "Logout successful" });
+
+    } catch (err) {
+        console.error("Logout error:", err);
+        clearAuthCookies();
+        // Even if JWT verification fails, the user is "logged out" because cookies are cleared
+        return res.status(200).json({ response: "Logout successful" });
     }
-}
-);
+});
+
 // Apollo Server
 const apollo = new ApolloServer({
     typeDefs,
