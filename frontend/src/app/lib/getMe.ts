@@ -16,9 +16,9 @@ export async function getMe(): Promise<MeUser | null> {
 
     const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/graphql`, {
         method: "POST",
+        credentials: "include",
         headers: {
-            "Content-Type": "application/json",
-            Cookie: cookieStore.toString(),
+            "Content-Type": "application/json"
         },
         body: JSON.stringify({
             query: `
