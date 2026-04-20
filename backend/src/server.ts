@@ -39,6 +39,7 @@ import { UserRoles } from "./auth/userRoles.js";
 import { Context } from "./graphql/context.js";
 
 const app = express();
+app.set('trust proxy', 1);
 const port = process.env.PORT || 3000;
 const limiter = rateLimit({
     windowMs: 60 * 1000, // 1 minute(s)
@@ -255,7 +256,7 @@ app.use(
     })
 );
 
-app.set('trust proxy', 1);
+
 
 pool.connect()
     .then(() => {
