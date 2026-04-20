@@ -15,7 +15,8 @@ export async function getMe(): Promise<MeUser | null> {
       .getAll()
       .map(cookie => `${cookie.name}=${cookie.value}`)
       .join("; ");
-
+  console.log("[getMe] cookieHeader:", cookieHeader);
+  console.log("[getMe] backendUrl:", process.env.NEXT_PUBLIC_BACKEND_URL);
     //const cookieHeader = cookieStore.toString();
     //const accessToken = cookieStore.get("kpolo_access_token")?.value;
     //const refreshToken = cookieStore.get("kpolo_refresh_token")?.value;
@@ -24,11 +25,15 @@ export async function getMe(): Promise<MeUser | null> {
     if (!cookieHeader.includes("kpolo_access_token")) return null;
 
     const result = await fetchMe(cookieHeader);
+    console.log("[getMe] fetchMe result:", result);
 
     if (result === "UNAUTHENTICATED") {
       const newCookieHeader = await refreshTokens(cookieHeader);
+      console.log("[getMe] refreshed cookieHeader:", newCookieHeader);
       if (!newCookieHeader) return null;
-      return await fetchMe(newCookieHeader) as MeUser | null;
+      const retryResult = await fetchMe(newCookieHeader);
+      console.log("[getMe] retry result:", retryResult);
+      return retryResult === "UNAUTHENTICATED" ? null : retryResult;
     }
 
     return result;
