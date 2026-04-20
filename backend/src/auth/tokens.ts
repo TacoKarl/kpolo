@@ -14,9 +14,6 @@ export type TokenPayload = {
     deviceId: string;
 };
 
-
-
-
 const refreshCookieName = "kpolo_refresh_token";
 const accessCookieName = "kpolo_access_token";
 const deviceIdCookieName = "kpolo_device_id"
@@ -78,7 +75,6 @@ export function clearAccessTokenCookie(res: Response, isDev: boolean) {
         domain: !isDev ? frontendDomain : undefined,
     });
 }
-
 
 export function signRefreshToken(payload: TokenPayload) {
     return jwt.sign(payload, jwtRefreshSecret as Secret, { expiresIn: refreshTokenTtl });

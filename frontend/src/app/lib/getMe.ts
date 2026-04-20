@@ -36,28 +36,35 @@ export async function getMe(): Promise<MeUser | null> {
 
 
 async function fetchMe(cookieHeader: string): Promise<MeUser | "UNAUTHENTICATED" | null> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/graphql`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "Cookie": cookieHeader },
-    body: JSON.stringify({ query: `query GetMe { me { name clubId clubName roles } }` }),
-    cache: "no-store",
-  });
+  try {
 
-  if (!res.ok) return null;
-  const json = await res.json();
 
-  const isUnauth = json.errors?.some((e: any) =>
-      e.extensions?.code === "UNAUTHENTICATED" ||
-      e.message.toLowerCase().includes("not authenticated")
-  );
-  if (isUnauth) return "UNAUTHENTICATED";
-  if (json.errors?.length) return null;
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/graphql`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json", "Cookie": cookieHeader},
+      body: JSON.stringify({query: `query GetMe { me { name clubId clubName roles } }`}),
+      cache: "no-store",
+    });
 
-  return json?.data?.me ?? null;
+    if (!res.ok) return null;
+    const json = await res.json();
+
+    const isUnauth = json.errors?.some((e: any) =>
+        e.extensions?.code === "UNAUTHENTICATED" ||
+        e.message.toLowerCase().includes("not authenticated")
+    );
+    if (isUnauth) return "UNAUTHENTICATED";
+    if (json.errors?.length) return null;
+
+    return json?.data?.me ?? null;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
 }
 
 async function refreshTokens(cookieHeader: string): Promise<string | null> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/refresh`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/refresh`, {
     method: "POST",
     headers: { "Cookie": cookieHeader },
     cache: "no-store",
