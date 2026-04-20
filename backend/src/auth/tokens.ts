@@ -44,6 +44,8 @@ const refreshTokenTtl = refreshTokenTtlStr as SignOptions["expiresIn"];
 const jwtSecret = process.env.JWT_SECRET;
 const jwtRefreshSecret = process.env.JWT_REFRESH_SECRET;
 
+const frontendDomain = process.env.FRONTEND_DOMAIN;
+
 if (!jwtSecret || !jwtRefreshSecret) {
     throw new Error("JWT_SECRET and JWT_REFRESH_SECRET must be set");
 }
@@ -63,6 +65,7 @@ export function setAccessTokenCookie(res: Response, token: string, isDev: boolea
         sameSite: "lax",
         path: "/",
         maxAge: refreshTokenTtlMs,
+        domain: !isDev ? frontendDomain : undefined,
     });
 }
 
@@ -72,6 +75,7 @@ export function clearAccessTokenCookie(res: Response, isDev: boolean) {
         secure: !isDev,
         sameSite: "lax",
         path: "/",
+        domain: !isDev ? frontendDomain : undefined,
     });
 }
 
@@ -91,6 +95,7 @@ export function setRefreshTokenCookie(res: Response, token: string, isDev: boole
         sameSite: "lax",
         path: "/",
         maxAge: refreshTokenTtlMs,
+        domain: !isDev ? frontendDomain : undefined,
     });
 
 
@@ -124,6 +129,7 @@ export function clearRefreshTokenCookie(res: Response, isDev: boolean) {
         secure: !isDev,
         sameSite: "lax",
         path: "/",
+        domain: !isDev ? frontendDomain : undefined,
     });
 }
 
@@ -149,6 +155,7 @@ export function getOrCreateDeviceID(req: Request, res: Response, isDev: boolean 
             sameSite: "lax",
             path: "/",
             maxAge: 1000*60*60*24*365, //A Year
+            domain: !isDev ? frontendDomain : undefined,
         });
     }
     return deviceId;
