@@ -9,16 +9,22 @@ export type MeUser = {
 
 export async function getMe(): Promise<MeUser | null> {
     const cookieStore = await cookies();
-    const cookieHeader = cookieStore.toString();
+
+  // Byg cookie-headeren manuelt
+  const cookieHeader = cookieStore
+      .getAll()
+      .map(cookie => `${cookie.name}=${cookie.value}`)
+      .join("; ");
+
+    //const cookieHeader = cookieStore.toString();
     //const accessToken = cookieStore.get("kpolo_access_token")?.value;
     //const refreshToken = cookieStore.get("kpolo_refresh_token")?.value;
     //const deviceId = cookieStore.get("kpolo_device_id")?.value;
 
-    if (!cookieHeader || !cookieHeader.includes("kpolo_access_token")) return null;
+    if (!cookieHeader.includes("kpolo_access_token")) return null;
     try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/graphql`, {
             method: "POST",
-            credentials: "include",
             headers: {
                 "Content-Type": "application/json",
                 "Cookie": cookieHeader
