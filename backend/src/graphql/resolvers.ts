@@ -2,15 +2,11 @@ import type {Pool} from "pg";
 import {PrismaClient} from "../generated/prisma/index.js";
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
-<<<<<<< HEAD
 import { PrismaPg } from '@prisma/adapter-pg';
 import { match } from "node:assert";
-=======
-import {PrismaPg} from '@prisma/adapter-pg';
 import {Context} from "./context.js";
 import {requireClubMembership, requireRole, requireUser} from "../auth/graphqlPermissions.js";
 import {UserRoles} from "../auth/userRoles.js";
->>>>>>> 568508a (Feature/frontend middleware rolebased ssr (#132))
 
 const adapter = new PrismaPg({
     connectionString: process.env.DATABASE_URL!,
@@ -107,7 +103,6 @@ const resolvers = {
                     : { id: Number(args.id), is_active: true },
             });
         },
-<<<<<<< HEAD
         matches: async (_: any, args: { tournamentId?: number }) => {
             return prisma.match.findMany({
                 where: args.tournamentId ? {tournament_id: Number(args.tournamentId), } : { },
@@ -131,12 +126,9 @@ const resolvers = {
                 }
             });
         },
-        users: async () => {
-=======
         users: async (_: any, args: any, context: Context) => {
             requireUser(context.user);
             requireRole(context.user, [UserRoles.SystemAdmin, UserRoles.EventManager]);
->>>>>>> 568508a (Feature/frontend middleware rolebased ssr (#132))
             return prisma.user.findMany({
                 select: {
                     id: true,
