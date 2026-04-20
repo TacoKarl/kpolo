@@ -97,6 +97,7 @@ erDiagram
     User }|--|| Club : belongs_to
     User }o--o{ Role : has
     User ||--o{ TeamMembership : has
+    User ||--o{ RefreshToken : has
     User || -- o{ TournamentTeamUser : in 
     Club ||--o{ ClubLogo : has
     Club ||--o{ Team : has
@@ -111,7 +112,17 @@ erDiagram
     User {
         int id
         string name
+        string password_hash
         int club_id
+    }
+
+    RefreshToken {
+        int id
+        string token_hash
+        int user_id
+        text device_id
+        datetime created_at
+        datetime expires_at
     }
 
     Role {
@@ -122,10 +133,10 @@ erDiagram
     Club {
         int id
         string name
-        int user_manager_id
         string region
         string address
-        string email
+        string contact_email
+        bool is_active
     }
 
     ClubLogo {
@@ -154,6 +165,7 @@ erDiagram
         int id
         int club_id
         string name
+        bool is_active
     }
 
     TeamLogo {

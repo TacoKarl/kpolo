@@ -72,6 +72,14 @@ export type Match = {
   winner_team?: Maybe<Team>;
 };
 
+export type Me = {
+  __typename?: 'Me';
+  clubId?: Maybe<Scalars['ID']['output']>;
+  clubName?: Maybe<Scalars['String']['output']>;
+  name: Scalars['String']['output'];
+  roles?: Maybe<Array<Scalars['String']['output']>>;
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   createClub: Club;
@@ -89,7 +97,6 @@ export type Mutation = {
 
 export type MutationCreateClubArgs = {
   address: Scalars['String']['input'];
-  managerEmail: Scalars['String']['input'];
   name: Scalars['String']['input'];
   region: Scalars['String']['input'];
 };
@@ -158,6 +165,7 @@ export type Query = {
   clubs: Array<Club>;
   dbTime: Scalars['String']['output'];
   hello: Scalars['String']['output'];
+  me?: Maybe<Me>;
   team?: Maybe<Team>;
   tournaments: Array<Tournament>;
   users: Array<User>;

@@ -52,7 +52,6 @@ export default function AdminClubsPage() {
                 name,
                 address,
                 region,
-                managerEmail,
             },
         });
         await client.refetchQueries({
