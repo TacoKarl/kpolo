@@ -10,43 +10,39 @@ export type MeUser = {
 export async function getMe(): Promise<MeUser | null> {
     const cookieStore = await cookies();
     const cookieHeader = cookieStore.toString();
+    const accessToken = cookieStore.get("kpolo_access_token")?.value;
+    const refreshToken = cookieStore.get("kpolo_refresh_token")?.value;
 
-    //SILENT EXIT: No cookies means not logged in.
-    if (!cookieHeader || !cookieHeader.includes("kpolo_access_token")) {
-        return null;
-    }
-
+    if (!cookieHeader || !cookieHeader.includes("kpolo_access_token")) return null;
     try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/graphql`, {
             method: "POST",
+            credentials: "include",
             headers: {
                 "Content-Type": "application/json",
-                "Cookie": cookieHeader,
+                "Cookie": cookieHeader
             },
             body: JSON.stringify({
                 query: `
-                    query GetMe {
-                      me {
-                        name
-                        clubId
-                        clubName
-                        roles
-                      }
-                    }
-                `,
+        query GetMe {
+          me {
+            name
+            clubId
+            clubName
+            roles
+          }
+        }
+      `,
             }),
             cache: "no-store",
         });
 
-        //API IS DOWN: Log this because it's a system failure
         if (!res.ok) {
             console.error(`[getMe] Backend responded with status: ${res.status}`);
             return null;
         }
 
         const json = await res.json();
-
-        // Real GRAPHQL ERRORS: Distinguish between "Unauthorized" and "Syntax Error"
         if (json?.errors?.length) {
             const isUnauthorized = json.errors.some((err: any) =>
                 err.extensions?.code === 'UNAUTHENTICATED' ||
@@ -61,9 +57,8 @@ export async function getMe(): Promise<MeUser | null> {
         }
 
         return json?.data?.me ?? null;
-
-    } catch (error) {
-        // 4. NETWORK ERROR: Server is unreachable
+    }
+    catch (error) {
         console.error("[getMe] Network connection failed:", error);
         return null;
     }
