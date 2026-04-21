@@ -1,19 +1,9 @@
-// app/components/Navbar.jsx
-'use client';
 import Link from 'next/link';
-import {useEffect, useState} from "react";
-import { useUser } from "@/app/context/UserContext";
-import Image from "next/image";
-import {jwtDecode} from "jwt-decode";
-import {MyJwtPayload} from "@/app/components/interfaces/MyJwtPayload";
-import {useIsAdmin} from "@/app/components/hooks/useIsAdmin";
 import {Button} from "@/components/Button";
+import { type MeUser } from "@/app/lib/getMe"
+import { canAccessAdmin } from "@/app/lib/authorization";
 
-export default function Navbar() {
-    const { user, setUser } = useUser();
-    const isAdmin = useIsAdmin();
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-
+export default async function Navbar({user,} : {user: MeUser | null}) {
   const getInitials = (name: string) => {
     const parts = name.trim().split(' ');
     if (parts.length === 1) return parts[0][0].toUpperCase();
@@ -22,7 +12,8 @@ export default function Navbar() {
     return (first + last).toUpperCase();
   };
 
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  //const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const canSeeAdmin = canAccessAdmin(user);
 
   return (
     <nav className="sticky top-0 left-0 z-50 bg-gray-800 p-4 w-full">
@@ -39,25 +30,28 @@ export default function Navbar() {
         </ul>
       </div>
       <div className="flex items-center gap-4">
-          {isAdmin && (
+          {canSeeAdmin && (
               <Link href="/admin" className="text-white font-semibold">
                   Admin
               </Link>
           )}
         {user ? (
             <Link href="/profil" className="flex items-center gap-2 bg-gray-700 rounded-full text-white">
-              {user.avatarUrl ? (
-                  <Image
-                      src={user.avatarUrl}
-                      alt="Profilbillede"
-                      width={32}
-                      height={32}
-                      className="rounded-full" />
-              ) : (
+
+              {/*  {user.avatarUrl ? (*/}
+              {/*    <Image*/}
+              {/*        src={user.avatarUrl}*/}
+              {/*        alt="Profilbillede"*/}
+              {/*        width={32}*/}
+              {/*        height={32}*/}
+              {/*        className="rounded-full" />*/}
+              {/*) : */}
+                    (
                   <span className="w-8 h-8 rounded-full bg-gray-500 flex items-center justify-center">
                   {getInitials(user.name)}
                 </span>
-              )}
+              )
+            {/*}*/}
             </Link>
         ) : (
             <Button><Link href="/login">Sign in</Link></Button>

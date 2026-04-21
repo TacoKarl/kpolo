@@ -10,6 +10,7 @@ export async function deleteData(prisma: PrismaClient) {
     await prisma.tournamentDate.deleteMany();
     await prisma.division.deleteMany();
     await prisma.tournament.deleteMany();
+    await prisma.refreshToken.deleteMany();
 
     await prisma.teamMembership.deleteMany();
     await prisma.team.deleteMany();

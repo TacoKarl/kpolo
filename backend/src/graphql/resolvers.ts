@@ -1,8 +1,11 @@
-import type { Pool } from "pg";
-import { PrismaClient } from "../generated/prisma/index.js";
+import type {Pool} from "pg";
+import {PrismaClient} from "../generated/prisma/index.js";
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
-import { PrismaPg } from '@prisma/adapter-pg';
+import {PrismaPg} from '@prisma/adapter-pg';
+import {Context} from "./context.js";
+import {requireClubMembership, requireRole, requireUser} from "../auth/graphqlPermissions.js";
+import {UserRoles} from "../auth/userRoles.js";
 
 const adapter = new PrismaPg({
     connectionString: process.env.DATABASE_URL!,
@@ -24,6 +27,27 @@ const resolvers = {
         dbTime: async (_parent: unknown, _args: unknown, ctx: GraphQLContext) => {
             const result = await ctx.pool.query("SELECT NOW() AS now");
             return result.rows[0].now;
+        },
+
+        me: async (_: unknown, _args: unknown, context: Context) => {
+            requireUser(context.user);
+
+            const user = await prisma.user.findUnique({
+                where: {id: Number(context.user!.id) },
+                include: {
+                    club: true,
+                    roles: true,
+                }
+            });
+
+            if (!user) throw new Error("User not found");
+
+            return {
+                name: user.name,
+                clubId: user.club?.id ?? null,
+                clubName: user.club?.name ?? null,
+                roles: user.roles.map((r) => r.role),
+            }
         },
 
         tournaments: async () => {
@@ -93,9 +117,10 @@ const resolvers = {
                     : { id: Number(args.id), is_active: true },
             });
         },
-        users: async () => {
+        users: async (_: any, args: any, context: Context) => {
+            requireUser(context.user);
+            requireRole(context.user, [UserRoles.SystemAdmin, UserRoles.EventManager]);
             return prisma.user.findMany({
-                where: { managed_clubs: null },
                 select: {
                     id: true,
                     name: true,
@@ -154,8 +179,12 @@ const resolvers = {
                 address,
                 region,
                 managerEmail,
-            }: { name: string; address: string; region: string; managerEmail: string }
+            }: { name: string; address: string; region: string; managerEmail: string },
+            context: Context
+
         ) => {
+            requireRole(context.user, [UserRoles.SystemAdmin]);
+
             const manager = await prisma.user.findUnique({ where: { email: managerEmail } });
             if (!manager) throw new Error(`No user found with email ${managerEmail}`);
 
@@ -165,7 +194,6 @@ const resolvers = {
                     address,
                     region,
                     is_active: true,
-                    user_manager_id: manager.id,
                 },
             });
         },
@@ -176,21 +204,20 @@ const resolvers = {
                 name,
                 address,
                 region,
-            }: { id: number; name?: string; address?: string; region?: string }
+                is_active,
+            }: { id: number; name?: string; address?: string; region?: string; is_active?: boolean; },
+            context: Context
         ) => {
+            requireRole(context.user, [UserRoles.SystemAdmin, UserRoles.ClubAdmin])
+            requireClubMembership(context.user, id);
             return prisma.club.update({
                 where: { id },
                 data: {
                     ...(name !== undefined ? { name } : {}),
                     ...(address !== undefined ? { address } : {}),
                     ...(region !== undefined ? { region } : {}),
+                    ...(is_active !== undefined ? { is_active } : {}),
                 },
-            });
-        },
-        setClubActive: async (_: any, { id, isActive }: { id: number; isActive: boolean }) => {
-            return prisma.club.update({
-                where: { id },
-                data: { is_active: isActive },
             });
         },
         createTeam: async (
@@ -199,8 +226,12 @@ const resolvers = {
                 name,
                 clubId,
                 memberIds,
-            }: { name: string; clubId: number; memberIds: number[] }
+            }: { name: string; clubId: number; memberIds: number[] },
+            context: Context
         ) => {
+
+            requireRole(context.user, [UserRoles.SystemAdmin, UserRoles.ClubAdmin])
+            requireClubMembership(context.user, clubId);
             const memberIdsList = memberIds ?? [];
 
             return prisma.$transaction(async (tx) => {
@@ -241,11 +272,19 @@ const resolvers = {
                 id,
                 name,
                 memberIds,
-            }: { id: number; name?: string; memberIds?: number[] }
+                is_active,
+            }: { id: number; name?: string; memberIds?: number[]; is_active?: boolean; },
+            context: Context
         ) => {
+            requireRole(context.user, [UserRoles.SystemAdmin, UserRoles.ClubAdmin])
+
+
             return prisma.$transaction(async (tx) => {
                 const team = await tx.team.findUnique({ where: { id } });
                 if (!team) throw new Error("Team not found");
+                const clubId = team.club_id;
+
+                requireClubMembership(context.user, clubId);
 
                 if (memberIds) {
                     const validMembers = await tx.user.count({
@@ -275,14 +314,9 @@ const resolvers = {
                     where: { id },
                     data: {
                         ...(name !== undefined ? { name } : {}),
+                        ...(is_active !== undefined ? { is_active } : {}),
                     },
                 });
-            });
-        },
-        setTeamActive: async (_: any, { id, isActive }: { id: number; isActive: boolean }) => {
-            return prisma.team.update({
-                where: { id },
-                data: { is_active: isActive },
             });
         },
 
@@ -324,7 +358,11 @@ const resolvers = {
                 dates: TournamentDateInput[];
                 teamAssignments: TeamAssignmentInput[];
             };
-        }) => {
+        },
+        context: Context
+        ) => {
+            requireRole(context.user, [UserRoles.SystemAdmin, UserRoles.EventManager]);
+
             const { name, season, divisions = [], dates = [], teamAssignments = [] } = input;
 
             return prisma.$transaction(async (tx) => {
@@ -387,6 +425,7 @@ const resolvers = {
                 });
             });
         },
+
         updateTournament: async (_: any, { id, input }: { id: number;
             input: {
                 name: string;
@@ -395,7 +434,9 @@ const resolvers = {
                 dates: TournamentDateInput[];
                 teamAssignments: TeamAssignmentInput[];
             };
-        }) => {
+        }, context: Context
+        ) => {
+            requireRole(context.user, [UserRoles.SystemAdmin, UserRoles.EventManager]);
             const { name, season, divisions, dates, teamAssignments } = input;
 
             return prisma.$transaction(async (tx) => {
@@ -458,8 +499,6 @@ const resolvers = {
                 });
             });
         },
-
-
 
         register: async (_: any, { email, name, password }: { email: string, name: string, password: string}) => {
 

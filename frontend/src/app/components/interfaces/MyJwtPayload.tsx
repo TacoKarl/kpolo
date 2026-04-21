@@ -1,6 +1,6 @@
 import {JwtPayload} from "jwt-decode";
 
-export interface MyJwtPayload extends JwtPayload {
+export interface AccessTokenPayload extends JwtPayload {
     userId: number;
-    userRoles: string[];
+    deviceId: string;
 }
