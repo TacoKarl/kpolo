@@ -85,6 +85,8 @@ export type Mutation = {
   createClub: Club;
   createTeam: Team;
   createTournament: Tournament;
+  createTournamentDate: TournamentDate;
+  deleteTournamentDate: TournamentDate;
   login: LoginResponse;
   register: RegisterResponse;
   setClubActive: Club;
@@ -111,6 +113,17 @@ export type MutationCreateTeamArgs = {
 
 export type MutationCreateTournamentArgs = {
   input?: InputMaybe<CreateTournamentInput>;
+};
+
+
+export type MutationCreateTournamentDateArgs = {
+  date: Scalars['String']['input'];
+  tournamentId: Scalars['Int']['input'];
+};
+
+
+export type MutationDeleteTournamentDateArgs = {
+  id: Scalars['Int']['input'];
 };
 
 
@@ -167,6 +180,7 @@ export type Query = {
   hello: Scalars['String']['output'];
   me?: Maybe<Me>;
   team?: Maybe<Team>;
+  tournament?: Maybe<Tournament>;
   tournaments: Array<Tournament>;
   users: Array<User>;
 };
@@ -186,6 +200,11 @@ export type QueryClubsArgs = {
 export type QueryTeamArgs = {
   id: Scalars['ID']['input'];
   includeInactive?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
+export type QueryTournamentArgs = {
+  id: Scalars['ID']['input'];
 };
 
 export type RegisterResponse = {

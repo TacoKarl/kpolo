@@ -13,7 +13,7 @@
     align-items: center;
 }
 
-.card:hover {
+.hoverable:hover {
     transform: translateY(-4px);
     box-shadow: 0 10px 20px rgba(0,0,0,0.08);
     border-color: #d1d5db;

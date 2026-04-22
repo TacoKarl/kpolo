@@ -230,3 +230,65 @@ mutation UpdateTournament(
         }
     }
 }
+
+query GetTournamentsForSelector {
+    tournaments {
+        id
+        name
+        season
+    }
+}
+
+query GetTournamentMatches($tournamentId: ID!) {
+    tournament(id: $tournamentId) {
+        id
+        name
+        dates {
+            id
+            date
+        }
+        season
+        matches {
+            id
+            team1_score
+            team2_score
+            match_date
+            team1 {
+                id
+                name
+            }
+            team2 {
+                id
+                name
+            }
+            winner_team {
+                id
+                name
+            }
+            division {
+                id
+                name
+            }
+        }
+    }
+}
+
+mutation CreateTournamentDate($tournamentId: Int!, $date: String!) {
+    createTournamentDate(tournamentId: $tournamentId, date: $date) {
+        id
+        date
+        tournament {
+            id
+        }
+    }
+}
+
+mutation DeleteTournamentDate($id: Int!) {
+    deleteTournamentDate(id: $id) {
+        id
+        tournament {
+            id
+        }
+    }
+}
+
