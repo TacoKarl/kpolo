@@ -22,6 +22,10 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.0",
+    "@babel/preset-env": "^7.29.2",
+    "@babel/preset-typescript": "^7.28.5",
+    "@jest/globals": "^30.3.0",
     "@tsconfig/node24": "^24.0.4",
     "@types/bcrypt": "^6.0.0",
     "@types/cookie-parser": "^1.4.10",
@@ -30,7 +34,10 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.3.0",
     "@types/pg": "^8.16.0",
+    "babel-jest": "^30.3.0",
+    "jest": "^30.3.0",
     "prisma": "^7.4.1",
+    "ts-jest": "^29.4.9",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },

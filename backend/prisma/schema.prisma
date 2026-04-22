@@ -88,6 +88,7 @@ model Match {
   team2_id       Int
   team2_score    Int?
   winner_team_id Int?
+  field          Int
   match_date     DateTime
 
   tournament  Tournament @relation(fields: [tournament_id], references: [id])
