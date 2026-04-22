@@ -75,12 +75,12 @@ export default function AboutPage() {
 
                 {/* Kontakt/Kajakpolo DK */}
                 <section className="bg-black text-white p-8 rounded-2xl">
-                    <h2 className="text-xl font-bold mb-2">Samarbejde med Kajakpolo Danmark</h2>
+                    <h2 className="text-xl font-bold mb-2">Interesse?</h2>
                     <p className="text-zinc-300">
                         Har du spørgsmål til projektet?
                         Du er velkommen til at række ud til os på nedenstående studiemail:
                         <br></br>
-                        mail: au576376@uni.au.dk
+                        au576376@uni.au.dk
                     </p>
                     <div className="mt-6">
                         <a

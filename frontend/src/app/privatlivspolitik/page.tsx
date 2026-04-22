@@ -28,7 +28,7 @@ export default function PrivacyPolicy() {
                     <p>
                         Ansvarlig for databehandlingen på denne platform er: <br />
                         <strong>Projektgruppen <i>Kajakpolo Danmark Turneringsplatform</i></strong> i samarbejde med Kajakpolo Danmark. <br />
-                        Kontakt: <span className="underline">[201705873@post.au.dk]</span>
+                        Kontakt: <span className="underline">au201705873@uni.au.dk</span>
                     </p>
                 </section>
 
@@ -65,11 +65,11 @@ export default function PrivacyPolicy() {
 
                 {/* Kontakt/Kajakpolo DK */}
                 <section className="bg-black text-white p-8 rounded-2xl">
-                    <h2 className="text-xl font-bold mb-2">Samarbejde med Kajakpolo Danmark</h2>
+                    <h2 className="text-xl font-bold mb-2">Du har ret til dine data</h2>
                     <p className="text-zinc-300">
                         Har du spørgsmål til dine data eller applikationens sikkerhed?
                         Du er velkommen til at række ud til os på nedenstående studiemail:<br></br>
-                        mail: au576376@uni.au.dk
+                        au576376@uni.au.dk
                     </p>
                     <div className="mt-6">
                         <a
