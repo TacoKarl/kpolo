@@ -94,6 +94,7 @@ scalar DateTime
         team2: Team!
         team2_score: Int
         winner_team: Team
+        field:       Int
         match_date: String!
     }
 
@@ -174,6 +175,7 @@ scalar DateTime
         team1_score:    Int
         team2_score:    Int
         winner_team_id: Int
+        field:          Int!
         match_date:     DateTime!
     }
 
@@ -186,6 +188,7 @@ scalar DateTime
         team1_score:    Int
         team2_score:    Int
         winner_team_id: Int
+        field:          Int
         match_date:     DateTime
     }
     

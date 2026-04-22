@@ -30,6 +30,7 @@ type MatchInput = {
         team1_score:    number | undefined,
         team2_score:    number | undefined,
         winner_team_id: number | undefined,
+        field:          number,
         match_date:     Date,
     };
 
@@ -210,16 +211,11 @@ const resolvers = {
                 name,
                 address,
                 region,
-                managerEmail,
             }: { name: string; address: string; region: string; managerEmail: string },
             context: Context
             
         ) => {
             requireRole(context.user, [UserRoles.SystemAdmin]);
-
-            const manager = await prisma.user.findUnique({ where: { email: managerEmail } });
-            if (!manager) throw new Error(`No user found with email ${managerEmail}`);
-
             return prisma.club.create({
                 data: {
                     name,
@@ -540,6 +536,7 @@ const resolvers = {
                         division_id: match.division_id,
                         team1_id: match.team1_id,
                         team2_id: match.team2_id,
+                        field: match.field,
                         match_date: match.match_date,
                     })),
                     include:{
@@ -553,56 +550,37 @@ const resolvers = {
         },
 
         updateMatches: async (_: any, args: { matches: MatchInput[] }) => {
-            return prisma.$transaction(async (tx) => {
-                // Validate all matches exist
-                const matchIds = args.matches
-                    .filter(m => m.id !== undefined)
-                    .map(m => m.id!);
-                    
-                if (matchIds.length === 0) {
-                    throw new Error("No matches to update (all must have id)");
-                }
+        return prisma.$transaction(async (tx) => {
+            // Validate all matches exist
+            const matchIds = args.matches
+                .filter(m => m.id !== undefined)
+                .map(m => m.id!);
+                
+            if (matchIds.length === 0) {
+                throw new Error("No matches to update (all must have id)");
+            }
 
-                const existingMatches = await tx.match.findMany({
-                    where: { id: { in: matchIds } }
-                });
+            const existingMatches = await tx.match.findMany({
+                where: { id: { in: matchIds } }
+            });
 
-                if (existingMatches.length !== matchIds.length) {
-                    throw new Error("One or more matches not found");
-                }
+            if (existingMatches.length !== matchIds.length) {
+                throw new Error("One or more matches not found");
+            }
 
-
-                // Update matches individually to handle optional fields properly
-                const updatedMatches = await Promise.all(
-                    args.matches.map(async (match) => {
-                        if (match.id === undefined) {
-                            throw new Error("All matches must have an id for update");
-                        }
-
-                        return tx.match.update({
-                            where: { id: match.id },
-                            data: {
-                                team1_score: match.team1_score,
-                                team2_score: match.team2_score,
-                                winner_team_id: match.winner_team_id,
-                                match_date: match.match_date,
-                            }
-                        });
-                    })
-                );
-
-                // Return matches with relations
-                return prisma.match.findMany({
-                    where: { id: { in: updatedMatches.map(m => m.id) } },
-                    include: {
-                        tournament: true,
-                        team1: true,
-                        team2: true,
-                        winner_team: true,
-                    },
-                    orderBy: { match_date: 'asc' }
+            const updatePromises = args.matches.map(match => {
+                if (!match.id) throw new Error("Match id is required");
+                // Assuming MatchInput extends MatchUpdateInput or similar
+                // Omit id from data as it's used in where
+                const { id, ...data } = match;
+                return tx.match.update({
+                    where: { id },
+                    data
                 });
             });
+
+            return Promise.all(updatePromises);
+        });
         },
 
         register: async (_: any, { email, name, password }: { email: string, name: string, password: string}) => {
