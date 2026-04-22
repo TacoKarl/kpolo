@@ -13,6 +13,8 @@ export const typeDefs = gql`
         clubs(includeInactive: Boolean = false): [Club!]!
         club(id: ID!, includeInactive: Boolean = false): Club
         team(id: ID!, includeInactive: Boolean = false): Team
+        matches(tournamentId: ID): [Match!]!
+        match: [Match!]!
         users: [User!]!
     }
     
@@ -92,6 +94,7 @@ scalar DateTime
         team2: Team!
         team2_score: Int
         winner_team: Team
+        field:       Int
         match_date: String!
     }
 
@@ -114,6 +117,9 @@ scalar DateTime
         
         createTournament(input: CreateTournamentInput): Tournament!
         updateTournament(id: Int!, input: UpdateTournamentInput): Tournament!
+
+        createMatches(matches: [CreateMatchInput!]): [Match!]
+        updateMatches(matches: [UpdateMatchInput!]): [Match!]
         
         createTournamentDate(tournamentId: Int!, date: String!): TournamentDate!
         deleteTournamentDate(id: Int!): TournamentDate!
@@ -161,6 +167,32 @@ scalar DateTime
         divisions: [DivisionInput!]
         dates: [TournamentDateInput!]
         teamAssignments: [TeamAssignmentInput!]
+    }
+
+    input CreateMatchInput {
+        id:             Int
+        tournament_id:  Int!
+        division_id:    Int
+        team1_id:       Int!
+        team2_id:       Int!
+        team1_score:    Int
+        team2_score:    Int
+        winner_team_id: Int
+        field:          Int!
+        match_date:     DateTime!
+    }
+
+        input UpdateMatchInput {
+        id:             Int!
+        tournament_id:  Int
+        division_id:    Int
+        team1_id:       Int
+        team2_id:       Int
+        team1_score:    Int
+        team2_score:    Int
+        winner_team_id: Int
+        field:          Int
+        match_date:     DateTime
     }
     
 `;

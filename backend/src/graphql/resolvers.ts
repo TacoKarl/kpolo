@@ -2,7 +2,8 @@ import type {Pool} from "pg";
 import {PrismaClient} from "../generated/prisma/index.js";
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
-import {PrismaPg} from '@prisma/adapter-pg';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { match } from "node:assert";
 import {Context} from "./context.js";
 import {requireClubMembership, requireRole, requireUser} from "../auth/graphqlPermissions.js";
 import {UserRoles} from "../auth/userRoles.js";
@@ -20,6 +21,19 @@ export type GraphQLContext = {
 type DivisionInput = { name: string };
 type TournamentDateInput = { date: string };
 type TeamAssignmentInput = { teamId: number; divisionIndex: number };
+type MatchInput = {
+        id:             number | undefined,
+        tournament_id:  number,
+        division_id:    number | undefined,
+        team1_id:       number,
+        team2_id:       number,
+        team1_score:    number | undefined,
+        team2_score:    number | undefined,
+        winner_team_id: number | undefined,
+        field:          number,
+        match_date:     Date,
+    };
+
 
 const resolvers = {
     Query: {
@@ -117,6 +131,29 @@ const resolvers = {
                     : { id: Number(args.id), is_active: true },
             });
         },
+        matches: async (_: any, args: { tournamentId?: number }) => {
+            return prisma.match.findMany({
+                where: args.tournamentId ? {tournament_id: Number(args.tournamentId), } : { },
+                include: {
+                    tournament: true,
+                    team1: true,
+                    team2: true,
+                    winner_team: true,
+                },
+                orderBy: {match_date: "asc"}
+            });
+        },
+        match: async (_: any, args: { id: string; }) => {
+            return prisma.match.findFirst({
+                where: { id: Number(args.id) },
+                include: {
+                    tournament: true,
+                    team1: true,
+                    team2: true,
+                    winner_team: true,
+                }
+            });
+        },
         users: async (_: any, args: any, context: Context) => {
             requireUser(context.user);
             requireRole(context.user, [UserRoles.SystemAdmin, UserRoles.EventManager]);
@@ -171,6 +208,29 @@ const resolvers = {
             });
         },
     },
+    Match: {
+        tournament: async (match: { tournament_id: number }) => {
+            return prisma.tournament.findFirst({
+                where: { id: match.tournament_id }   
+            });
+        },
+        team1: async (match: { team1_id: number }) => {
+            return prisma.team.findFirst({
+                where: { id: match.team1_id },
+            });
+        },
+        team2: async (match: { team2_id: number }) => {
+            return prisma.team.findFirst({
+                where: { id: match.team2_id },
+            });
+        },
+        winner_team: async (match: { winner_team_id?: number }) => {
+            if (!match.winner_team_id) return null;
+            return prisma.team.findFirst({
+                where: { id: match.winner_team_id }
+            });
+        },
+    },
     Mutation: {
         createClub: async (
             _: any,
@@ -178,16 +238,11 @@ const resolvers = {
                 name,
                 address,
                 region,
-                managerEmail,
             }: { name: string; address: string; region: string; managerEmail: string },
             context: Context
-
+            
         ) => {
             requireRole(context.user, [UserRoles.SystemAdmin]);
-
-            const manager = await prisma.user.findUnique({ where: { email: managerEmail } });
-            if (!manager) throw new Error(`No user found with email ${managerEmail}`);
-
             return prisma.club.create({
                 data: {
                     name,
@@ -277,7 +332,6 @@ const resolvers = {
             context: Context
         ) => {
             requireRole(context.user, [UserRoles.SystemAdmin, UserRoles.ClubAdmin])
-
 
             return prisma.$transaction(async (tx) => {
                 const team = await tx.team.findUnique({ where: { id } });
@@ -425,7 +479,6 @@ const resolvers = {
                 });
             });
         },
-
         updateTournament: async (_: any, { id, input }: { id: number;
             input: {
                 name: string;
@@ -498,6 +551,92 @@ const resolvers = {
                     },
                 });
             });
+        },
+
+        createMatches: async (_: any, args: { matches: MatchInput[] }) => {
+            return prisma.$transaction(async (tx) => {
+                // Validate all teams exist and belong to the tournament
+                const tournamentIds = [...new Set(args.matches.map(m => m.tournament_id))];
+                const tournaments = await tx.tournament.findMany({
+                    where: { id: { in: tournamentIds } }
+                });
+                
+                if (tournaments.length !== tournamentIds.length) {
+                    throw new Error("One or more tournaments not found");
+                }
+
+                const allTeamIds = [...new Set(args.matches.flatMap(m => [m.team1_id, m.team2_id]))];
+                const teams = await tx.team.findMany({
+                    where: { id: { in: allTeamIds } }
+                });
+
+                if (teams.length !== allTeamIds.length) {
+                    throw new Error("One or more teams not found");
+                }
+
+                // Optional: Validate teams belong to tournament (via TournamentTeam)
+                if (args.matches[0].division_id !== undefined) {
+                    const divisions = await tx.division.findMany({
+                        where: { id: { in: args.matches.map(m => m.division_id!).filter(Boolean) } }
+                    });
+                    
+                    if (divisions.length !== args.matches.filter(m => m.division_id).length) {
+                        throw new Error("One or more divisions not found");
+                    }
+                }
+
+                // Create all matches
+                return await tx.match.createManyAndReturn({
+                    data: args.matches.map(match => ({
+                        tournament_id: match.tournament_id,
+                        division_id: match.division_id,
+                        team1_id: match.team1_id,
+                        team2_id: match.team2_id,
+                        field: match.field,
+                        match_date: match.match_date,
+                    })),
+                    include:{
+                        tournament: true,
+                        team1: true,
+                        team2: true,
+                        winner_team: true,
+                    },
+                });
+            });
+        },
+
+        updateMatches: async (_: any, args: { matches: MatchInput[] }) => {
+        return prisma.$transaction(async (tx) => {
+            // Validate all matches exist
+            const matchIds = args.matches
+                .filter(m => m.id !== undefined)
+                .map(m => m.id!);
+                
+            if (matchIds.length === 0) {
+                throw new Error("No matches to update (all must have id)");
+            }
+
+            const existingMatches = await tx.match.findMany({
+                where: { id: { in: matchIds } }
+            });
+
+            if (existingMatches.length !== matchIds.length) {
+                throw new Error("One or more matches not found");
+            }
+
+            const updatePromises = args.matches.map(match => {
+                if (!match.id) throw new Error("Match id is required");
+                // Assuming MatchInput extends MatchUpdateInput or similar
+                // Omit id from data as it's used in where
+                const { id, ...data } = match;
+                return tx.match.update({
+                    where: { id },
+                    data
+                });
+            });
+
+            return Promise.all(updatePromises);
+        });
         },
 
         register: async (_: any, { email, name, password }: { email: string, name: string, password: string}) => {
