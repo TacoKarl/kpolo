@@ -7,9 +7,9 @@ export const typeDefs = gql`
     type Query {
         hello: String!
         dbTime: String!
-        
         me: Me
         tournaments: [Tournament!]!
+        tournament(id: ID!): Tournament
         clubs(includeInactive: Boolean = false): [Club!]!
         club(id: ID!, includeInactive: Boolean = false): Club
         team(id: ID!, includeInactive: Boolean = false): Team
@@ -120,6 +120,9 @@ scalar DateTime
 
         createMatches(matches: [CreateMatchInput!]): [Match!]
         updateMatches(matches: [UpdateMatchInput!]): [Match!]
+        
+        createTournamentDate(tournamentId: Int!, date: String!): TournamentDate!
+        deleteTournamentDate(id: Int!): TournamentDate!
     }
     
     type LoginResponse {
