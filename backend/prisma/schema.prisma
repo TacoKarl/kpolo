@@ -16,6 +16,7 @@ model Club {
   contact_email   String?
   members         User[]  @relation("ClubMemberships")
   teams           Team[]
+  fines           Fine[]
 }
 
 model Role {
@@ -143,4 +144,15 @@ model RefreshToken {
   user User @relation("UserRefreshTokens", fields: [user_id], references: [id])
 
   @@unique([user_id, device_id])
+}
+
+model Fine {
+  id      Int @id @default(autoincrement())
+  club_id Int
+  reason  String
+  amount  Int
+  date    DateTime
+  paid   Boolean
+
+  club Club @relation(fields: [club_id], references: [id])
 }
