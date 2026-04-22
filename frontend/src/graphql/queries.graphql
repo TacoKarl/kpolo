@@ -1,5 +1,14 @@
 # graphql/queries.graphql
 
+query GetMe {
+    me {
+        name
+        clubId
+        clubName
+        roles
+    }
+}
+
 query GetTournaments {
     tournaments {
         id
@@ -123,8 +132,8 @@ query GetUsers {
     }
 }
 
-mutation CreateClub($name: String!, $address: String!, $region: String!, $managerEmail: String!) {
-    createClub(name: $name, address: $address, region: $region, managerEmail: $managerEmail) {
+mutation CreateClub($name: String!, $address: String!, $region: String!) {
+    createClub(name: $name, address: $address, region: $region) {
         id
         name
         region

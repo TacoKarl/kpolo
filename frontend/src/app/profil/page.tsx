@@ -1,35 +1,35 @@
-'use client';
-import { useUser } from "@/app/context/UserContext";
-import { useRouter } from "next/navigation";
 import {Button} from "@/components/Button";
+import { getMe } from "@/app/lib/getMe";
+import Link from "next/link";
+import LogoutButton from "./LogoutButton";
 
-export default function profilePage () {
-    const { user, setUser } = useUser();
-    const router = useRouter();
+export default async function profilePage () {
+    const user = await getMe();
+    if (!user) {
+        return (
+            <div className="p-6">
+                <h1 className="text-2xl font-bold">Profil</h1>
+                <p>Du er ikke logget ind.</p>
+                <Button>
+                    <Link href="/login">Log ind</Link>
+                </Button>
+            </div>
+        );
+    }
 
-    const handleLogout = () => {
-        // Ryd context og localStorage
-        setUser(null);
-        localStorage.removeItem("token"); // hvis du også gemmer token separat
-        localStorage.removeItem("user");
-        router.push("/login");
-    };
 
     return (
         <div className="p-6">
             <h1 className="text-2xl font-bold">Profil</h1>
-            {user && (
-                <div>
-                    <p>Navn: {user.name}</p>
-                    {user.avatarUrl && <img src={user.avatarUrl} alt="Profilbillede" className="w-24 h-24 rounded-full" />}
 
-                    <Button
-                        onClick={handleLogout}
-                        variant='danger'>
-                        Log ud
-                    </Button>
-                </div>
-            )}
+            <div className="space-y-2">
+                {/*{user.avatarUrl && <img src={user.avatarUrl} alt="Profilbillede" className="w-24 h-24 rounded-full" />}*/}
+                <p>Navn: {user.name}</p>
+                <p>Klub: {user.clubName ?? "Ingen klub"}</p>
+                <p>Rolle(r): {user.roles.join(", ") || "Ingen roller"}</p>
+            </div>
+
+            <LogoutButton />
         </div>
-    )
+    );
 }
