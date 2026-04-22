@@ -6,8 +6,8 @@ export default function Home() {
             <Image className="filter brightness-90 contrast-15 "
               src="/bear-in-kajak.svg"
               alt="Kajakpolo Bjørn logo"
-              width={500}
-              height={500}
+              width={120}
+              height={120}
               priority
             />
           <h1 className="max-w-xs text-3xl leading-10 tracking-tight text-black ">
