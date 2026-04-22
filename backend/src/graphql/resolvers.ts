@@ -100,8 +100,8 @@ const resolvers = {
                     },
                     matches: {
                         include: {
-                            team1: true,
-                            team2: true,
+                            home_team: true,
+                            away_team: true,
                             winner_team: true,
                             division: true,
                         }

@@ -89,10 +89,10 @@ scalar DateTime
         id: Int!
         tournament: Tournament!
         division: Division
-        team1: Team!
-        team1_score: Int
-        team2: Team!
-        team2_score: Int
+        home_team: Team!
+        home_team_score: Int
+        away_team: Team!
+        away_team_score: Int
         winner_team: Team
         field:       Int
         match_date: String!
