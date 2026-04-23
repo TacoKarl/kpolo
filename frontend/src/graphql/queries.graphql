@@ -42,8 +42,8 @@ query GetTournaments {
         }
         matches {
             id
-            team1_score
-            team2_score
+            home_team_score
+            away_team_score
             match_date
         }
     }
@@ -250,14 +250,14 @@ query GetTournamentMatches($tournamentId: ID!) {
         season
         matches {
             id
-            team1_score
-            team2_score
+            home_team_score
+            away_team_score
             match_date
-            team1 {
+            home_team_id {
                 id
                 name
             }
-            team2 {
+            away_team_id {
                 id
                 name
             }

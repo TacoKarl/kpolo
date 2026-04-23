@@ -8,15 +8,15 @@ datasource db {
 }
 
 model Club {
-  id              Int     @id @default(autoincrement())
-  name            String
-  is_active       Boolean @default(true)
-  region          String
-  address         String?
-  contact_email   String?
-  members         User[]  @relation("ClubMemberships")
-  teams           Team[]
-  fines           Fine[]
+  id            Int     @id @default(autoincrement())
+  name          String
+  is_active     Boolean @default(true)
+  region        String
+  address       String?
+  contact_email String?
+  members       User[]  @relation("ClubMemberships")
+  teams         Team[]
+  fines         Fine[]
 }
 
 model Role {
@@ -26,27 +26,27 @@ model Role {
 }
 
 model User {
-  id            Int              @id @default(autoincrement())
-  name          String
-  email         String           @unique
-  password_hash String
-  club_id       Int?
-  roles         Role[]
-  teams         TeamMembership[]
-  refresh_tokens  RefreshToken[] @relation("UserRefreshTokens")
+  id             Int              @id @default(autoincrement())
+  name           String
+  email          String           @unique
+  password_hash  String
+  club_id        Int?
+  roles          Role[]
+  teams          TeamMembership[]
+  refresh_tokens RefreshToken[]   @relation("UserRefreshTokens")
 
   club Club? @relation("ClubMemberships", fields: [club_id], references: [id])
 }
 
 model Team {
-  id             Int              @id @default(autoincrement())
-  club_id        Int
-  name           String
-  is_active      Boolean          @default(true)
-  members        TeamMembership[]
-  matchesAsTeam1 Match[]          @relation("MatchTeam1")
-  matchesAsTeam2 Match[]          @relation("MatchTeam2")
-  matchesWon     Match[]          @relation("MatchWinnerTeam")
+  id                Int              @id @default(autoincrement())
+  club_id           Int
+  name              String
+  is_active         Boolean          @default(true)
+  members           TeamMembership[]
+  matchesAsHomeTeam Match[]          @relation("MatchHomeTeam")
+  matchesAsAwayTeam Match[]          @relation("MatchAwayTeam")
+  matchesWon        Match[]          @relation("MatchWinnerTeam")
 
   club Club @relation(fields: [club_id], references: [id])
 
@@ -81,21 +81,21 @@ model Tournament {
 }
 
 model Match {
-  id             Int      @id @default(autoincrement())
-  tournament_id  Int
-  division_id    Int?
-  team1_id       Int
-  team1_score    Int?
-  team2_id       Int
-  team2_score    Int?
-  winner_team_id Int?
-  field          Int
-  match_date     DateTime
+  id              Int      @id @default(autoincrement())
+  tournament_id   Int // måske redundant da vi kan hente det fra division
+  division_id     Int?
+  home_team_id    Int
+  home_team_score Int?
+  away_team_id    Int
+  away_team_score Int?
+  winner_team_id  Int? // kan kalkuleres men efter aftale beholder vi den her
+  field           Int
+  match_date      DateTime
 
   tournament  Tournament @relation(fields: [tournament_id], references: [id])
   division    Division?  @relation(fields: [division_id], references: [id])
-  team1       Team       @relation("MatchTeam1", fields: [team1_id], references: [id])
-  team2       Team       @relation("MatchTeam2", fields: [team2_id], references: [id])
+  home_team   Team       @relation("MatchHomeTeam", fields: [home_team_id], references: [id])
+  away_team   Team       @relation("MatchAwayTeam", fields: [away_team_id], references: [id])
   winner_team Team?      @relation("MatchWinnerTeam", fields: [winner_team_id], references: [id])
 }
 
@@ -134,10 +134,10 @@ model TournamentDate {
 }
 
 model RefreshToken {
-  id Int @id @default(autoincrement())
-  token_hash String @unique
-  user_id Int
-  device_id String
+  id         Int      @id @default(autoincrement())
+  token_hash String   @unique
+  user_id    Int
+  device_id  String
   created_at DateTime
   expires_at DateTime
 
