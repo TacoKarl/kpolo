@@ -11,16 +11,7 @@ import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { TournamentPlanner } from "./TournamentPlanner";
 import { PlanRow } from "./components";
-
-function matchDateToSlot(matchDate: string): string {
-    const d = new Date(matchDate);
-    const start = d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' });
-
-    const endD = new Date(d.getTime() + 30 * 60000); // +30 min
-    const end = endD.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' });
-
-    return `${start} - ${end}`;
-}
+import { matchDateToSlot, toDateKey } from "@/app/lib/dateUtils";
 
 export default function Page() {
     const [selectedId, setSelectedId] = useState("");
@@ -55,18 +46,24 @@ export default function Page() {
     const tournament = matchesData?.tournament;
 
     const dates = useMemo(
-        () => tournament?.dates?.map(d => ({ id: String(d.id), date: d.date })) ?? [],
+        () => tournament?.dates?.flatMap((d) => {
+            const dateKey = toDateKey(d.date);
+            return dateKey ? [{ id: String(d.id), date: d.date }] : [];
+        }) ?? [],
         [tournament]
     );
 
     const initialMatches = useMemo((): PlanRow[] => {
         if (!tournament?.matches?.length) return [];
-        return tournament.matches.map(m => {
+        return tournament.matches.flatMap(m => {
             const slot = matchDateToSlot(m.match_date);
+            const matchDateKey = toDateKey(m.match_date);
+            if (!slot || !matchDateKey) return [];
+
             const court = m.field ? `Bane ${m.field}` : 'Bane 1';
-            const matchDateStr = m.match_date.split('T')[0];
-            const tournamentDate = dates.find(d => d.date.split('T')[0] === matchDateStr);
-            return {
+            const tournamentDate = dates.find((d) => toDateKey(d.date) === matchDateKey);
+
+            return [{
                 id: String(m.id),
                 slot,
                 match: `${m.team1.name} vs ${m.team2.name}`,
@@ -74,15 +71,18 @@ export default function Page() {
                 court,
                 status: 'Planlagt',
                 dateId: tournamentDate?.id,
-            };
+            }];
         });
     }, [tournament, dates]);
 
     const slotDefinitions = useMemo(() => {
         if (!tournament?.matches?.length) return ["08:00 - 08:30", "08:30 - 09:00", "09:00 - 09:30", "09:30 - 10:00"];
         const slotSet = new Set<string>();
-        tournament.matches.forEach(m => slotSet.add(matchDateToSlot(m.match_date)));
-        return Array.from(slotSet).sort();
+        tournament.matches.forEach(m => {
+            const slot = matchDateToSlot(m.match_date);
+            if (slot) slotSet.add(slot);
+        });
+        return slotSet.size ? Array.from(slotSet).sort() : ["08:00 - 08:30", "08:30 - 09:00", "09:00 - 09:30", "09:30 - 10:00"];
     }, [tournament]);
 
     const courts = useMemo(() => {

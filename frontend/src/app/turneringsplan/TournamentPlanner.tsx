@@ -1,13 +1,15 @@
 'use client';
 
 import { useMemo, useState } from "react";
-import {useApolloClient, useMutation} from "@apollo/client/react"
+import {useMutation} from "@apollo/client/react"
 import { DndContext, DragEndEvent, DragOverlay, closestCenter } from "@dnd-kit/core";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { MatchCard, SlotCellView, PlanRow, SlotCell, DragOrigin } from "./components";
 
+import { formatDateHeading, toDateInputValue, toDateKey } from "@/app/lib/dateUtils";
 import { CreateTournamentDateDocument, DeleteTournamentDateDocument } from "@/generated/graphql";
+
 
 
 interface Props {
@@ -29,7 +31,7 @@ export function TournamentPlanner({ tournamentId, initialDates, courts, slotDefi
     const [deleteDate] = useMutation(DeleteTournamentDateDocument);
 
     const handleAddDate = () => {
-        const usedDates = new Set(localDates.map(d => d.date.split('T')[0]));
+        const usedDates = new Set(localDates.map(d => toDateKey(d.date)).filter((date): date is string => Boolean(date)));
         const candidate = new Date();
         while (usedDates.has(candidate.toISOString().split('T')[0])) {
             candidate.setDate(candidate.getDate() + 1);
@@ -178,12 +180,12 @@ export function TournamentPlanner({ tournamentId, initialDates, courts, slotDefi
                         <div key={d.id} className={`flex items-center gap-2 border p-2 rounded shadow-sm ${d.id.startsWith('temp-') ? 'bg-green-50 border-green-200' : 'bg-white'}`}>
                             <input
                                 type="date"
-                                value={d.date.split('T')[0]}
+                                value={toDateInputValue(d.date)}
                                 onChange={(e) => {
-                                const newDate = e.target.value;
-                                const duplicate = localDates.some(ld => ld.id !== d.id && ld.date.split('T')[0] === newDate);
-                                if (!duplicate) setLocalDates(localDates.map(ld => ld.id === d.id ? { ...ld, date: newDate } : ld));
-                            }}
+                                    const newDate = e.target.value;
+                                    const duplicate = localDates.some(ld => ld.id !== d.id && toDateKey(ld.date) === newDate);
+                                    if (!duplicate) setLocalDates(localDates.map(ld => ld.id === d.id ? { ...ld, date: newDate } : ld));
+                                }}
                                 className="text-sm outline-none bg-transparent"
                             />
                             <button onClick={() => handleRemoveDate(d.id)} className="text-red-400 hover:text-red-600">×</button>
@@ -201,7 +203,7 @@ export function TournamentPlanner({ tournamentId, initialDates, courts, slotDefi
                 {localDates.map((tDate) => (
                     <div key={tDate.id} className="space-y-4">
                         <h2 className="text-xl font-semibold uppercase tracking-wider text-gray-700">
-                            {new Date(tDate.date).toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'long' })}
+                            {formatDateHeading(tDate.date)}
                         </h2>
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                             {courts.map(court => (
