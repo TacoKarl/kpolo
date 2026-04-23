@@ -89,10 +89,10 @@ scalar DateTime
         id: Int!
         tournament: Tournament!
         division: Division
-        team1: Team!
-        team1_score: Int
-        team2: Team!
-        team2_score: Int
+        home_team_id: Team!
+        home_team_score: Int
+        away_team_id: Team!
+        away_team_score: Int
         winner_team: Team
         field:       Int
         match_date: String!
@@ -173,10 +173,10 @@ scalar DateTime
         id:             Int
         tournament_id:  Int!
         division_id:    Int
-        team1_id:       Int!
-        team2_id:       Int!
-        team1_score:    Int
-        team2_score:    Int
+        home_team_id:   Int!
+        away_team_id:   Int!
+        home_team_score:Int
+        away_team_score:Int
         winner_team_id: Int
         field:          Int!
         match_date:     DateTime!
@@ -185,11 +185,11 @@ scalar DateTime
         input UpdateMatchInput {
         id:             Int!
         tournament_id:  Int
-        division_id:    Int
-        team1_id:       Int
-        team2_id:       Int
-        team1_score:    Int
-        team2_score:    Int
+        division_id:    Int!
+        home_team_id:  Int
+        away_team_id:   Int
+        home_team_score:    Int
+        away_team_score:    Int
         winner_team_id: Int
         field:          Int
         match_date:     DateTime

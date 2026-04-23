@@ -197,3 +197,262 @@ erDiagram
     }
 
 ```
+
+```mermaid
+---
+title: ER-Diagram V3
+---
+erDiagram
+    Direction TB
+    User }|--|| Club : belongs_to
+    User }o--o{ Role : has
+    User ||--o{ TeamMembership : has
+    User ||--o{ RefreshToken : has
+    Club ||--o{ ClubLogo : has
+    Club ||--o{ Team : has
+    Team ||--o{ TeamMembership : has
+    Team ||--o{ TeamLogo : has
+    Tournament ||--o{ Division : has
+    Tournament ||--o{ TournamentDate : has
+    TournamentTeam }o--|| Team : is
+    Match }o--|{ TournamentTeam : "NOTE: Always has 2 teams"
+    Division ||--o{ TournamentTeam : has
+    Division ||--o{ Match : has
+    
+    User {
+        int id
+        string name
+        string email
+        string password_hash
+        int club_id
+        Role[] roles
+        TeamMembership[] teams
+        RefreshToken[] refresh_tokens
+    }
+
+    RefreshToken {
+        int id
+        string token_hash
+        int user_id
+        text device_id
+        datetime created_at
+        datetime expires_at
+    }
+
+    Role {
+        int id
+        string role
+        User[] users
+    }
+
+    Club {
+        int id
+        string name
+        string region
+        string address
+        string contact_email
+        bool is_active
+        User[] memebers
+        Team[] teams
+    }
+
+    ClubLogo {
+        int id
+        int club_id
+        blob logo
+        datetime valid_from
+        datetime valid_to
+    }
+
+    Tournament {
+        int id
+        string season
+        string name
+        Division[] divisions
+        TournamentDate[] dates
+    }
+
+    Match {
+        int id
+        int division_id
+        int home_team_id
+        int home_team_score
+        int away_team_id
+        int away_team_score
+        int winner_tournament_team_id
+        int field
+        datetime match_date
+    }
+    Division {
+        int id
+        int tournament_id
+        string name
+        
+        TournamentTeam[] teams
+        Match[] matches
+    }
+    Team {
+        int id
+        int club_id
+        string name
+        bool is_active
+        TeamMembership[] members
+        Match[] matches_as_home_team
+        Match[] matches_as_away_team
+        Match[] matches_won
+        TournamentTeam[] tournament_teams
+    }
+    
+    TeamLogo {
+        int id
+        int team_id
+        blob logo
+        datetime valid_from
+        datetime valid_to
+    }
+    
+    TeamMembership {
+        int id
+        int user_id
+        int team_id
+        datetime valid_from
+        datetime valid_to
+    }
+
+    TournamentTeam {
+        int id
+        int team_id
+        int division_id
+    }
+
+    TournamentDate {
+        int id
+        int tournament_id
+        DateTime date
+    }
+    
+```
+```mermaid
+---
+title: ER-Diagram Aktuel
+---
+erDiagram
+    Direction TB
+    User }|--|| Club : belongs_to
+    User }o--o{ Role : has
+    User ||--o{ TeamMembership : has
+    User ||--o{ RefreshToken : has
+    Club ||--o{ Team : has
+    Team ||--o{ TeamMembership : has
+    Tournament ||--o{ Match : has
+    Tournament ||--o{ TournamentTeam : has
+    Tournament ||--o{ Division : has
+    Tournament ||--o{ TournamentDate : has
+    TournamentTeam }o--|| Team : is
+    Match }o--|{ TournamentTeam : "NOTE: Always has 2 teams"
+    Division ||--o{ TournamentTeam : has
+    Division ||--o{ Match : has
+    
+    User {
+        int id
+        string name
+        string email
+        string password_hash
+        int club_id
+        Role[] roles
+        TeamMembership[] teams
+        RefreshToken[] refresh_tokens
+    }
+
+    RefreshToken {
+        int id
+        string token_hash
+        int user_id
+        text device_id
+        datetime created_at
+        datetime expires_at
+    }
+
+    Role {
+        int id
+        string role
+        User[] users
+    }
+
+    Club {
+        int id
+        string name
+        string region
+        string address
+        string contact_email
+        bool is_active
+        User[] memebers
+        Team[] teams
+    }
+
+    Tournament {
+        int id
+        string season
+        string name
+        Division[] divisions
+        Match[] matches
+        TournamentTeam[] teams
+        TournamentDate[] dates
+    }
+
+    Match {
+        int id
+        int tournament_id
+        int division_id
+        int home_team_id
+        int home_team_score
+        int away_team_id
+        int away_team_score
+        int winner_tournament_team_id
+        int field
+        datetime match_date
+    }
+    
+    Division {
+        int id
+        int tournament_id
+        string name
+        
+        TournamentTeam[] teams
+        Match[] matches
+    }
+    
+    Team {
+        int id
+        int club_id
+        string name
+        bool is_active
+        TeamMembership[] members
+        Match[] matches_as_home_team
+        Match[] matches_as_away_team
+        Match[] matches_won
+        TournamentTeam[] tournament_teams
+    }
+
+    TeamMembership {
+        int id
+        int user_id
+        int team_id
+        datetime valid_from
+        datetime valid_to
+    }
+
+    TournamentTeam {
+        int id
+        int tournament_id
+        int team_id
+        int division_id
+    }
+
+    TournamentDate {
+        int id
+        int tournament_id
+        DateTime date
+    }
+    
+```
