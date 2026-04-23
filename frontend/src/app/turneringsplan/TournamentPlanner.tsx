@@ -20,15 +20,21 @@ interface Props {
 
 export function TournamentPlanner({ tournamentId, initialDates, courts, slotDefinitions, initialMatches }: Props) {
     // Tournament Date stuff
+    const [committedDates, setCommittedDates] = useState(initialDates);
     const [localDates, setLocalDates] = useState(initialDates);
     const [deletedDateIds, setDeletedDateIds] = useState<string[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [dateMessage, setDateMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     const [createDate] = useMutation(CreateTournamentDateDocument);
     const [deleteDate] = useMutation(DeleteTournamentDateDocument);
 
     const handleAddDate = () => {
-        const newDate = { id: `temp-${Date.now()}`, date: new Date().toISOString().split('T')[0] };
-        setLocalDates([...localDates, newDate]);
+        const usedDates = new Set(localDates.map(d => d.date.split('T')[0]));
+        const candidate = new Date();
+        while (usedDates.has(candidate.toISOString().split('T')[0])) {
+            candidate.setDate(candidate.getDate() + 1);
+        }
+        setLocalDates([...localDates, { id: `temp-${Date.now()}`, date: candidate.toISOString().split('T')[0] }]);
     };
 
     const handleRemoveDate = (id: string) => {
@@ -47,25 +53,28 @@ export function TournamentPlanner({ tournamentId, initialDates, courts, slotDefi
                 await deleteDate({ variables: { id: parseInt(id) } });
             }
 
-            // 2. Create new dates (only those with 'temp-' prefix)
-            for (const d of localDates) {
+            // 2. Create new dates and replace temp IDs with real DB IDs
+            const updatedDates = [...localDates];
+            for (let i = 0; i < updatedDates.length; i++) {
+                const d = updatedDates[i];
                 if (d.id.startsWith('temp-')) {
-                    await createDate({
-                        variables: {
-                            tournamentId,
-                            date: d.date
-                        }
-                    });
+                    const result = await createDate({ variables: { tournamentId, date: d.date } });
+                    if (result.data?.createTournamentDate) {
+                        updatedDates[i] = {
+                            id: String(result.data.createTournamentDate.id),
+                            date: result.data.createTournamentDate.date,
+                        };
+                    }
                 }
             }
 
-            // Reset tracking state after success
+            setCommittedDates(updatedDates);
+            setLocalDates(updatedDates);
             setDeletedDateIds([]);
-            alert("Datoer opdateret!");
-            // Optionally: window.location.reload() or re-fetch via Apollo
+            setDateMessage({ type: 'success', text: 'Datoer gemt.' });
         } catch (error) {
             console.error("Fejl ved opdatering af datoer:", error);
-            alert("Der skete en fejl.");
+            setDateMessage({ type: 'error', text: 'Kunne ikke gemme datoer. Prøv igen.' });
         } finally {
             setIsSubmitting(false);
         }
@@ -73,7 +82,7 @@ export function TournamentPlanner({ tournamentId, initialDates, courts, slotDefi
 
     const handleRevertChanges = () => {
         if (confirm("Er du sikker på, at du vil fortryde alle ændringer til datoerne?")) {
-            setLocalDates(initialDates);
+            setLocalDates(committedDates);
             setDeletedDateIds([]);
 
             // 3. Optional: If you want to revert match drags too, clear overrides
@@ -99,9 +108,9 @@ export function TournamentPlanner({ tournamentId, initialDates, courts, slotDefi
         });
 
         initialMatches.forEach((row) => {
-            const firstDateId = localDates[0]?.id;
-            if (firstDateId && byDate[firstDateId]?.[row.court]) {
-                const cell = byDate[firstDateId][row.court].find((s) => s.slot === row.slot);
+            const targetDateId = row.dateId ?? localDates[0]?.id;
+            if (targetDateId && byDate[targetDateId]?.[row.court]) {
+                const cell = byDate[targetDateId][row.court].find((s) => s.slot === row.slot);
                 if (cell) cell.match = row;
             }
         });
@@ -170,13 +179,22 @@ export function TournamentPlanner({ tournamentId, initialDates, courts, slotDefi
                             <input
                                 type="date"
                                 value={d.date.split('T')[0]}
-                                onChange={(e) => setLocalDates(localDates.map(ld => ld.id === d.id ? { ...ld, date: e.target.value } : ld))}
+                                onChange={(e) => {
+                                const newDate = e.target.value;
+                                const duplicate = localDates.some(ld => ld.id !== d.id && ld.date.split('T')[0] === newDate);
+                                if (!duplicate) setLocalDates(localDates.map(ld => ld.id === d.id ? { ...ld, date: newDate } : ld));
+                            }}
                                 className="text-sm outline-none bg-transparent"
                             />
                             <button onClick={() => handleRemoveDate(d.id)} className="text-red-400 hover:text-red-600">×</button>
                         </div>
                     ))}
                 </div>
+                {dateMessage && (
+                    <p className={`mt-3 text-sm font-medium ${dateMessage.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                        {dateMessage.text}
+                    </p>
+                )}
             </Card>
 
             <DndContext collisionDetection={closestCenter} onDragStart={(e) => { setActiveMatch(e.active.data.current?.match); setDragOrigin(e.active.data.current?.origin); }} onDragEnd={handleDragEnd}>

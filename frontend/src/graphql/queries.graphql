@@ -248,8 +248,20 @@ query GetTournamentMatches($tournamentId: ID!) {
             date
         }
         season
+        teams {
+            id
+            team {
+                id
+                name
+            }
+            division {
+                id
+                name
+            }
+        }
         matches {
             id
+            field
             team1_score
             team2_score
             match_date
@@ -270,6 +282,17 @@ query GetTournamentMatches($tournamentId: ID!) {
                 name
             }
         }
+    }
+}
+
+mutation GenerateTournamentPlan($tournamentId: Int!, $fields: Int!, $startTime: Int!) {
+    generateTournamentPlan(tournamentId: $tournamentId, fields: $fields, startTime: $startTime) {
+        id
+        field
+        match_date
+        team1 { id name }
+        team2 { id name }
+        division { id name }
     }
 }
 

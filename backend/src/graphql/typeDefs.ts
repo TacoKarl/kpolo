@@ -123,6 +123,8 @@ scalar DateTime
         
         createTournamentDate(tournamentId: Int!, date: String!): TournamentDate!
         deleteTournamentDate(id: Int!): TournamentDate!
+
+        generateTournamentPlan(tournamentId: Int!, fields: Int!, startTime: Int!): [Match!]
     }
     
     type LoginResponse {

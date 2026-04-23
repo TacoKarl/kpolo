@@ -1,34 +1,113 @@
 'use client';
 
 import { useMemo, useState } from "react";
-import { useQuery } from "@apollo/client/react";
-import { GetTournamentsForSelectorDocument, GetTournamentMatchesDocument } from "@/generated/graphql";
+import { useQuery, useMutation } from "@apollo/client/react";
+import {
+    GetTournamentsForSelectorDocument,
+    GetTournamentMatchesDocument,
+    GenerateTournamentPlanDocument,
+} from "@/generated/graphql";
 import { Card } from "@/components/Card";
+import { Button } from "@/components/Button";
 import { TournamentPlanner } from "./TournamentPlanner";
+import { PlanRow } from "./components";
 
-const MOCK_MATCHES = [
-    { id: "1", slot: "08:00 - 08:30", match: "Team A vs Team B", division: "Liga", court: "Bane 1", status: "Planned" },
-    { id: "2", slot: "08:00 - 08:30", match: "Team B vs Team C", division: "Liga", court: "Bane 2", status: "Planned" },
-    { id: "3", slot: "08:30 - 09:00", match: "Team A vs Team C", division: "Liga", court: "Bane 1", status: "Planned" },
-    { id: "4", slot: "08:30 - 09:00", match: "Team B vs Team D", division: "Liga", court: "Bane 2", status: "Planned" },
-    { id: "5", slot: "09:00 - 09:30", match: "Team A vs Team D", division: "Lige", court: "Bane 1", status: "Planned" },
-    { id: "6", slot: "09:00 - 09:30", match: "Team B vs Team C", division: "Liga", court: "Bane 2", status: "Planned" },
-];
+function matchDateToSlot(matchDate: string): string {
+    const d = new Date(matchDate);
+    const start = d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' });
+
+    const endD = new Date(d.getTime() + 30 * 60000); // +30 min
+    const end = endD.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' });
+
+    return `${start} - ${end}`;
+}
 
 export default function Page() {
     const [selectedId, setSelectedId] = useState("");
+    const [fields, setFields] = useState(2);
+    const [startTime, setStartTime] = useState(8);
+    const [generateKey, setGenerateKey] = useState(0);
+    const [generateError, setGenerateError] = useState<string | null>(null);
+
     const { data: tournamentsData, loading } = useQuery(GetTournamentsForSelectorDocument);
-    const { data: matchesData, loading: matchesLoading } = useQuery(GetTournamentMatchesDocument, {
-        variables: { tournamentId: selectedId }, skip: !selectedId,
+    const { data: matchesData, loading: matchesLoading, refetch } = useQuery(GetTournamentMatchesDocument, {
+        variables: { tournamentId: selectedId },
+        skip: !selectedId,
     });
 
-    const dates = useMemo(() => matchesData?.tournament?.dates?.map(d => ({ id: String(d.id), date: d.date })) ?? [], [matchesData]);
-    const courts = useMemo(() => ["Bane 1", "Bane 2"], []);
-    const slots = useMemo(() => ["08:00 - 08:30", "08:30 - 09:00", "09:00 - 09:30", "09:30 - 10:00"], []);
+    const [generatePlan, { loading: generating }] = useMutation(GenerateTournamentPlanDocument);
+
+    const handleGenerate = async () => {
+        if (!selectedId) return;
+        setGenerateError(null);
+        try {
+            await generatePlan({
+                variables: { tournamentId: parseInt(selectedId), fields, startTime },
+            });
+            await refetch();
+            setGenerateKey(k => k + 1);
+        } catch (err) {
+            console.error("Fejl ved generering:", err);
+            setGenerateError("Kunne ikke generere turneringsplan. Prøv igen.");
+        }
+    };
+
+    const tournament = matchesData?.tournament;
+
+    const dates = useMemo(
+        () => tournament?.dates?.map(d => ({ id: String(d.id), date: d.date })) ?? [],
+        [tournament]
+    );
+
+    const initialMatches = useMemo((): PlanRow[] => {
+        if (!tournament?.matches?.length) return [];
+        return tournament.matches.map(m => {
+            const slot = matchDateToSlot(m.match_date);
+            const court = m.field ? `Bane ${m.field}` : 'Bane 1';
+            const matchDateStr = m.match_date.split('T')[0];
+            const tournamentDate = dates.find(d => d.date.split('T')[0] === matchDateStr);
+            return {
+                id: String(m.id),
+                slot,
+                match: `${m.team1.name} vs ${m.team2.name}`,
+                division: m.division?.name ?? '',
+                court,
+                status: 'Planlagt',
+                dateId: tournamentDate?.id,
+            };
+        });
+    }, [tournament, dates]);
+
+    const slotDefinitions = useMemo(() => {
+        if (!tournament?.matches?.length) return ["08:00 - 08:30", "08:30 - 09:00", "09:00 - 09:30", "09:30 - 10:00"];
+        const slotSet = new Set<string>();
+        tournament.matches.forEach(m => slotSet.add(matchDateToSlot(m.match_date)));
+        return Array.from(slotSet).sort();
+    }, [tournament]);
+
+    const courts = useMemo(() => {
+        if (!tournament?.matches?.length) return Array.from({ length: fields }, (_, i) => `Bane ${i + 1}`);
+        const fieldSet = new Set<number>();
+        tournament.matches.forEach(m => { if (m.field) fieldSet.add(m.field); });
+        const sorted = Array.from(fieldSet).sort((a, b) => a - b);
+        return sorted.length ? sorted.map(f => `Bane ${f}`) : Array.from({ length: fields }, (_, i) => `Bane ${i + 1}`);
+    }, [tournament, fields]);
+
+    const teamsByDivision = useMemo(() => {
+        if (!tournament?.teams?.length) return [];
+        const divMap: Record<string, { divisionName: string; teams: string[] }> = {};
+        for (const tt of tournament.teams) {
+            const divId = String(tt.division.id);
+            if (!divMap[divId]) divMap[divId] = { divisionName: tt.division.name, teams: [] };
+            divMap[divId].teams.push(tt.team.name);
+        }
+        return Object.values(divMap);
+    }, [tournament]);
 
     return (
         <div className="max-w-7xl mx-auto p-6 space-y-6">
             <h1 className="text-3xl font-bold">Kampplanlægger</h1>
+
             <Card hoverable={false}>
                 <label className="block text-sm font-medium mb-1">Vælg Turnering</label>
                 <select
@@ -44,14 +123,72 @@ export default function Page() {
             </Card>
 
             {selectedId && !matchesLoading && (
-                <TournamentPlanner
-                    key={selectedId} // Good use of key here to reset state on tournament change
-                    tournamentId={parseInt(selectedId)} // Pass the ID here
-                    initialDates={dates}
-                    courts={courts}
-                    slotDefinitions={slots}
-                    initialMatches={MOCK_MATCHES}
-                />
+                <>
+                    {teamsByDivision.length > 0 && (
+                        <Card hoverable={false}>
+                            <div className="flex flex-col md:flex-row md:items-end gap-4">
+                                <div className="flex-1">
+                                    <h3 className="font-semibold mb-2">Hold i turneringen</h3>
+                                    <div className="flex flex-wrap gap-4">
+                                        {teamsByDivision.map(div => (
+                                            <div key={div.divisionName}>
+                                                <p className="text-xs font-medium text-gray-500 uppercase mb-1">{div.divisionName}</p>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {div.teams.map(name => (
+                                                        <span key={name} className="text-xs bg-gray-100 border rounded px-2 py-0.5">{name}</span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="flex items-end gap-3 shrink-0">
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">Baner</label>
+                                        <input
+                                            type="number"
+                                            min={1}
+                                            max={10}
+                                            value={fields}
+                                            onChange={e => setFields(parseInt(e.target.value) || 1)}
+                                            className="w-16 border rounded p-1.5 text-sm"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">Starttid (time)</label>
+                                        <input
+                                            type="number"
+                                            min={0}
+                                            max={23}
+                                            value={startTime}
+                                            onChange={e => setStartTime(parseInt(e.target.value) || 8)}
+                                            className="w-20 border rounded p-1.5 text-sm"
+                                        />
+                                    </div>
+                                    <Button
+                                        onClick={handleGenerate}
+                                        disabled={generating}
+                                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                                    >
+                                        {generating ? "Genererer..." : "Generér Kampe"}
+                                    </Button>
+                                </div>
+                            </div>
+                            {generateError && (
+                                <p className="mt-3 text-sm font-medium text-red-600">{generateError}</p>
+                            )}
+                        </Card>
+                    )}
+
+                    <TournamentPlanner
+                        key={`${selectedId}-${generateKey}`}
+                        tournamentId={parseInt(selectedId)}
+                        initialDates={dates}
+                        courts={courts}
+                        slotDefinitions={slotDefinitions}
+                        initialMatches={initialMatches}
+                    />
+                </>
             )}
         </div>
     );
