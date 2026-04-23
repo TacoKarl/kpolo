@@ -253,11 +253,11 @@ query GetTournamentMatches($tournamentId: ID!) {
             home_team_score
             away_team_score
             match_date
-            home_team_id {
+            home_team {
                 id
                 name
             }
-            away_team_id {
+            away_team {
                 id
                 name
             }
