@@ -97,6 +97,47 @@ services frem for hele serverens netværksporte.
 Al kommunikation foregår over HTTPS for at forhindre aflytning og man-in-the-middle-angreb.
 Autentifikation håndteres ved brug af JSON Web Tokens og brugeradgangskoder lagres udelukkende som salted hashes genereret med \textit{bcrypt}.
 
+\subsection{Autentifikation og autorisation}
+
+Systemet anvender en token-baseret autentifikationsmekanisme baseret på \texttt{JWT} (JSON Web Tokens).
+Som tidligere nævnt, håndteres autentifikation via et separat \texttt{REST}-endpoint, mens autorisation
+håndhæves i \texttt{GraphQL} laget.
+
+Ved login bliver der sendes en \texttt{HTTP POST}-request fra klienten til autentifikation-endpointet med brugerens credentials.
+Serveren validerer oplysninger ved at sammenligne det indtastede password med den gemte hashværdi (\texttt{bcrypt}).
+Ved en succesfuld autentifikation genereres en \texttt{JWT} som signeres med en \texttt{JWT-SECRET} som kun serveren kender til.
+Der genereres også en \texttt{REFRESH-TOKEN} til at håndtere længerevarende login.
+
+Refresh-tokenet anvendes til at forny access tokens uden at brugeren skal logge ind igen.
+Dette sker ved, at klienten sender refresh-tokenet til et dedikeret endpoint,
+som ved succesfuld validering udsteder et nyt JWT med begrænset levetid.
+
+Dette token som returneres til klienten, anvendes derefter til alle forespørgsler til \texttt{GraphQL API}'et og sendes med
+hver request der kræver det (Enkelte requests er offentligt åbne og kræver ikke login).
+Tokenet valideres på serveren via middleware, hvor brugerens identitet udtrækkes og tilføjes request-konteksten.
+Dette gør det muligt for resolvers at identificere den autentificerede bruger.
+
+Autorisation håndhæves ved at kontrollere brugerens rettigheder, og verificere den signerede token, i de enkelte resolvers.
+Dette sikrer, at brugere kun kan tilgå eller modificere ressourcer, som de har tilladelse til.
+
+Ved at adskille autentifikation (\texttt{REST}) og datahåndtering (\texttt{GraphQL}), opnås en klar separation of concerns,
+hvor sikkerhed kan håndteres isoleret fra applikationens øvrige logik.
+
+\texttt{JWT} opbevares i \texttt{httpOnly cookies} på klienten.
+Dette sikrer, at tokenet ikke er direkte tilgængeligt via JavaScript, hvilket reducerer risikoen for XSS-angreb.
+
+Cookies anvendes frem for eksempelvis \texttt{localStorage}, da dette giver en mere sikker håndtering af autentifikation
+i browseren.
+
+Systemet anvender rollebaseret autorisation, hvor brugere tildeles specifikke roller (f.eks \textit{system-admin} og \textit{event-admin}).
+
+Disse roller indgår i \texttt{JWT}-payloaden og anvendes i resolvers til at håndhæve adgangskontrol.
+Dette gør det muligt at begrænse bestemte operationer til brugere med de nødvendige rettigheder, samt sikrer at brugere
+kun kan tilgå egne ressourcer.
+
+Ved brug af cookies skal der tages højde for CSRF-angreb, hvilket kan mitigere ved anvendelse af CSRF-tokens eller SameSite-attributter.
+
+
 \subsection{Kvalitetsattributter}
 
 Arkitekturen understøtter flere centrale kvalitetsattributter:
