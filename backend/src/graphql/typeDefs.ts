@@ -82,6 +82,15 @@ export const typeDefs = gql`
         tournament: Tournament!
         date: DateTime!
     }
+    
+    type Fine {
+        id: Int!
+        club_id Int!
+        reason String!
+        amount Int!
+        date Datetime!
+        paid Boolean!
+    }
 
 scalar DateTime
 
@@ -182,7 +191,7 @@ scalar DateTime
         match_date:     DateTime!
     }
 
-        input UpdateMatchInput {
+    input UpdateMatchInput {
         id:             Int!
         tournament_id:  Int
         division_id:    Int
@@ -193,6 +202,22 @@ scalar DateTime
         winner_team_id: Int
         field:          Int
         match_date:     DateTime
+    }
+
+    input CreateFineInput {
+        club_id Int!
+        reason  String!
+        amount  Int!
+        date    DateTime!
+        paid    Boolean!
+    }
+    
+    input UpdateFineInput {
+        id Int!
+        club_id Int
+        reason String
+        amount Int
+        paid Boolean
     }
     
 `;

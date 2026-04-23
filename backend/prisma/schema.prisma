@@ -152,7 +152,7 @@ model Fine {
   reason  String
   amount  Int
   date    DateTime
-  paid   Boolean
+  paid    Boolean
 
   club Club @relation(fields: [club_id], references: [id])
 }
