@@ -21,17 +21,26 @@
 
 \begin{document}
 
+    \pagenumbering{gobble}
     \maketitle
 
-    \pdfbookmark[1]{Forside}{forside}
     \input{Dokumenter/00-abstract/forside}
 
-    \pdfbookmark[1]{Abstract}{abstract}
+    \cleardoublepage
+    \pagenumbering{Roman}
+    \phantomsection
+    \section*{Abstract}
+    \addcontentsline{toc}{section}{Abstract}
     \input{Dokumenter/00-abstract/abstract}
 
+    \cleardoublepage
     \pdfbookmark[1]{Indholdsfortegnelse}{toc}
     \tableofcontents
     \newpage
+
+    \cleardoublepage
+    \pagenumbering{arabic}
+    \setcounter{page}{1}
 
     \input{Dokumenter/01-indledning/Indledning}
     \input{Dokumenter/02-krav/kravspecifikation}
@@ -51,13 +60,19 @@
 
     \newpage
 
-    \pdfbookmark[1]{Bilag}{bilag}
+    \cleardoublepage
+    \appendix
+    \phantomsection
+    \section*{Bilag}
+    \addcontentsline{toc}{section}{Bilag}
     \input{Dokumenter/bilag/bilagsliste}
 
     \newpage
 
-    \pdfbookmark[1]{Bibliografi}{Bibliografi}
-    \printbibliography
+    \cleardoublepage
+    \phantomsection
+    \addcontentsline{toc}{section}{Litteraturliste}
+    \printbibliography[title={Litteraturliste}]
 
 
 
