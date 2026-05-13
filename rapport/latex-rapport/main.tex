@@ -1,10 +1,11 @@
-\documentclass{article}
+\documentclass[12pt,a4paper]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[backend=biber,style=authoryear]{biblatex}
 \usepackage[table]{xcolor}
 \usepackage{tikz}
 \usetikzlibrary{positioning,arrows.meta,shapes.multipart}
 \usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
 \usepackage[a4paper, left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm]{geometry}
 
 \addbibresource{bibliography/bibliography.bib}
@@ -22,9 +23,13 @@
 
     \maketitle
 
+    \pdfbookmark[1]{Forside}{forside}
     \input{Dokumenter/00-abstract/forside}
+
+    \pdfbookmark[1]{Abstract}{abstract}
     \input{Dokumenter/00-abstract/abstract}
 
+    \pdfbookmark[1]{Indholdsfortegnelse}{toc}
     \tableofcontents
     \newpage
 
@@ -46,10 +51,12 @@
 
     \newpage
 
+    \pdfbookmark[1]{Bilag}{bilag}
     \input{Dokumenter/bilag/bilagsliste}
 
     \newpage
 
+    \pdfbookmark[1]{Bibliografi}{Bibliografi}
     \printbibliography
 
 

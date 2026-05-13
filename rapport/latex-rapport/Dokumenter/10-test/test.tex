@@ -18,6 +18,7 @@ Kvalitet er en central faktor for systemets anvendelighed, og derfor har der væ
 
 \subsection{Turneringstest}
 For at teste turneringsgeneratoren, er der testframework \texttt{Jest} anvendt (\cite{Jest}).
+
 I filen \texttt{tournament.service.test.ts} findes testkoden for den del af systemet, der vurderes at have størst betydning for produktets funktionalitet, nemlig algoritmen der genererer turneringsplaner.
 
 Formålet med testen er at sikre, at den genererede turneringsplan overholder de centrale forretningsregler for afvikling af en kajakpoloturnering.
@@ -28,7 +29,7 @@ Testen verificerer bl.a. følgende krav
     \item Et hold må ikke være planlagt til to kampe på samme tidspunkt
     \item Et hold må maksimalt spille to kampe i træk uden en pause
     \item Alle hold skal møde hinanden to gange
-    \item Turneringsplanen skal indeholde X antal kampe hvor $X=n(n-1)$ og \textit{n} er antal hold
+    \item Turneringsplanen skal indeholde X antal kampe hvor $X = n(n-1)$ og \textit{n} er antal hold
 \end{itemize}
 
 I stedet for at sammenligne med ét fast forventet output, valideres turneringsplanen ud fra disse constraints.
