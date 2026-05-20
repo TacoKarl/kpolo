@@ -587,7 +587,7 @@ const resolvers = {
                 }
 
                 // Create all matches
-                return await tx.match.createManyAndReturn({
+                return tx.match.createManyAndReturn({
                     data: args.matches.map(match => ({
                         tournament_id: match.tournament_id,
                         division_id: match.division_id,
@@ -671,7 +671,7 @@ const resolvers = {
             }
 
             const dates = tournament.dates.map(d => new Date(d.date));
-            const allMatches: { tournament_id: number; division_id: number | null; team1_id: number; team2_id: number; field: number; match_date: Date }[] = [];
+            const allMatches: { tournament_id: number; division_id: number | null; home_team_id: number; away_team_id: number; field: number; match_date: Date }[] = [];
 
             for (const { divisionId, teams } of Object.values(divisionMap)) {
                 const generated = generateGrundspil(teams, fields, dates, startTime, tournamentId, divisionId);
@@ -679,8 +679,8 @@ const resolvers = {
                     allMatches.push({
                         tournament_id: m.tournament_id,
                         division_id: m.division_id,
-                        team1_id: m.team1_id,
-                        team2_id: m.team2_id,
+                        home_team_id: m.team1_id,
+                        away_team_id: m.team2_id,
                         field: m.field,
                         match_date: new Date(m.match_date),
                     });
@@ -690,8 +690,8 @@ const resolvers = {
             return prisma.match.createManyAndReturn({
                 data: allMatches,
                 include: {
-                    team1: true,
-                    team2: true,
+                    home_team: true,
+                    away_team: true,
                     winner_team: true,
                     division: true,
                 },
