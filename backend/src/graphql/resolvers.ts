@@ -166,8 +166,32 @@ const resolvers = {
                 orderBy: { email: "asc" },
             });
         },
+        fines: async (_: any, args: { club_id?: number; includePaid?: boolean } , context: Context) => {
+            /*
+            requireUser(context.user);
+
+            if(args.club_id){
+                requireRole(context.user, [UserRoles.SystemAdmin, UserRoles.ClubAdmin]);
+                requireClubMembership(context.user,args.club_id)
+            }
+            else{
+                requireRole(context.user, [UserRoles.SystemAdmin, UserRoles.EventManager]);    
+            }
+
+            */
+            return prisma.fine.findMany({
+                where: {
+                    club_id: args.club_id,
+                    paid: args.includePaid,
+                },
+                include: { club: true },
+                orderBy: { date: "asc" },
+            });
+            
+        },
 
     },
+    
     Club: {
         isActive: (club: { is_active: boolean }) => club.is_active,
         teams: async (club: { id: number }, args: { includeInactive?: boolean }) => {
@@ -637,6 +661,37 @@ const resolvers = {
 
             return Promise.all(updatePromises);
         });
+        },
+
+        createFine: async (_: any, {club_id, reason, amount, date}: {club_id: number, reason: string, amount: number, date: Date}) => {
+            return prisma.fine.create({
+                data: {
+                    club_id: club_id,
+                    reason: reason,
+                    amount: amount,
+                    date: date,
+                    paid: false,
+                },
+                include: {
+                    club: true
+                }
+            });
+        },
+
+
+        updateFine: async (_: any, {id, club_id, reason, amount, paid}: {id: number, club_id?: number, reason?: string, amount?: number, paid?: boolean}) => {
+            return prisma.fine.update({
+                where: {id: id},
+                data: {
+                    club_id: club_id,
+                    reason: reason,
+                    amount: amount,
+                    paid: paid,
+                },
+                include: {
+                    club: true
+                }
+            });
         },
 
         register: async (_: any, { email, name, password }: { email: string, name: string, password: string}) => {

@@ -16,6 +16,7 @@ export const typeDefs = gql`
         matches(tournamentId: ID): [Match!]!
         match: [Match!]!
         users: [User!]!
+        fines(club_id: ID, includePaid: Boolean): [Fine]
     }
     
     #########################
@@ -85,11 +86,12 @@ export const typeDefs = gql`
     
     type Fine {
         id: Int!
-        club_id Int!
-        reason String!
-        amount Int!
-        date Datetime!
-        paid Boolean!
+        club_id: Int!
+        club: Club!
+        reason: String!
+        amount: Int!
+        date: DateTime!
+        paid: Boolean!
     }
 
 scalar DateTime
@@ -98,13 +100,16 @@ scalar DateTime
         id: Int!
         tournament: Tournament!
         division: Division
-        home_team_id: Team!
+        home_team_id: Int!
+        home_team: Team!
         home_team_score: Int
-        away_team_id: Team!
+        away_team_id: Int!
+        away_team: Team!
         away_team_score: Int
         winner_team: Team
         field:       Int
         match_date: String!
+
     }
 
     
@@ -132,6 +137,9 @@ scalar DateTime
         
         createTournamentDate(tournamentId: Int!, date: String!): TournamentDate!
         deleteTournamentDate(id: Int!): TournamentDate!
+
+        createFine(fine: CreateFineInput!): Fine!
+        updateFine(fine: UpdateFineInput!): Fine!
     }
     
     type LoginResponse {
@@ -205,19 +213,19 @@ scalar DateTime
     }
 
     input CreateFineInput {
-        club_id Int!
-        reason  String!
-        amount  Int!
-        date    DateTime!
-        paid    Boolean!
+        club_id: Int!
+        reason:  String!
+        amount:  Int!
+        date:    DateTime!
+        paid:    Boolean!
     }
     
     input UpdateFineInput {
-        id Int!
-        club_id Int
-        reason String
-        amount Int
-        paid Boolean
+        id:         Int!
+        club_id:    Int
+        reason:     String
+        amount:     Int
+        paid:       Boolean
     }
     
 `;
