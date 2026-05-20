@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@apollo/client/react";
 import { Triangle } from "../components/ui/Triangle";
 import { GetTournamentsDocument } from "@/generated/graphql";
+import { toDateKey } from "../lib/dateUtils";
 
 export default function Page() {
     const { data, loading, error } = useQuery(GetTournamentsDocument);
@@ -11,6 +12,28 @@ export default function Page() {
         future: true,
         past: false,
     });
+
+    const todayKey = toDateKey(new Date());
+
+    const { futureTournaments, pastTournaments } = useMemo(() => {
+        const future: typeof data.tournaments = [];
+        const past: typeof data.tournaments = [];
+
+        for (const tournament of data?.tournaments ?? []) {
+            const hasFutureOrOngoingDate = tournament.dates?.some((date) => {
+                const dateKey = toDateKey(date.date);
+                return Boolean(todayKey && dateKey && dateKey >= todayKey);
+            }) ?? false;
+
+            if (hasFutureOrOngoingDate) {
+                future.push(tournament);
+            } else {
+                past.push(tournament);
+            }
+        }
+
+        return { futureTournaments: future, pastTournaments: past };
+    }, [data?.tournaments, todayKey]);
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans">
@@ -36,11 +59,15 @@ export default function Page() {
                         >
                             {loading && <p>Indlæser...</p>}
                             {error && <p>Fejl ved indlæsning af turneringer: {error.message}</p>}
-                            {data && (
+                            {!loading && !error && (
                                 <ul>
-                                    {data.tournaments.map(t => (
-                                        <li key={t.id}>{t.season} - {t.name}</li>
-                                    ))}
+                                    {futureTournaments.length > 0 ? (
+                                        futureTournaments.map(t => (
+                                            <li key={t.id}>{t.season} - {t.name}</li>
+                                        ))
+                                    ) : (
+                                        <li>Ingen kommende eller aktuelle turneringer.</li>
+                                    )}
                                 </ul>
                             )}
                         </div>
@@ -63,11 +90,13 @@ export default function Page() {
                             className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-zinc-800"
                         >
                             <ul>
-                                <li>DT2025</li>
-                                <li>VT2025</li>
-                                <li>DT2024</li>
-                                <li>VT2024</li>
-                                <li>osv...</li>
+                                {pastTournaments.length > 0 ? (
+                                    pastTournaments.map(t => (
+                                        <li key={t.id}>{t.season} - {t.name}</li>
+                                    ))
+                                ) : (
+                                    <li>Ingen afholdte turneringer.</li>
+                                )}
                             </ul>
                         </div>
                     )}
