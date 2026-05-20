@@ -4,8 +4,39 @@ import Link from 'next/link';
 import { useMemo, useState } from "react";
 import { useQuery } from "@apollo/client/react";
 import { Triangle } from "../components/ui/Triangle";
-import { GetTournamentsDocument } from "@/generated/graphql";
+import { GetTournamentsDocument, type GetTournamentsQuery } from "@/generated/graphql";
 import { toDateKey } from "../lib/dateUtils";
+
+interface TournamentListProps {
+    tournaments: GetTournamentsQuery['tournaments'];
+    loading?: boolean;
+    error?: Error | null;
+    emptyMessage: string;
+}
+
+function TournamentList({ tournaments, loading, error, emptyMessage }: TournamentListProps) {
+    return (
+        <>
+            {loading && <p>Indlæser...</p>}
+            {error && <p>Fejl ved indlæsning af turneringer: {error.message}</p>}
+            {!loading && !error && (
+                <ul>
+                    {tournaments.length > 0 ? (
+                        tournaments.map(t => (
+                            <li key={t.id}>
+                                <Link href={`/turnering/${t.id}`} className="text-blue-600 hover:text-blue-800 hover:underline">
+                                    {t.season} - {t.name}
+                                </Link>
+                            </li>
+                        ))
+                    ) : (
+                        <li>{emptyMessage}</li>
+                    )}
+                </ul>
+            )}
+        </>
+    );
+}
 
 export default function Page() {
     const { data, loading, error } = useQuery(GetTournamentsDocument);
@@ -17,8 +48,8 @@ export default function Page() {
     const todayKey = toDateKey(new Date());
 
     const { futureTournaments, pastTournaments } = useMemo(() => {
-        const future: typeof data.tournaments = [];
-        const past: typeof data.tournaments = [];
+        const future: GetTournamentsQuery['tournaments'] = [];
+        const past: GetTournamentsQuery['tournaments'] = [];
 
         for (const tournament of data?.tournaments ?? []) {
             const hasFutureOrOngoingDate = tournament.dates?.some((date) => {
@@ -34,7 +65,7 @@ export default function Page() {
         }
 
         return { futureTournaments: future, pastTournaments: past };
-    }, [data?.tournaments, todayKey]);
+    }, [data, todayKey]);
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans">
@@ -58,23 +89,12 @@ export default function Page() {
                             id="panel-turneringerFuture"
                             className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-zinc-800"
                         >
-                            {loading && <p>Indlæser...</p>}
-                            {error && <p>Fejl ved indlæsning af turneringer: {error.message}</p>}
-                            {!loading && !error && (
-                                <ul>
-                                    {futureTournaments.length > 0 ? (
-                                        futureTournaments.map(t => (
-                                            <li key={t.id}>
-                                                <Link href={`/turnering/${t.id}`} className="text-blue-600 hover:text-blue-800 hover:underline">
-                                                    {t.season} - {t.name}
-                                                </Link>
-                                            </li>
-                                        ))
-                                    ) : (
-                                        <li>Ingen kommende eller aktuelle turneringer.</li>
-                                    )}
-                                </ul>
-                            )}
+                            <TournamentList
+                                tournaments={futureTournaments}
+                                loading={loading}
+                                error={error}
+                                emptyMessage="Ingen kommende eller aktuelle turneringer."
+                            />
                         </div>
                     )}
 
@@ -94,19 +114,10 @@ export default function Page() {
                             id="panel-turneringerPast"
                             className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-zinc-800"
                         >
-                            <ul>
-                                {pastTournaments.length > 0 ? (
-                                    pastTournaments.map(t => (
-                                                <li key={t.id}>
-                                                    <Link href={`/turnering/${t.id}`} className="text-blue-600 hover:text-blue-800 hover:underline">
-                                                        {t.season} - {t.name}
-                                                    </Link>
-                                                </li>
-                                    ))
-                                ) : (
-                                    <li>Ingen afholdte turneringer.</li>
-                                )}
-                            </ul>
+                            <TournamentList
+                                tournaments={pastTournaments}
+                                emptyMessage="Ingen afholdte turneringer."
+                            />
                         </div>
                     )}
                 </section>
