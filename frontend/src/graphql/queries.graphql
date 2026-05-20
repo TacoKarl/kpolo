@@ -42,8 +42,8 @@ query GetTournaments {
         }
         matches {
             id
-            team1_score
-            team2_score
+            home_team_score
+            away_team_score
             match_date
         }
     }
@@ -262,14 +262,14 @@ query GetTournamentMatches($tournamentId: ID!) {
         matches {
             id
             field
-            team1_score
-            team2_score
+            home_team_score
+            away_team_score
             match_date
-            team1 {
+            home_team {
                 id
                 name
             }
-            team2 {
+            away_team {
                 id
                 name
             }
@@ -290,8 +290,8 @@ mutation GenerateTournamentPlan($tournamentId: Int!, $fields: Int!, $startTime: 
         id
         field
         match_date
-        team1 { id name }
-        team2 { id name }
+        home_team { id name }
+        away_team { id name }
         division { id name }
     }
 }

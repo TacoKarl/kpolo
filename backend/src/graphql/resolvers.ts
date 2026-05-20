@@ -26,10 +26,10 @@ type MatchInput = {
         id:             number | undefined,
         tournament_id:  number,
         division_id:    number | undefined,
-        team1_id:       number,
-        team2_id:       number,
-        team1_score:    number | undefined,
-        team2_score:    number | undefined,
+        home_team_id:   number,
+        away_team_id:   number,
+        home_team_score:number | undefined,
+        away_team_score:number | undefined,
         winner_team_id: number | undefined,
         field:          number,
         match_date:     Date,
@@ -101,8 +101,8 @@ const resolvers = {
                     },
                     matches: {
                         include: {
-                            team1: true,
-                            team2: true,
+                            home_team: true,
+                            away_team: true,
                             winner_team: true,
                             division: true,
                         }
@@ -137,8 +137,8 @@ const resolvers = {
                 where: args.tournamentId ? {tournament_id: Number(args.tournamentId), } : { },
                 include: {
                     tournament: true,
-                    team1: true,
-                    team2: true,
+                    home_team: true,
+                    away_team: true,
                     winner_team: true,
                 },
                 orderBy: {match_date: "asc"}
@@ -149,8 +149,8 @@ const resolvers = {
                 where: { id: Number(args.id) },
                 include: {
                     tournament: true,
-                    team1: true,
-                    team2: true,
+                    home_team: true,
+                    away_team: true,
                     winner_team: true,
                 }
             });
@@ -215,14 +215,14 @@ const resolvers = {
                 where: { id: match.tournament_id }   
             });
         },
-        team1: async (match: { team1_id: number }) => {
+        home_team: async (match: { home_team_id: number }) => {
             return prisma.team.findFirst({
-                where: { id: match.team1_id },
+                where: { id: match.home_team_id },
             });
         },
-        team2: async (match: { team2_id: number }) => {
+        away_team: async (match: { away_team_id: number }) => {
             return prisma.team.findFirst({
-                where: { id: match.team2_id },
+                where: { id: match.away_team_id },
             });
         },
         winner_team: async (match: { winner_team_id?: number }) => {
@@ -566,7 +566,7 @@ const resolvers = {
                     throw new Error("One or more tournaments not found");
                 }
 
-                const allTeamIds = [...new Set(args.matches.flatMap(m => [m.team1_id, m.team2_id]))];
+                const allTeamIds = [...new Set(args.matches.flatMap(m => [m.home_team_id, m.away_team_id]))];
                 const teams = await tx.team.findMany({
                     where: { id: { in: allTeamIds } }
                 });
@@ -591,15 +591,15 @@ const resolvers = {
                     data: args.matches.map(match => ({
                         tournament_id: match.tournament_id,
                         division_id: match.division_id,
-                        team1_id: match.team1_id,
-                        team2_id: match.team2_id,
+                        home_team_id: match.home_team_id,
+                        away_team_id: match.away_team_id,
                         field: match.field,
                         match_date: match.match_date,
                     })),
                     include:{
                         tournament: true,
-                        team1: true,
-                        team2: true,
+                        home_team: true,
+                        away_team: true,
                         winner_team: true,
                     },
                 });
