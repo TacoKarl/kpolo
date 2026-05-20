@@ -27,22 +27,22 @@ function EventGrid({ events, loading, error, emptyMessage }: EventGridProps) {
     };
 
     return (
-        <div className="grid grid-cols-6 gap-2">
+        <div className="grid grid-cols-4 gap-2">
             {loading && <p>Indlæser...</p>}
             {error && <p>Fejl: {error.message}</p>}
             {!loading && !error && events.length > 0 ? (
                 events.map(item => (
                     <div
                         key={item.id}
-                        className="aspect-square rounded-md border border-zinc-200 bg-zinc-50 p-2 text-xs text-zinc-800 shadow-sm flex flex-col justify-center"
+                        className="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-xs text-zinc-800 shadow-sm flex flex-col justify-center min-h-28"
                     >
                         <div className="font-bold text-center mb-1">Kampdag</div>
-                        <div className="text-[10px] text-center text-zinc-700 mb-0.5 truncate">{item.tournamentName}</div>
+                        <div className="text-[10px] text-center text-zinc-700 mb-0.5 line-clamp-2">{item.tournamentName}</div>
                         <div className="text-[10px] text-center text-zinc-600">{formatDateForDisplay(item.date)}</div>
                     </div>
                 ))
             ) : !loading && !error ? (
-                <div className="col-span-6 text-center py-4 text-zinc-500">
+                <div className="col-span-4 text-center py-4 text-zinc-500">
                     {emptyMessage}
                 </div>
             ) : null}
