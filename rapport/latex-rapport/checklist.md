@@ -1,0 +1,34 @@
+### Eksempel på høj grad af opfyldelse
+- [Se Note 1] Der argumenteres for hvordan løsningen differentierer sig fra eksisterende modeller
+- [] Interfaces og protokoller er fyldestgørende formuleret og opdaterede
+- [DONE] Krav er prioriteret ift. problemformuleringen
+- [Se Note 2] Ikke-funktionelle krav er testbare
+- [Vi håber] Krav afspejler detaljeret domæneforståelse
+- [] Accepttest tester både funktionelle og ikke-funktionelle krav
+- [] Accepttesten tester alle interessante scenarier
+- [] Testdata er entydigt formuleret (handlingssekvenser, testdata, forventet resultat, ...)
+- [] Der er defineret korrigerende handlinger for evt. fejlende accepttests
+- [DONE] Den valgte arkitektur understøtter produktets mål
+- [DONE] Der er argumenteret for designvalg (blandt alternativer)
+- [DONE] Der er anvendt en struktureret, målrettet tilgang/metode til fremstillingen af designet
+- [DONE] Design (implementering) afspejler grundig domæneforståelse. Domæneforståelse driver designvalg hvor nødvendigt
+- [DONE] Implementeringen afspejler designet
+- [DONE] Der er anvendt avanceret konfigurationsstyring (f. eks. feature branching)
+- [Se Note 3] Der er løbende gennemført integrationstest, som understøtter produktets udvikling
+- [] Der er løbende gennemført modultest, som understøtter produktets udvikling
+- [DONE] Baggrunden for projektet er beskrevet og relateret til problemformuleringen
+- [Se Note 4] Problemformuleringen er entyding, har en tydelig sammenhæng med krav og understøttes evt. af delmål, samt en plan for at undersøge disse
+- [DONE] Den valgte arbejdsmetode er anvendt konsekvent i projektet
+- [Se Note 5] Resultater er sammenlignet med eksisterende løsninger (fx ydeevne)
+- [Se Note 6] Der redegøres -og perspektiveres for produktets effekt i dets indsatsområde (Hvad er konsekvensen af produktets brug?)
+- [] Diskussionen fremhæver vigtige resultater som behandles i konklusionen
+- [] Konklusionen relaterer projektets resultater til problemformuleringen
+- [DONE] Prioriteringen er begrundet fx. ud fra projektets mål
+- [Vi håber] Rapporten er kort, præcis og med en sammenhængende struktur (referencer, afsnitsrækkefølge)
+- [] Rapporten er ikke rodet
+- [Vi håber] Sikker/relevant brug af fagudrtyk/fagbegreber
+- [] Figurer har passende figurtekster, anvendes hensigtmæssigt og henvises til
+- [Basically DONE] Referencer er anvendt konsekvent og henviser til relevant litteratur, og der forligger en referenceliste
+- [] Diagrammertyper og semantik anvendes korrekt, med tilpas detaljeringrad og sammenhæng mellem diagrammer
+- [DONE] Brugere er løbende inddraget og feedback er anvendt til at justere mål og understøtte produktets udvikling
+- [DONE] Processen er udvalgt og anvendt i relation til typen af projekt (udviklingsprojekt, undersøgelsesprojekt, ...)
