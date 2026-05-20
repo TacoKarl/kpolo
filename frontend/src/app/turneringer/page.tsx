@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo, useState } from "react";
 import { useQuery } from "@apollo/client/react";
 import { Triangle } from "../components/ui/Triangle";
@@ -63,7 +64,11 @@ export default function Page() {
                                 <ul>
                                     {futureTournaments.length > 0 ? (
                                         futureTournaments.map(t => (
-                                            <li key={t.id}>{t.season} - {t.name}</li>
+                                            <li key={t.id}>
+                                                <Link href={`/turnering/${t.id}`} className="text-blue-600 hover:text-blue-800 hover:underline">
+                                                    {t.season} - {t.name}
+                                                </Link>
+                                            </li>
                                         ))
                                     ) : (
                                         <li>Ingen kommende eller aktuelle turneringer.</li>
@@ -92,7 +97,11 @@ export default function Page() {
                             <ul>
                                 {pastTournaments.length > 0 ? (
                                     pastTournaments.map(t => (
-                                        <li key={t.id}>{t.season} - {t.name}</li>
+                                                <li key={t.id}>
+                                                    <Link href={`/turnering/${t.id}`} className="text-blue-600 hover:text-blue-800 hover:underline">
+                                                        {t.season} - {t.name}
+                                                    </Link>
+                                                </li>
                                     ))
                                 ) : (
                                     <li>Ingen afholdte turneringer.</li>
