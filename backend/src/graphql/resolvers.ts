@@ -7,6 +7,7 @@ import { match } from "node:assert";
 import {Context} from "./context.js";
 import {requireClubMembership, requireRole, requireUser} from "../auth/graphqlPermissions.js";
 import {UserRoles} from "../auth/userRoles.js";
+import { generateGrundspil } from "../modules/tournament/tournament.service.js";
 
 const adapter = new PrismaPg({
     connectionString: process.env.DATABASE_URL!,
@@ -586,7 +587,7 @@ const resolvers = {
                 }
 
                 // Create all matches
-                return await tx.match.createManyAndReturn({
+                return tx.match.createManyAndReturn({
                     data: args.matches.map(match => ({
                         tournament_id: match.tournament_id,
                         division_id: match.division_id,
@@ -637,6 +638,64 @@ const resolvers = {
 
             return Promise.all(updatePromises);
         });
+        },
+
+        generateTournamentPlan: async (
+            _: any,
+            { tournamentId, fields, startTime }: { tournamentId: number; fields: number; startTime: number },
+            context: Context
+        ) => {
+            requireRole(context.user, [UserRoles.SystemAdmin, UserRoles.EventManager]);
+
+            const tournament = await prisma.tournament.findUnique({
+                where: { id: tournamentId },
+                include: {
+                    teams: { include: { team: true, division: true } },
+                    dates: { orderBy: { date: "asc" } },
+                },
+            });
+
+            if (!tournament) throw new Error("Tournament not found");
+            if (tournament.dates.length === 0) throw new Error("Tournament has no dates");
+
+            // Delete existing matches before regenerating
+            await prisma.match.deleteMany({ where: { tournament_id: tournamentId } });
+
+            // Group teams by division
+            const divisionMap: Record<number, { divisionId: number; teams: { id: number; name: string }[] }> = {};
+            for (const tt of tournament.teams) {
+                if (!divisionMap[tt.division_id]) {
+                    divisionMap[tt.division_id] = { divisionId: tt.division_id, teams: [] };
+                }
+                divisionMap[tt.division_id].teams.push({ id: tt.team_id, name: tt.team.name });
+            }
+
+            const dates = tournament.dates.map(d => new Date(d.date));
+            const allMatches: { tournament_id: number; division_id: number | null; home_team_id: number; away_team_id: number; field: number; match_date: Date }[] = [];
+
+            for (const { divisionId, teams } of Object.values(divisionMap)) {
+                const generated = generateGrundspil(teams, fields, dates, startTime, tournamentId, divisionId);
+                for (const m of generated) {
+                    allMatches.push({
+                        tournament_id: m.tournament_id,
+                        division_id: m.division_id,
+                        home_team_id: m.home_team_id,
+                        away_team_id: m.away_team_id,
+                        field: m.field,
+                        match_date: new Date(m.match_date),
+                    });
+                }
+            }
+
+            return prisma.match.createManyAndReturn({
+                data: allMatches,
+                include: {
+                    home_team: true,
+                    away_team: true,
+                    winner_team: true,
+                    division: true,
+                },
+            });
         },
 
         register: async (_: any, { email, name, password }: { email: string, name: string, password: string}) => {

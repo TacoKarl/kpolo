@@ -33,6 +33,19 @@ export type ClubTeamsArgs = {
   includeInactive?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+export type CreateMatchInput = {
+  away_team_id: Scalars['Int']['input'];
+  away_team_score?: InputMaybe<Scalars['Int']['input']>;
+  division_id?: InputMaybe<Scalars['Int']['input']>;
+  field: Scalars['Int']['input'];
+  home_team_id: Scalars['Int']['input'];
+  home_team_score?: InputMaybe<Scalars['Int']['input']>;
+  id?: InputMaybe<Scalars['Int']['input']>;
+  match_date: Scalars['DateTime']['input'];
+  tournament_id: Scalars['Int']['input'];
+  winner_team_id?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type CreateTournamentInput = {
   dates?: InputMaybe<Array<TournamentDateInput>>;
   divisions?: InputMaybe<Array<DivisionInput>>;
@@ -61,15 +74,19 @@ export type LoginResponse = {
 
 export type Match = {
   __typename?: 'Match';
+  away_team: Team;
+  away_team_id: Scalars['Int']['output'];
+  away_team_score?: Maybe<Scalars['Int']['output']>;
   division?: Maybe<Division>;
+  field?: Maybe<Scalars['Int']['output']>;
+  home_team: Team;
+  home_team_id: Scalars['Int']['output'];
+  home_team_score?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
   match_date: Scalars['String']['output'];
-  team1: Team;
-  team1_score?: Maybe<Scalars['Int']['output']>;
-  team2: Team;
-  team2_score?: Maybe<Scalars['Int']['output']>;
   tournament: Tournament;
   winner_team?: Maybe<Team>;
+  winner_team_id?: Maybe<Scalars['Int']['output']>;
 };
 
 export type Me = {
@@ -83,15 +100,18 @@ export type Me = {
 export type Mutation = {
   __typename?: 'Mutation';
   createClub: Club;
+  createMatches?: Maybe<Array<Match>>;
   createTeam: Team;
   createTournament: Tournament;
   createTournamentDate: TournamentDate;
   deleteTournamentDate: TournamentDate;
+  generateTournamentPlan?: Maybe<Array<Match>>;
   login: LoginResponse;
   register: RegisterResponse;
   setClubActive: Club;
   setTeamActive: Team;
   updateClub: Club;
+  updateMatches?: Maybe<Array<Match>>;
   updateTeam: Team;
   updateTournament: Tournament;
 };
@@ -101,6 +121,11 @@ export type MutationCreateClubArgs = {
   address: Scalars['String']['input'];
   name: Scalars['String']['input'];
   region: Scalars['String']['input'];
+};
+
+
+export type MutationCreateMatchesArgs = {
+  matches?: InputMaybe<Array<CreateMatchInput>>;
 };
 
 
@@ -124,6 +149,13 @@ export type MutationCreateTournamentDateArgs = {
 
 export type MutationDeleteTournamentDateArgs = {
   id: Scalars['Int']['input'];
+};
+
+
+export type MutationGenerateTournamentPlanArgs = {
+  fields: Scalars['Int']['input'];
+  startTime: Scalars['Int']['input'];
+  tournamentId: Scalars['Int']['input'];
 };
 
 
@@ -160,6 +192,11 @@ export type MutationUpdateClubArgs = {
 };
 
 
+export type MutationUpdateMatchesArgs = {
+  matches?: InputMaybe<Array<UpdateMatchInput>>;
+};
+
+
 export type MutationUpdateTeamArgs = {
   id: Scalars['Int']['input'];
   memberIds?: InputMaybe<Array<Scalars['Int']['input']>>;
@@ -178,6 +215,8 @@ export type Query = {
   clubs: Array<Club>;
   dbTime: Scalars['String']['output'];
   hello: Scalars['String']['output'];
+  match: Array<Match>;
+  matches: Array<Match>;
   me?: Maybe<Me>;
   team?: Maybe<Team>;
   tournament?: Maybe<Tournament>;
@@ -194,6 +233,16 @@ export type QueryClubArgs = {
 
 export type QueryClubsArgs = {
   includeInactive?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
+export type QueryMatchArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryMatchesArgs = {
+  tournamentId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 
@@ -256,6 +305,19 @@ export type TournamentTeam = {
   id: Scalars['Int']['output'];
   team: Team;
   tournament: Tournament;
+};
+
+export type UpdateMatchInput = {
+  away_team_id?: InputMaybe<Scalars['Int']['input']>;
+  away_team_score?: InputMaybe<Scalars['Int']['input']>;
+  division_id: Scalars['Int']['input'];
+  field?: InputMaybe<Scalars['Int']['input']>;
+  home_team_id?: InputMaybe<Scalars['Int']['input']>;
+  home_team_score?: InputMaybe<Scalars['Int']['input']>;
+  id: Scalars['Int']['input'];
+  match_date?: InputMaybe<Scalars['DateTime']['input']>;
+  tournament_id?: InputMaybe<Scalars['Int']['input']>;
+  winner_team_id?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type UpdateTournamentInput = {

@@ -1,6 +1,7 @@
 'use client';
 
 import {useEffect, useState} from "react";
+import {useRouter} from "next/navigation";
 
 import {useApolloClient, useMutation, useQuery} from "@apollo/client/react";
 import {
@@ -27,6 +28,7 @@ type EditableDate = {
 };
 
 export default function AdminTournamentsPage() {
+    const router = useRouter();
     const client = useApolloClient();
     const { data: clubsData, loading: clubsLoading } = useQuery(GetClubsWithTeamsDocument);
     const clubs = clubsData?.clubs ?? [];
@@ -203,6 +205,9 @@ export default function AdminTournamentsPage() {
     return (
         <>
             <div>
+                <Button onClick={() => router.push('/admin/turneringsplan')}>
+                    gå til turneringsgenerator
+                </Button>
                 <h1>Allerede registrerede turneringer</h1>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {tournamentsData?.tournaments.map(t => (
