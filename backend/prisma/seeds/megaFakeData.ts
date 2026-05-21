@@ -1,10 +1,12 @@
+// Denne fil er nærmest 100% AI genereret, for at teste en af kravene i vores Accept Test
+
 import 'dotenv/config';
 import { PrismaClient } from '../../src/generated/prisma';
 import * as bcrypt from "bcrypt"
 import {UserRoles} from '../../src/auth/userRoles'
 
 export async function seedMegaFakeData(prisma: PrismaClient) {
-  console.log('START seeding megaFakaData...');
+  console.log('START seeding megaFakeData...');
 
   // Fetch roles
   const clubMemberRole = await prisma.role.findUniqueOrThrow({
@@ -126,10 +128,22 @@ export async function seedMegaFakeData(prisma: PrismaClient) {
 
   for (let c = 0; c < clubs.length; c++) {
     const club = clubs[c];
-    const teamsPerClub = 2 + Math.floor(Math.random() * 2); // 2-3 teams per club
+    const teamsPerClub = 3 + Math.floor(Math.random() * 2); // 3-4 teams per club
+    const usedTeamNamesInClub = new Set<string>();
 
     for (let t = 0; t < teamsPerClub; t++) {
-      const teamName = `${club.name} ${teamNames[Math.floor(Math.random() * teamNames.length)]}`;
+      let teamName: string;
+      let attempts = 0;
+      
+      // Ensure unique team name within the club
+      do {
+        const baseName = teamNames[Math.floor(Math.random() * teamNames.length)];
+        teamName = `${baseName} ${String.fromCharCode(65 + t)}`; // A, B, C, etc.
+        attempts++;
+      } while (usedTeamNamesInClub.has(teamName) && attempts < 10);
+      
+      usedTeamNamesInClub.add(teamName);
+      
       const team = await prisma.team.create({
         data: {
           name: teamName,
@@ -271,8 +285,8 @@ export async function seedMegaFakeData(prisma: PrismaClient) {
     const tournamentDivisions = divisions.filter(d => d.tournament_id === tournament.id);
 
     // Create matches for round-robin style tournament
-    // Generate ~250 matches per tournament
-    const targetMatches = 250;
+    // Generate ~300 matches per tournament
+    const targetMatches = 300;
     const baseDate = new Date(2024, 0, 1);
 
     for (let m = 0; m < targetMatches; m++) {
