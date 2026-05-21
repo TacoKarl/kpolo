@@ -7,13 +7,20 @@ export type MeUser = {
   roles: string[];
 };
 
-// Create a unified return shape that includes telemetry
-export type GetMeResponse = {
-  user: MeUser | null;
-  logs: string[];
-};
+/**
+ * 1. ORIGINAL FUNCTION (Preserved)
+ * Used by your admin layouts and other components safely without breaking types.
+ */
+export async function getMe(): Promise<MeUser | null> {
+  const { user } = await getMeWithTelemetry();
+  return user;
+}
 
-export async function getMe(): Promise<GetMeResponse> {
+/**
+ * 2. TELEMETRY WRAPPER FOR ROOT LAYOUT
+ * Identical execution logic but captures execution footprints.
+ */
+export async function getMeWithTelemetry(): Promise<{ user: MeUser | null; logs: string[] }> {
   const serverLogs: string[] = [];
   const pushLog = (msg: string) => serverLogs.push(`[${new Date().toLocaleTimeString()}] ${msg}`);
 
@@ -25,36 +32,33 @@ export async function getMe(): Promise<GetMeResponse> {
         .map(cookie => `${cookie.name}=${cookie.value}`)
         .join("; ");
 
-    pushLog(`Backend URL target: ${process.env.NEXT_PUBLIC_BACKEND_URL}`);
-    pushLog(`Cookies picked up by Next.js Server: ${cookieHeader ? "YES (Found tokens)" : "NO COOKIES FOUND"}`);
+    pushLog(`Backend Target Url: ${process.env.NEXT_PUBLIC_BACKEND_URL}`);
+    pushLog(`Cookies found by Next server: ${cookieHeader ? "YES" : "NO COOKIES ATTACHED"}`);
 
     if (cookieHeader) {
-      const hasAccessToken = cookieHeader.includes("kpolo_access_token");
-      const hasRefreshToken = cookieHeader.includes("kpolo_refresh_token");
-      pushLog(`Has Access Token: ${hasAccessToken} | Has Refresh Token: ${hasRefreshToken}`);
+      pushLog(`Has Access Token: ${cookieHeader.includes("kpolo_access_token")} | Has Refresh Token: ${cookieHeader.includes("kpolo_refresh_token")}`);
     }
 
     if (!cookieHeader.includes("kpolo_access_token")) {
-      pushLog("Aborting fetch: kpolo_access_token missing in cookie header string.");
+      pushLog("Aborted: kpolo_access_token is missing from incoming request context.");
       return { user: null, logs: serverLogs };
     }
 
-    // Pass down the log accumulator down to the fetcher functions
     const result = await fetchMe(cookieHeader, pushLog);
-    pushLog(`fetchMe initial attempt outcome: ${JSON.stringify(result)}`);
+    pushLog(`fetchMe initial layout status: ${typeof result === "string" ? result : result ? "USER_FOUND" : "NULL"}`);
 
     if (result === "UNAUTHENTICATED") {
-      pushLog("Token expired. Attempting token rotation via /refresh...");
+      pushLog("Received UNAUTHENTICATED status. Triggering token rotation...");
       const newCookieHeader = await refreshTokens(cookieHeader, pushLog);
 
       if (!newCookieHeader) {
-        pushLog("Refresh failed: /refresh endpoint did not yield cookies.");
+        pushLog("Rotation failure: backend /refresh did not issue updated cookie headers.");
         return { user: null, logs: serverLogs };
       }
 
-      pushLog("Refresh succeeded. Retrying fetchMe with new credentials...");
+      pushLog("Rotation success. Resubmitting fetchMe query with updated tokens...");
       const retryResult = await fetchMe(newCookieHeader, pushLog);
-      pushLog(`fetchMe retry attempt outcome: ${JSON.stringify(retryResult)}`);
+      pushLog(`fetchMe retry layout status: ${retryResult && retryResult !== "UNAUTHENTICATED" ? "USER_FOUND" : "NULL"}`);
 
       return {
         user: retryResult === "UNAUTHENTICATED" ? null : retryResult,
@@ -64,7 +68,7 @@ export async function getMe(): Promise<GetMeResponse> {
 
     return { user: result, logs: serverLogs };
   } catch (err: any) {
-    pushLog(`Top level catastrophic error: ${err?.message || err}`);
+    pushLog(`Catastrophic top-level error during execution: ${err?.message || err}`);
     return { user: null, logs: serverLogs };
   }
 }
@@ -78,26 +82,25 @@ async function fetchMe(cookieHeader: string, pushLog: (msg: string) => void): Pr
       cache: "no-store",
     });
 
-    pushLog(`fetchMe HTTP Status Response: ${res.status} ${res.statusText}`);
+    pushLog(`fetchMe HTTP response: ${res.status} ${res.statusText}`);
 
-    // Let's inspect the content type to check if Cloudflare returned a webpage instead of JSON
     const contentType = res.headers.get("content-type") || "";
-    pushLog(`fetchMe Response Content-Type: ${contentType}`);
+    pushLog(`fetchMe Content-Type header: ${contentType}`);
 
     if (!res.ok) {
-      const errorBody = await res.text().catch(() => "Unreadable raw body");
-      pushLog(`fetchMe bad response body snippet: ${errorBody.slice(0, 150)}`);
+      const errText = await res.text().catch(() => "Unreadable raw body output.");
+      pushLog(`fetchMe Error Snippet (First 150 chars): ${errText.slice(0, 150)}`);
       return null;
     }
 
-    const textResponse = await res.text();
-    pushLog(`Raw text payload received (first 200 chars): ${textResponse.slice(0, 200)}`);
+    const rawText = await res.text();
+    pushLog(`Raw response payload preview: ${rawText.slice(0, 200)}`);
 
     let json;
     try {
-      json = JSON.parse(textResponse);
-    } catch (parseError) {
-      pushLog(`JSON parsing completely failed on response text.`);
+      json = JSON.parse(rawText);
+    } catch {
+      pushLog("Critical Error: Response layout stream is not valid JSON.");
       return null;
     }
 
@@ -108,13 +111,13 @@ async function fetchMe(cookieHeader: string, pushLog: (msg: string) => void): Pr
 
     if (isUnauth) return "UNAUTHENTICATED";
     if (json.errors?.length) {
-      pushLog(`GraphQL Error Array: ${JSON.stringify(json.errors)}`);
+      pushLog(`GraphQL execution errors returned: ${JSON.stringify(json.errors)}`);
       return null;
     }
 
     return json?.data?.me ?? null;
   } catch (error: any) {
-    pushLog(`Network/Runtime error caught in fetchMe: ${error?.message || error}`);
+    pushLog(`Runtime boundary exception inside fetchMe: ${error?.message || error}`);
     return null;
   }
 }
@@ -127,11 +130,11 @@ async function refreshTokens(cookieHeader: string, pushLog: (msg: string) => voi
       cache: "no-store",
     });
 
-    pushLog(`/refresh HTTP Status Response: ${res.status}`);
+    pushLog(`/refresh network status: ${res.status}`);
     if (!res.ok) return null;
 
     const setCookie = res.headers.getSetCookie?.() ?? [];
-    pushLog(`Set-Cookie headers pulled from backend refresh: ${JSON.stringify(setCookie)}`);
+    pushLog(`Set-Cookie array collected from backend: ${JSON.stringify(setCookie)}`);
 
     if (!setCookie.length) return null;
 
@@ -143,7 +146,7 @@ async function refreshTokens(cookieHeader: string, pushLog: (msg: string) => voi
 
     return [existing, newCookies].filter(Boolean).join("; ");
   } catch (error: any) {
-    pushLog(`Error during token rotation fetch: ${error?.message || error}`);
+    pushLog(`Runtime boundary exception inside refreshTokens: ${error?.message || error}`);
     return null;
   }
 }
