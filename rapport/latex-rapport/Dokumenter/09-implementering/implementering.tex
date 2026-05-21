@@ -1,28 +1,185 @@
 \section{Implementering}
 Den praktiske implementering af systemets dele gennemgås. Hvert afsnit afsluttes med en kort beskrivelse af testprocessen for
 den pågældende del.
+\subsection{Authentication}
 
-\subsection{Authorization}
-Websiden anvender HTTP-only cookies som en kerne-mekanisme til at opretholde 
-\textit{stateless token-based session} på tværs af frontend og backend. Cookies er konfigureret i backendens
-tokens.ts modul. 
-Tre separate cookies sættes ved login ved hjælp af Express' response.cookie() metode:
+\subsubsection{Login Handlingen}
+Selve cookie-håndteringen ligger i \texttt{backend/src/auth/tokens.ts}, mens login-flowet ligger i \texttt{backend/src/server.ts}.
+
+Ved \texttt{POST /login} gør serveren følgende:
+\begin{itemize}
+    \item Den finder brugeren ud fra email og password.
+    \item Den opretter et deviceId via \texttt{getOrCreateDeviceID(req, res, isDev)}.
+    \item Den laver et access token og et refresh token med samme payload:
+    \begin{itemize}
+        \item \texttt{userId}
+        \item \texttt{deviceId}
+    \end{itemize}
+    \item Den sætter to cookies i responsen:
+    \begin{itemize}
+        \item \texttt{kpolo\_refresh\_token} via \texttt{setRefreshTokenCookie(res, refreshToken, isDev)}
+        \item \texttt{kpolo\_access\_token} via \texttt{setAccessTokenCookie(res, accessToken, isDev)}
+    \end{itemize}
+    \item Samtidig gemmes refresh token også i databasen via \texttt{updateRefreshTokenDatabase(...)}.
+\end{itemize}
+Det er altså ikke frontend, der manuelt gemmer tokenet; browseren modtager \texttt{Set-Cookie}-headers fra backend og lagrer dem automatisk.
+
+\subsubsection{Cookie konfiguration}
+I \texttt{backend/src/auth/tokens.ts} sættes cookie-attributterne direkte i \texttt{res.cookie}:
+\begin{itemize}
+    \item \texttt{httpOnly: true}
+    \item \texttt{secure: !isDev}
+    \item \texttt{sameSite: "lax"}
+    \item \texttt{path: "/"}
+    \item \texttt{domain: !isDev ? frontendDomain : undefined}
+    \item \texttt{maxAge}: sættes i environment variabler og er forskelligt for hver cookie.
+    \begin{itemize}
+        \item Access token får en kort levetid, sat til 15 minutter.
+        \item Refresh token får en længere levetid, sat til 7 dage.
+        \item Device ID får en meget lang levetid, sat til 1 år.
+    \end{itemize}
+\end{itemize}
+
+De tre cookies har disse forskellige formål:
+\begin{itemize}
+    \item \texttt{kpolo\_access\_token}: bruges til almindelige authenticated requests.
+    \item \texttt{kpolo\_refresh\_token}: bruges til at få ny access token når den udløber.
+    \item \texttt{kpolo\_device\_id}: bruges til at identificere browser/enhed.
+\end{itemize}
+Cookies bliver gemt af browseren automatisk, fordi backend sender dem som \texttt{Set-Cookie} i HTTP-svaret.
+Cookies bliver givet både frontendens og backendens domain, så de benyttes af browseren i både frontend og backend requests.
+
+\subsubsection{Cookie parsing}
+Fordi cookies benyttes af både backend og frontend, sker parsing af cookies begge steder.
+
+\paragraph{Backend cookie parsing}
+I \texttt{backend/src/server.ts} er \texttt{cookieParser()} registreret med Express' \texttt{app.use(cookieParser());}
+I \texttt{backend/src/auth/tokens.ts} findes er tre funktioner, som returnerer cookies:
+\begin{itemize}
+    \item \texttt{getAccessTokenFromRequest(req)}
+    \item \texttt{getRefreshTokenFromRequest(req)}
+    \item \texttt{getOrCreateDeviceID(req, res, isDev)}
+\end{itemize}
+De læser direkte fra \texttt{req.cookies}.
+I \texttt{getOrCreateDeviceID} kan der også oprettes en ny cookie ved at bruge \texttt{uuid()}, hvis den ikke findes.
+\paragraph{Frontend cookie parsing}
+I \texttt{frontend/src/app/lib/getMe.ts} bruges \texttt{cookies} fra \texttt{next/headers} så man kan \texttt{await cookies();}
+på serversiden.
+Her bygges en manuel \texttt{Cookie} header ud fra alle cookies i requesten:
+\begin{verbatim}
+const cookieHeader = cookieStore
+  .getAll()
+  .map(cookie => `${cookie.name}=${cookie.value}`)
+  .join("; ");
+\end{verbatim}
+
+\paragraph{Frontend middleware}
+I \texttt{frontend/src/proxy.ts} læses cookies via \texttt{NextRequest}:
+\begin{verbatim}
+const accessToken = cookies.get('kpolo_access_token')?.value;
+const refreshToken = cookies.get('kpolo_refresh_token')?.value;
+const deviceId = cookies.get('kpolo_device_id')?.value;
+\end{verbatim}
+Så både backend og frontend kan parse cookies, men på forskellige måder afhængigt af, hvor i request-lifecycle de befinder sig.
+
+\subsubsection{Silent refresh flow}
+I \texttt{frontend/src/proxy.ts} er der en middleware, som beskytter routes som:
+\begin{itemize}
+    \item \texttt{/logout}
+    \item \texttt{/admin/:path*}
+    \item \texttt{/profile/:path*}
+\end{itemize}
+
+Flowet er:
 \begin{enumerate}
-    \item kpolo\_access\_token (TTL 15 minutter, HTTP-only, sameSite: `lax', secure: true, path: '/')
-    \item kpolo\_refresh\_token (TTL 7 dage, HTTP-only, sameSite: `lax', secure: true, path: '/')
-    \item kpolo\_device\_id (TTL 1 år, HTTP-only, sameSite: `lax', secure: true, path: '/')
+    \item Hvis der ikke er nogen access token og heller ingen refresh token:
+    \begin{itemize}
+        \item Redirect til \texttt{/login}.
+    \end{itemize}
+    \item Hvis access token mangler, men refresh token findes:
+    \begin{itemize}
+        \item Send \texttt{POST /refresh} til backend.
+        \item Backend validerer refresh token.
+        \item Hvis det lykkes, sender backend nye cookies tilbage.
+        \item Middleware videresender \texttt{set-cookie} headers til browseren.
+    \end{itemize}
 \end{enumerate}
-Når login lykkes sætter serveren derfor ikke tokens i body'en, men som Set-Cookie-headers, der automatisk håndteres af browseren.
-TTL og secure er bestemt af miljøvariabler, så de kan justeres per miljø for udvikling og produktion.
+Det betyder, at sessionen kan fornyes, uden at brugeren selv mærker det.
 
-På backenden registreres cookieParser() middleware i Express-appen under initialisering for at parse indkommende cookies til request objektet.
-Denne middleware henter automatisk cookies fra det parsede objekt med funktionerne getAccessTokenFromRequest() og getRefreshTokenFromRequest().
-Ud over det, er der en getOrCreateDeviceId() funktion, der sikrer, at en unik device ID er tilgængelig for hver klient.
-Samtidig med det, gemmes refresh tokens i databasen som hash, så de kan slettes ved logout eller misbrug, uden at det kompromitterer tokenets hemmeligholdelse.
+\subsubsection{6) Refresh på backend}
+I \texttt{backend/src/server.ts} ved \texttt{POST /refresh} sker dette:
+\begin{itemize}
+    \item Refresh token læses med \texttt{getRefreshTokenFromRequest(req)}.
+    \item Token verificeres med \texttt{verifyRefreshToken(refreshToken)}.
+    \item \texttt{deviceId} hentes eller oprettes med \texttt{getOrCreateDeviceID(req, res, isDev)}.
+    \item Der slås op i databasen i tabellen for refresh tokens.
+    \item Token-hash sammenlignes med den gemte hash.
+    \item Hvis alt matcher:
+    \begin{itemize}
+        \item Refresh token sættes igen som cookie.
+        \item Access token sættes som ny cookie.
+        \item Refresh token opdateres i databasen.
+    \end{itemize}
+    \item Hvis noget fejler, ryddes refresh cookie, og der returneres en fejl.
+\end{itemize}
+Det er altså en kombination af JWT-verifikation, cookie-læsning, database-check af hashed refresh token samt ny cookie-udstedelse.
 
-Frontenden bruger next.js indbyggede middleware-funktionalitet i app/proxy.ts til beskyttelse af paths og til at lave serverside-fetching af data, der kræver autentificering.
-i proxy.ts er en middleware-funktion, der læser cookies fra request-objektet og
+\subsection{Hvordan me-endpointet bruger cookie'en til at hente brugeridentitet}
 
-Under logout bliver både \textit{access token} og \textit{refresh token} eksplicit ryddet med res.clearCookie på
-på tværs af alle alle domæne/sti kombinationer, hvor de kunne være sat, for at sikre en fuldstændig rydning af sessionen.
+\subsubsection{7) me er en GraphQL query, ikke et REST /me endpoint}
+I koden er identitetsopslaget ikke et REST endpoint som \texttt{/me}, men en GraphQL query:
+\begin{verbatim}
+me: Me
+\end{verbatim}
+i \texttt{backend/src/graphql/typeDefs.ts}. Den bliver resolveret i \texttt{backend/src/graphql/resolvers.ts}:
+\begin{verbatim}
+me: async (_: unknown, _args: unknown, context: Context) => { ... }
+\end{verbatim}
 
+\subsubsection{8) Hvordan me får identiteten}
+I backend-serveren bygges GraphQL context i \texttt{backend/src/server.ts}:
+\begin{verbatim}
+const token = getAccessTokenFromRequest(req);
+\end{verbatim}
+Hvis token findes:
+\begin{itemize}
+    \item Det verificeres med \texttt{verifyAccessToken(token)}.
+    \item \texttt{userId} læses fra token payload.
+    \item Brugeren hentes i databasen med \texttt{prisma.user.findUnique(...)}.
+    \item Roller transformeres til \texttt{UserRoles[]}.
+    \item Brugerobjektet lægges i \texttt{context.user}.
+\end{itemize}
+Så \texttt{me}-resolveren bruger ikke cookien direkte. Den bruger \texttt{context.user}, som allerede er afledt af det access token, som igen kom fra cookien.
+
+\subsubsection{9) me-resolverens arbejde}
+I \texttt{backend/src/graphql/resolvers.ts} gør \texttt{me} dette:
+\begin{verbatim}
+requireUser(context.user);
+\end{verbatim}
+Derefter slår den brugeren op igen i databasen:
+\begin{verbatim}
+const user = await prisma.user.findUnique({
+  where: { id: Number(context.user!.id) },
+  include: {
+    club: true,
+    roles: true,
+  }
+});
+\end{verbatim}
+Og returnerer: navn, \texttt{clubId}, \texttt{clubName} og roller.
+
+Det betyder, at \texttt{me} bruges som en identitets-query: den fortæller frontend, hvem den aktuelle bruger er, baseret på den cookie-bårne access token.
+
+\subsection{Hvordan frontend bruger me}
+I \texttt{frontend/src/app/lib/getMe.ts} sker følgende:
+\begin{enumerate}
+    \item Cookies læses fra den aktuelle server-side request.
+    \item Der bygges en \texttt{Cookie} header manuelt.
+    \item Der kaldes GraphQL med:
+\begin{verbatim}
+query GetMe { me { name clubId clubName roles } }
+\end{verbatim}
+    \item Hvis backend svarer med \texttt{UNAUTHENTICATED}, forsøger frontend at refresh'e tokens via \texttt{/refresh}.
+    \item Derefter prøves \texttt{me} igen.
+\end{enumerate}
+Så frontend bruger \texttt{me} til at finde brugerens identitet og rolleinformation uden selv at have token-værdierne liggende i JavaScript-state.
