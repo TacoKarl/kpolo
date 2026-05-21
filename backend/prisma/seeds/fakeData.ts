@@ -5,6 +5,11 @@ import {UserRoles} from '../../src/auth/userRoles'
 
 
 
+async function generateHash() {
+  const saltRounds = Math.floor(Math.random() * 10) + 1; // Random salt rounds between 1 and 10
+  return await bcrypt.hash('password123', saltRounds);
+}
+
 export async function seedFakeData(prisma: PrismaClient) {
   console.log('START seeding fakeData...');
 
@@ -36,13 +41,13 @@ export async function seedFakeData(prisma: PrismaClient) {
   console.log('Fetched roles');
 
   // Hash password for all users
-  const passwordHash = await bcrypt.hash('password123', 10);
+  //const passwordHash = await bcrypt.hash('password123', 10);
 
   const admin1 = await prisma.user.create({
     data: {
       name: 'Armin The Admin',
       email: 'armin@kpolo.dk',
-      password_hash: passwordHash,
+      password_hash: await generateHash(),
       roles: { connect: [ {id: systemAdminRole.id}] },
     },
   });
@@ -51,7 +56,7 @@ export async function seedFakeData(prisma: PrismaClient) {
     data: {
       name: 'Even T. Man',
       email: 'even@kpolo.dk',
-      password_hash: passwordHash,
+      password_hash: await generateHash(),
       roles: { connect: [ {id: eventManagerRole.id}] },
     },
   });
@@ -61,7 +66,7 @@ export async function seedFakeData(prisma: PrismaClient) {
     data: {
       name: 'Lars Nielsen',
       email: 'lars@kpolo.dk',
-      password_hash: passwordHash,
+      password_hash: await generateHash(),
       roles: { connect: [{ id: clubAdminRole.id }, { id: clubMemberRole.id }, {id: systemAdminRole.id}] },
     },
   });
@@ -70,7 +75,7 @@ export async function seedFakeData(prisma: PrismaClient) {
     data: {
       name: 'Anna Hansen',
       email: 'anna@kpolo.dk',
-      password_hash: passwordHash,
+      password_hash: await generateHash(),
       roles: { connect: { id: clubMemberRole.id } },
     },
   });
@@ -79,7 +84,7 @@ export async function seedFakeData(prisma: PrismaClient) {
     data: {
       name: 'Mikkel Andersen',
       email: 'mikkel@kpolo.dk',
-      password_hash: passwordHash,
+      password_hash: await generateHash(),
       roles: { connect: { id: clubMemberRole.id } },
     },
   });
@@ -88,7 +93,7 @@ export async function seedFakeData(prisma: PrismaClient) {
     data: {
       name: 'Sofia Jensen',
       email: 'sofia@kpolo.dk',
-      password_hash: passwordHash,
+      password_hash: await generateHash(),
       roles: { connect: { id: clubMemberRole.id } },
     },
   });
@@ -98,7 +103,7 @@ export async function seedFakeData(prisma: PrismaClient) {
     data: {
       name: 'Peter Larsen',
       email: 'peter@aarhuskayak.dk',
-      password_hash: passwordHash,
+      password_hash: await generateHash(),
       roles: { connect: [{ id: clubAdminRole.id }, { id: clubMemberRole.id }] },
     },
   });
@@ -107,7 +112,7 @@ export async function seedFakeData(prisma: PrismaClient) {
     data: {
       name: 'Emma Christensen',
       email: 'emma@aarhuskayak.dk',
-      password_hash: passwordHash,
+      password_hash: await generateHash(),
       roles: { connect: { id: clubMemberRole.id } },
     },
   });
@@ -116,7 +121,7 @@ export async function seedFakeData(prisma: PrismaClient) {
     data: {
       name: 'Oliver Pedersen',
       email: 'oliver@aarhuskayak.dk',
-      password_hash: passwordHash,
+      password_hash: await generateHash(),
       roles: { connect: { id: clubMemberRole.id } },
     },
   });
