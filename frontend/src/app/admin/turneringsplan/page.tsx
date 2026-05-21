@@ -66,7 +66,7 @@ export default function Page() {
             return [{
                 id: String(m.id),
                 slot,
-                match: `${m.team1.name} vs ${m.team2.name}`,
+                match: `${m.home_team.name} vs ${m.away_team.name}`,
                 division: m.division?.name ?? '',
                 court,
                 status: 'Planlagt',

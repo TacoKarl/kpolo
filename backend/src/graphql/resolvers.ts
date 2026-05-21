@@ -679,8 +679,8 @@ const resolvers = {
                     allMatches.push({
                         tournament_id: m.tournament_id,
                         division_id: m.division_id,
-                        home_team_id: m.team1_id,
-                        away_team_id: m.team2_id,
+                        home_team_id: m.home_team_id,
+                        away_team_id: m.away_team_id,
                         field: m.field,
                         match_date: new Date(m.match_date),
                     });
