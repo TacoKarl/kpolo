@@ -1,1 +1,28 @@
 \section{Implementering}
+Den praktiske implementering af systemets dele gennemgås. Hvert afsnit afsluttes med en kort beskrivelse af testprocessen for
+den pågældende del.
+
+\subsection{Authorization}
+Websiden anvender HTTP-only cookies som en kerne-mekanisme til at opretholde 
+\textit{stateless token-based session} på tværs af frontend og backend. Cookies er konfigureret i backendens
+tokens.ts modul. 
+Tre separate cookies sættes ved login ved hjælp af Express' response.cookie() metode:
+\begin{enumerate}
+    \item kpolo\_access\_token (TTL 15 minutter, HTTP-only, sameSite: `lax', secure: true, path: '/')
+    \item kpolo\_refresh\_token (TTL 7 dage, HTTP-only, sameSite: `lax', secure: true, path: '/')
+    \item kpolo\_device\_id (TTL 1 år, HTTP-only, sameSite: `lax', secure: true, path: '/')
+\end{enumerate}
+Når login lykkes sætter serveren derfor ikke tokens i body'en, men som Set-Cookie-headers, der automatisk håndteres af browseren.
+TTL og secure er bestemt af miljøvariabler, så de kan justeres per miljø for udvikling og produktion.
+
+På backenden registreres cookieParser() middleware i Express-appen under initialisering for at parse indkommende cookies til request objektet.
+Denne middleware henter automatisk cookies fra det parsede objekt med funktionerne getAccessTokenFromRequest() og getRefreshTokenFromRequest().
+Ud over det, er der en getOrCreateDeviceId() funktion, der sikrer, at en unik device ID er tilgængelig for hver klient.
+Samtidig med det, gemmes refresh tokens i databasen som hash, så de kan slettes ved logout eller misbrug, uden at det kompromitterer tokenets hemmeligholdelse.
+
+Frontenden bruger next.js indbyggede middleware-funktionalitet i app/proxy.ts til beskyttelse af paths og til at lave serverside-fetching af data, der kræver autentificering.
+i proxy.ts er en middleware-funktion, der læser cookies fra request-objektet og
+
+Under logout bliver både \textit{access token} og \textit{refresh token} eksplicit ryddet med res.clearCookie på
+på tværs af alle alle domæne/sti kombinationer, hvor de kunne være sat, for at sikre en fuldstændig rydning af sessionen.
+
