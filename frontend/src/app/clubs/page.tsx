@@ -1,6 +1,7 @@
 'use client';
 import { useClubs } from "@/app/components/hooks/useClubs";
 import Link from "next/link";
+import "./clubs.css";
 
 export default function ClubsPage() {
     const { loading, error, regions } = useClubs();
@@ -9,7 +10,7 @@ export default function ClubsPage() {
     if (error) return <p>Error: {error.message}</p>;
 
     return (
-        <div className="flex justify-between">
+        <div className="regions-grid">
             <RegionList title="Jylland" clubs={regions.Jylland} />
             <RegionList title="Fyn" clubs={regions.Fyn} />
             <RegionList title="Sjælland" clubs={regions.Sjælland} />
@@ -28,12 +29,26 @@ type RegionListProps = {
 
 function RegionList({ title, clubs }: RegionListProps) {
     return (
-        <div>
-            <h2>{title}</h2>
-            <ul>
-                {clubs.map(c => (
-                    <li key={c.id}>
-                        <Link href={`/clubs/${c.id}`}>{c.name}</Link> – {c.address}
+        <div className="regions-card">
+            <div className={`region-header`}>
+                <h2>{title}</h2>
+            </div>
+
+            <ul className="club-list">
+                {clubs.map((club) => (
+                    <li key={club.id}>
+                        <Link
+                            href={`/clubs/${club.id}`}
+                            className="club-card"
+                        >
+                            <div className="club-name">
+                                {club.name}
+                            </div>
+
+                            <div className="club-address">
+                                {club.address}
+                            </div>
+                        </Link>
                     </li>
                 ))}
             </ul>

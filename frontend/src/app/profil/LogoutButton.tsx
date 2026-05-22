@@ -24,7 +24,7 @@ export default function LogoutButton() {
     };
 
     return (
-        <Button onClick={handleLogout} disabled={isLoading}>
+        <Button onClick={handleLogout} disabled={isLoading} variant={'danger'}>
             {isLoading ? "Logger ud..." : "Log ud"}
         </Button>
     );

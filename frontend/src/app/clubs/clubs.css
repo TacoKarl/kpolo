@@ -1,0 +1,181 @@
+.regions-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    padding: 24px;
+}
+
+.region-card {
+    background: white;
+    border-radius: 2px;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e5e5e5;
+}
+
+.region-header {
+    padding: 16px;
+    color: black;
+}
+
+.region-header h2 {
+    margin: 0;
+    font-size: 22px;
+}
+
+.jylland {
+    background: #2e7d32;
+}
+
+.fyn {
+    background: #1565c0;
+}
+
+.sjaelland {
+    background: #c62828;
+}
+
+.club-list {
+    list-style: none;
+    margin: 0;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.club-card {
+    display: block;
+    padding: 16px;
+    border-radius: 2px;
+    background: #f8f8f8;
+    text-decoration: none;
+    color: inherit;
+    transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease,
+            background 0.2s ease;
+}
+
+.club-card:hover {
+    background: white;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.club-name {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.club-address {
+    font-size: 14px;
+    color: #666;
+}
+
+.club-page {
+    padding: 40px 20px;
+    display: flex;
+    justify-content: center;
+    background: #f4f6f8;
+    min-height: 100vh;
+}
+
+.club-card {
+    width: 100%;
+    max-width: 800px;
+    background: white;
+    border-radius: 2px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.club-header {
+    background: white;
+    color: black;
+    padding: 32px;
+}
+
+.club-header h1 {
+    margin: 0;
+    font-size: 36px;
+}
+
+.club-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    padding: 24px;
+}
+
+.info-box {
+    background: #f8f9fb;
+    padding: 18px;
+    border-radius: 2px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    border: 1px solid #e6e6e6;
+}
+
+.label {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #666;
+}
+
+.teams-section {
+    padding: 24px;
+}
+
+.teams-section h2 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    font-size: 26px;
+}
+
+.teams-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 12px;
+}
+
+.team-card {
+    padding: 16px;
+    background: #f8f9fb;
+    border-radius: 2px;
+    border: 1px solid #e4e4e4;
+    transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
+}
+
+.team-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 14px rgba(0, 0, 0, 0.08);
+}
+
+.empty-text {
+    color: #777;
+}
+
+.status {
+    padding: 40px;
+    text-align: center;
+    font-size: 18px;
+}
+
+.error {
+    color: #c62828;
+}
+
+/* Mobile */
+@media (max-width: 900px) {
+    .regions-grid {
+        grid-template-columns: 1fr;
+    }
+}
