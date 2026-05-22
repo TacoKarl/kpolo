@@ -35,16 +35,29 @@ export default function Navbar({user,} : {user: MeUser | null}) {
               <li><Link href="/begivenheder">Begivenheder</Link></li>
               <li><Link href="/clubs">Klubber</Link></li>
 
-              {canSeeAdmin && (
-                  <li>
-                      <Link href="/admin">Admin</Link>
-                  </li>
-              )}
+
           </ul>
       </div>
           {/* Right side */}
           <div className="right-section">
 
+              {canSeeAdmin && (
+                  <ul className= "nav-links desktop-menu">
+                      <li>
+                          <Link href="/admin">Admin</Link>
+                      </li>
+                  </ul>
+              )}
+              {/* Burger */}
+              <button
+                  className="burger"
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  aria-label="Menu"
+              >
+                  <span></span>
+                  <span></span>
+                  <span></span>
+              </button>
               {/* User / Login */}
               {user ? (
                   <Link href="/profil" className="avatar">
@@ -56,16 +69,6 @@ export default function Navbar({user,} : {user: MeUser | null}) {
                   </Button>
               )}
 
-              {/* Burger */}
-              <button
-                  className="burger"
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  aria-label="Menu"
-              >
-                  <span></span>
-                  <span></span>
-                  <span></span>
-              </button>
           </div>
       </div>
         {/* Mobile menu */}
