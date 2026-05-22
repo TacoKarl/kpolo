@@ -180,11 +180,20 @@ const resolvers = {
             }
 
             */
+            const where: any = {};
+
+            if (args.club_id) {
+                where.club_id = args.club_id;
+            }
+
+            // includePaid: false means show only unpaid fines
+            // includePaid: true means show all fines (no filter)
+            if (args.includePaid !== true) {
+                where.paid = false;
+            }
+
             return prisma.fine.findMany({
-                where: {
-                    club_id: args.club_id,
-                    paid: args.includePaid,
-                },
+                where,
                 include: { club: true },
                 orderBy: { date: "asc" },
             });
@@ -722,14 +731,17 @@ const resolvers = {
             });
         },
 
-        createFine: async (_: any, {club_id, reason, amount, date}: {club_id: number, reason: string, amount: number, date: Date}) => {
+        createFine: async (_: any, args: any) => {
+            const { fine } = args;
+            if (!fine) throw new Error("Invalid arguments");
+
             return prisma.fine.create({
                 data: {
-                    club_id: club_id,
-                    reason: reason,
-                    amount: amount,
-                    date: date,
-                    paid: false,
+                    club_id: fine.club_id,
+                    reason: fine.reason,
+                    amount: fine.amount,
+                    date: new Date(fine.date),
+                    paid: fine.paid ?? false,
                 },
                 include: {
                     club: true
@@ -738,15 +750,20 @@ const resolvers = {
         },
 
 
-        updateFine: async (_: any, {id, club_id, reason, amount, paid}: {id: number, club_id?: number, reason?: string, amount?: number, paid?: boolean}) => {
+        updateFine: async (_: any, args: any) => {
+            const { fine } = args;
+            if (!fine || !fine.id) throw new Error("Invalid arguments");
+
+            const updateData: any = {};
+            if (fine.club_id !== undefined) updateData.club_id = fine.club_id;
+            if (fine.reason !== undefined) updateData.reason = fine.reason;
+            if (fine.amount !== undefined) updateData.amount = fine.amount;
+            if (fine.paid !== undefined) updateData.paid = fine.paid;
+            if (fine.date !== undefined) updateData.date = new Date(fine.date);
+
             return prisma.fine.update({
-                where: {id: id},
-                data: {
-                    club_id: club_id,
-                    reason: reason,
-                    amount: amount,
-                    paid: paid,
-                },
+                where: { id: fine.id },
+                data: updateData,
                 include: {
                     club: true
                 }

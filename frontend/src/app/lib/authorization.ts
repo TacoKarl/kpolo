@@ -4,6 +4,7 @@ import { UserRoles } from "@/app/lib/UserRoles";
 export const TOURNAMENT_ADMIN_ROLES = [UserRoles.SystemAdmin, UserRoles.EventManager] as const;
 export const CLUB_ADMIN_ROLES = [UserRoles.SystemAdmin, UserRoles.ClubAdmin] as const;
 export const TEAM_ADMIN_ROLES = [UserRoles.SystemAdmin, UserRoles.ClubAdmin] as const;
+export const FINE_ADMIN_ROLES = [UserRoles.SystemAdmin, UserRoles.EventManager] as const;
 
 export const ADMIN_PAGE_ROLES = [
     UserRoles.SystemAdmin,
@@ -44,6 +45,12 @@ export const ADMIN_NAVIGATION_ITEMS = [
         description: "Generér og redigér turneringsplaner for valgte turneringer.",
         roles: TOURNAMENT_ADMIN_ROLES,
     },
+    {
+        href: "/admin/boeder",
+        title: "Bøder",
+        description: "Udstedelse og afvikling af bøder",
+        roles: FINE_ADMIN_ROLES,
+    }
 ] as const satisfies readonly AdminNavigationItem[];
 
 export function hasAnyRole(userRoles: readonly string[] | null | undefined, allowedRoles: readonly string[]): boolean {
@@ -60,6 +67,10 @@ export function canAccessClubAdmin(user: Pick<Me, "roles"> | null): boolean {
 
 export function canAccessTeamAdmin(user: Pick<Me, "roles"> | null): boolean {
     return !!user && hasAnyRole(user.roles, TEAM_ADMIN_ROLES);
+}
+
+export function canAccessFineAdmin(user: Pick<Me, "roles"> | null): boolean {
+    return !!user && hasAnyRole(user.roles, FINE_ADMIN_ROLES);
 }
 
 export function canAccessAdmin(user: Pick<Me, "roles"> | null): boolean {
