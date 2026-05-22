@@ -25,7 +25,8 @@ export default async function Navbar({user,} : {user: MeUser | null}) {
         <ul className="flex gap-6">
           <li><Link href="/" className="text-white">Hjem</Link></li>
           <li><Link href="/omkajakpolo" className="text-white">Om Kajakpolo</Link></li>
-          <li><Link href="/turneringsliste" className="text-white">Turneringsliste</Link></li>
+          <li><Link href="/turneringer" className="text-white">Turneringer</Link></li>
+          <li><Link href="/begivenheder" className="text-white">Begivenheder</Link></li>
             <li><Link href="/clubs" className="text-white">Klubber</Link></li>
         </ul>
       </div>

@@ -10,6 +10,7 @@ export type PlanRow = {
     division: string;
     court: string;
     status: string;
+    dateId?: string;
 };
 
 export type SlotCell = {

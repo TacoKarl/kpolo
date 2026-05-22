@@ -1,6 +1,7 @@
 import { PrismaClient } from '../src/generated/prisma';
 import { seedRoles } from './seeds/roles';
 import { seedFakeData } from './seeds/fakeData';
+import { seedMegaFakeData } from './seeds/megaFakeData';
 import { deleteData } from "./seeds/deleteData";
 
 
@@ -17,6 +18,7 @@ async function main() {
   await deleteData(prisma);
   await seedRoles(prisma);
   await seedFakeData(prisma);
+  await seedMegaFakeData(prisma);
   // Add future seed functions here
 }
 

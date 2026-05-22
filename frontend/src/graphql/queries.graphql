@@ -248,16 +248,28 @@ query GetTournamentMatches($tournamentId: ID!) {
             date
         }
         season
-        matches {
+        teams {
             id
-            home_team_score
-            away_team_score
-            match_date
-            home_team_id {
+            team {
                 id
                 name
             }
-            away_team_id {
+            division {
+                id
+                name
+            }
+        }
+        matches {
+            id
+            field
+            home_team_score
+            away_team_score
+            match_date
+            home_team {
+                id
+                name
+            }
+            away_team {
                 id
                 name
             }
@@ -270,6 +282,17 @@ query GetTournamentMatches($tournamentId: ID!) {
                 name
             }
         }
+    }
+}
+
+mutation GenerateTournamentPlan($tournamentId: Int!, $fields: Int!, $startTime: Int!) {
+    generateTournamentPlan(tournamentId: $tournamentId, fields: $fields, startTime: $startTime) {
+        id
+        field
+        match_date
+        home_team { id name }
+        away_team { id name }
+        division { id name }
     }
 }
 

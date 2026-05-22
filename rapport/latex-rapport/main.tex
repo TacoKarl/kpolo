@@ -1,10 +1,11 @@
-\documentclass{article}
+\documentclass[12pt,a4paper]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[backend=biber,style=authoryear]{biblatex}
 \usepackage[table]{xcolor}
 \usepackage{tikz}
 \usetikzlibrary{positioning,arrows.meta,shapes.multipart}
 \usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
 \usepackage[a4paper, left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm]{geometry}
 
 \addbibresource{bibliography/bibliography.bib}
@@ -20,13 +21,26 @@
 
 \begin{document}
 
+    \pagenumbering{gobble}
     \maketitle
 
     \input{Dokumenter/00-abstract/forside}
+
+    \cleardoublepage
+    \pagenumbering{Roman}
+    \phantomsection
+    \section*{Abstract}
+    \addcontentsline{toc}{section}{Abstract}
     \input{Dokumenter/00-abstract/abstract}
 
+    \cleardoublepage
+    \pdfbookmark[1]{Indholdsfortegnelse}{toc}
     \tableofcontents
     \newpage
+
+    \cleardoublepage
+    \pagenumbering{arabic}
+    \setcounter{page}{1}
 
     \input{Dokumenter/01-indledning/Indledning}
     \input{Dokumenter/02-krav/kravspecifikation}
@@ -46,11 +60,19 @@
 
     \newpage
 
+    \cleardoublepage
+    \appendix
+    \phantomsection
+    \section*{Bilag}
+    \addcontentsline{toc}{section}{Bilag}
     \input{Dokumenter/bilag/bilagsliste}
 
     \newpage
 
-    \printbibliography
+    \cleardoublepage
+    \phantomsection
+    \addcontentsline{toc}{section}{Litteraturliste}
+    \printbibliography[title={Litteraturliste}]
 
 
 

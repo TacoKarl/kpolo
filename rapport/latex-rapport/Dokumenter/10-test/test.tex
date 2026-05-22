@@ -1,1 +1,42 @@
 \section{Test og kvalitetssikring}
+
+Der har gennem hele projektforløbet været stort fokus på en agil arbejdsproces med henblik på hurtigt at kunne levere en Minimal Viable Product (MVP), som kunne anvendes i det danske kajakpolo-miljø.
+Som følge heraf har der ikke været et stort fokus på etablering af omfattende automatiserede tests eller CI/CD-pipelines til automatisk eksekvering af test ved hver kodeændring.
+I stedet er kvalitetssikringen primært blevet udført gennem manuelle tests i forbindelse med både implementering af nye funktioner og ændringer i eksisterende kode.
+Dette vurderes acceptabelt i projektets nuværende fase, hvor systemets kompleksitet fortsat er relativt begrænset.
+Der har dog været krav om, at alle kodeændringer blev reviewet af et andet gruppemedlem, med henblik på at sikre kvalitet og reducere risikoen for fejl.
+
+Denne tilgang har gjort det muligt at accelerere i udviklingsprocessen, implementere nye features hurtigere, samt håndtere fejlrettelser mere effektivt.
+Samtidig har der været et kontinuerligt fokus på at sikre en høj kvalitet i produktet, selv uden fuld automatisering af testprocessen.
+
+Der er dog implementeret en automatiseret test af algoritmen, som genererer turneringsplaner.
+Dette skyldes, at den genererede datamængde kan være så omfattende, at manuel validering ville være både tidskrævende og upraktisk.
+Turneringsgeneratoren skal overholde en række centrale regler, eksempelvis at et hold ikke må spille to kampe samtidigt, hvis der er flere baner til rådighed,
+samt at et hold maksimalt må spille to kampe i træk uden pause.
+
+Disse regler sikrer, at den genererede turneringsplan kan opfylder de praktiske krav til afvikling af turneringen uden omfattende manuel justering.
+
+Kvalitet er en central faktor for systemets anvendelighed, og derfor har der været et betydeligt fokus på kvalitetssikring, selvom automatiserede tests ikke er fuldt integreret i udviklingspipelinen.
+
+\subsection{Turneringstest}
+For at teste turneringsgeneratoren, er der testframework \texttt{Jest} anvendt (\cite{Jest}).
+
+I filen \texttt{tournament.service.test.ts} findes testkoden for den del af systemet, der vurderes at have størst betydning for produktets funktionalitet, nemlig algoritmen der genererer turneringsplaner.
+
+Formålet med testen er at sikre, at den genererede turneringsplan overholder de centrale forretningsregler for afvikling af en kajakpoloturnering.
+Denne del af produktet, er hvor input varierer højest, og er samtidig den mest efterspurgte funktion fra vores Product Owner.
+Derfor er det nødvendigt at sikre en vis robusthed i genereringen af en turneringsplan.
+
+Testen verificerer bl.a. følgende krav:
+
+\begin{itemize}
+    \item Et hold må ikke være planlagt til to kampe på samme tidspunkt
+    \item Et hold må maksimalt spille to kampe i træk uden en pause
+    \item Alle hold skal møde hinanden to gange
+    \item Turneringsplanen skal indeholde X antal kampe hvor $X = n(n-1)$ og \textit{n} er antal hold
+\end{itemize}
+
+I stedet for at sammenligne med ét fast forventet output, valideres turneringsplanen ud fra disse constraints.
+Dette skyldes, at flere forskellige turneringsplaner kan være valide, så længe de opstillede regler overholdes.
+
+Denne test fungerer samtidig som en regressionstest, der gør det muligt hurtigt at verificere, at fremtidige ændringer i algoritmen ikke introducerer fejl i planlægningslogikken.

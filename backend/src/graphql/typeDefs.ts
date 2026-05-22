@@ -14,7 +14,7 @@ export const typeDefs = gql`
         club(id: ID!, includeInactive: Boolean = false): Club
         team(id: ID!, includeInactive: Boolean = false): Team
         matches(tournamentId: ID): [Match!]!
-        match: [Match!]!
+        match(id: ID!): [Match!]!
         users: [User!]!
         fines(club_id: ID, includePaid: Boolean): [Fine]
     }
@@ -106,10 +106,10 @@ scalar DateTime
         away_team_id: Int!
         away_team: Team!
         away_team_score: Int
+        winner_team_id: Int
         winner_team: Team
         field:       Int
         match_date: String!
-
     }
 
     
@@ -137,6 +137,8 @@ scalar DateTime
         
         createTournamentDate(tournamentId: Int!, date: String!): TournamentDate!
         deleteTournamentDate(id: Int!): TournamentDate!
+
+        generateTournamentPlan(tournamentId: Int!, fields: Int!, startTime: Int!): [Match!]
 
         createFine(fine: CreateFineInput!): Fine!
         updateFine(fine: UpdateFineInput!): Fine!
