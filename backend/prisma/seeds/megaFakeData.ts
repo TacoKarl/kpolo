@@ -5,6 +5,21 @@ import { PrismaClient } from '../../src/generated/prisma';
 import * as bcrypt from "bcrypt"
 import {UserRoles} from '../../src/auth/userRoles'
 
+function createTournamentDay(baseDate: Date, dayOffset: number) {
+  const date = new Date(baseDate);
+  date.setUTCDate(date.getUTCDate() + dayOffset);
+  date.setUTCHours(12, 0, 0, 0);
+  return date;
+}
+
+function createSlotDate(baseDate: Date, minutesFromMidnight: number) {
+  const date = new Date(baseDate);
+  const hours = Math.floor(minutesFromMidnight / 60);
+  const minutes = minutesFromMidnight % 60;
+  date.setUTCHours(hours, minutes, 0, 0);
+  return date;
+}
+
 export async function seedMegaFakeData(prisma: PrismaClient) {
   console.log('START seeding megaFakeData...');
 
@@ -17,20 +32,8 @@ export async function seedMegaFakeData(prisma: PrismaClient) {
     where: { role: UserRoles.ClubAdmin },
   });
 
-  const systemAdminRole = await prisma.role.findUniqueOrThrow({
-    where: { role: UserRoles.SystemAdmin },
-  });
-
   const trainerRole = await prisma.role.findUniqueOrThrow({
     where: { role: UserRoles.ClubTrainer },
-  });
-
-  const eventManagerRole = await prisma.role.findUniqueOrThrow({
-    where: { role: UserRoles.EventManager },
-  });
-
-  const guestRole = await prisma.role.findUniqueOrThrow({
-    where: { role: UserRoles.Guest },
   });
 
   console.log('Fetched roles');
@@ -269,11 +272,26 @@ export async function seedMegaFakeData(prisma: PrismaClient) {
   }
   console.log(`Created ${tournamentTeamCount} tournament team assignments`);
 
-  // Create 1000+ matches
-  console.log('Creating 1000+ matches...');
+  // Create tournament dates and scheduled matches
+  console.log('Creating tournament dates and matches...');
+  const matchesArray: {
+    tournament_id: number;
+    division_id: number | null;
+    home_team_id: number;
+    away_team_id: number;
+    home_team_score: number | null;
+    away_team_score: number | null;
+    winner_team_id: number | null;
+    field: number;
+    match_date: Date;
+  }[] = [];
+
+  const slotMinutes = Array.from({ length: 17 }, (_, i) => 8 * 60 + i * 30); // 08:00 -> 16:00
+  const datesPerTournament = 20;
+  const baseTournamentDate = new Date(Date.UTC(2024, 0, 1));
+
   let matchCount = 0;
-  const batchSize = 100;
-  const matchesArray = [];
+  let tournamentDateCount = 0;
 
   for (const tournament of tournaments) {
     const tournamentTeams = await prisma.tournamentTeam.findMany({
@@ -282,60 +300,55 @@ export async function seedMegaFakeData(prisma: PrismaClient) {
 
     if (tournamentTeams.length < 2) continue;
 
-    const tournamentDivisions = divisions.filter(d => d.tournament_id === tournament.id);
+    const tournamentDatesForTournament = Array.from({ length: datesPerTournament }, (_, dayIndex) => ({
+      tournament_id: tournament.id,
+      date: createTournamentDay(baseTournamentDate, dayIndex),
+    }));
 
-    // Create matches for round-robin style tournament
-    // Generate ~300 matches per tournament
-    const targetMatches = 300;
-    const baseDate = new Date(2024, 0, 1);
+    await prisma.tournamentDate.createMany({
+      data: tournamentDatesForTournament,
+    });
+    tournamentDateCount += tournamentDatesForTournament.length;
 
-    for (let m = 0; m < targetMatches; m++) {
-      const teamA = tournamentTeams[Math.floor(Math.random() * tournamentTeams.length)];
-      const teamB = tournamentTeams[Math.floor(Math.random() * tournamentTeams.length)];
+    const opponentOffset = Math.max(1, Math.floor(tournamentTeams.length / 3));
 
-      // Ensure different teams
-      if (teamA.team_id === teamB.team_id) continue;
+    tournamentDatesForTournament.forEach((tournamentDate, dayIndex) => {
+      slotMinutes.forEach((minutesFromMidnight, slotIndex) => {
+        const homeIndex = (dayIndex * slotMinutes.length + slotIndex) % tournamentTeams.length;
+        const awayIndex = (homeIndex + opponentOffset) % tournamentTeams.length;
 
-      const matchDay = Math.floor(Math.random() * 200); // Spread across 200 days
-      const matchDate = new Date(baseDate);
-      matchDate.setDate(matchDate.getDate() + matchDay);
+        const homeTeam = tournamentTeams[homeIndex];
+        const awayTeam = tournamentTeams[awayIndex];
+        const homeScore = Math.floor(Math.random() * 10);
+        const awayScore = Math.floor(Math.random() * 10);
+        const winnerId = homeScore > awayScore ? homeTeam.team_id :
+          awayScore > homeScore ? awayTeam.team_id : null;
 
-      const homeScore = Math.floor(Math.random() * 10);
-      const awayScore = Math.floor(Math.random() * 10);
-      const winnerId = homeScore > awayScore ? teamA.team_id : 
-                       awayScore > homeScore ? teamB.team_id : null;
-
-      matchesArray.push({
-        tournament_id: tournament.id,
-        division_id: teamA.division_id,
-        home_team_id: teamA.team_id,
-        away_team_id: teamB.team_id,
-        home_team_score: homeScore,
-        away_team_score: awayScore,
-        field: (m % 5) + 1,
-        winner_team_id: winnerId,
-        match_date: matchDate,
-      });
-
-      matchCount++;
-
-      // Batch create every 100 matches
-      if (matchesArray.length >= batchSize) {
-        await prisma.match.createMany({
-          data: matchesArray,
+        matchesArray.push({
+          tournament_id: tournament.id,
+          division_id: homeTeam.division_id,
+          home_team_id: homeTeam.team_id,
+          away_team_id: awayTeam.team_id,
+          home_team_score: homeScore,
+          away_team_score: awayScore,
+          field: (slotIndex % 5) + 1,
+          winner_team_id: winnerId,
+          match_date: createSlotDate(tournamentDate.date, minutesFromMidnight),
         });
-        console.log(`  Created ${matchCount} matches...`);
-        matchesArray.length = 0;
-      }
-    }
+
+        matchCount++;
+      });
+    });
+
+    console.log(`  Created ${tournamentDatesForTournament.length} tournament dates and ${slotMinutes.length * tournamentDatesForTournament.length} matches for ${tournament.name}`);
   }
 
-  // Create remaining matches
   if (matchesArray.length > 0) {
     await prisma.match.createMany({
       data: matchesArray,
     });
   }
+  console.log(`Created ${tournamentDateCount} tournament dates total`);
   console.log(`Created ${matchCount} matches total`);
 
   console.log('FINISH seeding megaFakaData');
