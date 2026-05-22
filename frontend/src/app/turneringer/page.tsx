@@ -24,7 +24,7 @@ function TournamentList({ tournaments, loading, error, emptyMessage }: Tournamen
                     {tournaments.length > 0 ? (
                         tournaments.map(t => (
                             <li key={t.id}>
-                                <Link href={`/turnering/${t.id}`} className="text-blue-600 hover:text-blue-800 hover:underline">
+                                <Link href={`/turneringer/${t.id}`} className="text-blue-600 hover:text-blue-800 hover:underline">
                                     {t.season} - {t.name}
                                 </Link>
                             </li>
