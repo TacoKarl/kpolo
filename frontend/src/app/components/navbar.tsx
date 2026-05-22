@@ -1,9 +1,14 @@
+'use client';
+
 import Link from 'next/link';
 import {Button} from "@/components/Button";
 import { type MeUser } from "@/app/lib/getMe"
 import { canAccessAdmin } from "@/app/lib/authorization";
+import {useState} from "react";
+import "./navbar.css"
 
-export default async function Navbar({user,} : {user: MeUser | null}) {
+export default function Navbar({user,} : {user: MeUser | null}) {
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
   const getInitials = (name: string) => {
     const parts = name.trim().split(' ');
     if (parts.length === 1) return parts[0][0].toUpperCase();
@@ -16,49 +21,67 @@ export default async function Navbar({user,} : {user: MeUser | null}) {
   const canSeeAdmin = canAccessAdmin(user);
 
   return (
-    <nav className="sticky top-0 left-0 z-50 bg-gray-800 p-4 w-full">
-      <div className="container mx-auto flex justify-between items-center">
+    <nav className="navbar">
+      <div className="navbar-container">
       <div className="flex gap-6 items-center">
-        <Link href="/" className="text-white text-xl font-bold">
-          Kajakpolo Danmark
-        </Link>
-        <ul className="flex gap-6">
-          <li><Link href="/" className="text-white">Hjem</Link></li>
-          <li><Link href="/omkajakpolo" className="text-white">Om Kajakpolo</Link></li>
-          <li><Link href="/turneringer" className="text-white">Turneringer</Link></li>
-          <li><Link href="/begivenheder" className="text-white">Begivenheder</Link></li>
-            <li><Link href="/clubs" className="text-white">Klubber</Link></li>
-        </ul>
-      </div>
-      <div className="flex items-center gap-4">
-          {canSeeAdmin && (
-              <Link href="/admin" className="text-white font-semibold">
-                  Admin
-              </Link>
-          )}
-        {user ? (
-            <Link href="/profil" className="flex items-center gap-2 bg-gray-700 rounded-full text-white">
+          <Link href="/" className="logo">
+              Kajakpolo Danmark
+          </Link>
+          {/* Desktop menu */}
+          <ul className="nav-links desktop-menu">
+              <li><Link href="/">Hjem</Link></li>
+              <li><Link href="/omkajakpolo">Om Kajakpolo</Link></li>
+              <li><Link href="/turneringer">Turneringer</Link></li>
+              <li><Link href="/begivenheder">Begivenheder</Link></li>
+              <li><Link href="/clubs">Klubber</Link></li>
 
-              {/*  {user.avatarUrl ? (*/}
-              {/*    <Image*/}
-              {/*        src={user.avatarUrl}*/}
-              {/*        alt="Profilbillede"*/}
-              {/*        width={32}*/}
-              {/*        height={32}*/}
-              {/*        className="rounded-full" />*/}
-              {/*) : */}
-                    (
-                  <span className="w-8 h-8 rounded-full bg-gray-500 flex items-center justify-center">
-                  {getInitials(user.name)}
-                </span>
-              )
-            {/*}*/}
-            </Link>
-        ) : (
-            <Button><Link href="/login">Sign in</Link></Button>
+              {canSeeAdmin && (
+                  <li>
+                      <Link href="/admin">Admin</Link>
+                  </li>
+              )}
+          </ul>
+      </div>
+          {/* Right side */}
+          <div className="right-section">
+
+              {/* User / Login */}
+              {user ? (
+                  <Link href="/profil" className="avatar">
+                      {getInitials(user.name)}
+                  </Link>
+              ) : (
+                  <Button>
+                      <Link href="/login">Sign in</Link>
+                  </Button>
+              )}
+
+              {/* Burger */}
+              <button
+                  className="burger"
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  aria-label="Menu"
+              >
+                  <span></span>
+                  <span></span>
+                  <span></span>
+              </button>
+          </div>
+      </div>
+        {/* Mobile menu */}
+        {isMenuOpen && (
+            <div className="mobile-menu">
+                <Link href="/">Hjem</Link>
+                <Link href="/omkajakpolo">Om Kajakpolo</Link>
+                <Link href="/turneringer">Turneringer</Link>
+                <Link href="/begivenheder">Begivenheder</Link>
+                <Link href="/clubs">Klubber</Link>
+
+                {canSeeAdmin && (
+                    <Link href="/admin">Admin</Link>
+                )}
+            </div>
         )}
-      </div>
-      </div>
     </nav>
   );
 }
