@@ -35,7 +35,7 @@ export default async function RootLayout({
       <link rel="preconnect" href="https://challenges.cloudflare.com"/>
     </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
       <ApolloAppProvider>
           <Navbar user={initialUser}/>
