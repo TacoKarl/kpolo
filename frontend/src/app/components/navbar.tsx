@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import {Button} from "@/components/Button";
-import { type MeUser } from "@/app/lib/getMe"
+import type { Me } from "@/generated/graphql";
 import { canAccessAdmin } from "@/app/lib/authorization";
 
-export default async function Navbar({user,} : {user: MeUser | null}) {
+export default async function Navbar({user,} : {user: Me | null}) {
   const getInitials = (name: string) => {
     const parts = name.trim().split(' ');
     if (parts.length === 1) return parts[0][0].toUpperCase();

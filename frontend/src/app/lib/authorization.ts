@@ -1,4 +1,4 @@
-import type { MeUser } from "@/app/lib/getMe";
+import type { Me } from "@/generated/graphql";
 import { UserRoles } from "@/app/lib/UserRoles";
 
 export const TOURNAMENT_ADMIN_ROLES = [UserRoles.SystemAdmin, UserRoles.EventManager] as const;
@@ -11,8 +11,6 @@ export const ADMIN_PAGE_ROLES = [
     UserRoles.ClubAdmin,
     UserRoles.ClubTrainer,
 ] as const;
-
-export type AdminSection = "clubs" | "teams" | "tournaments" | "turneringsplan";
 
 export type AdminNavigationItem = {
     href: `/admin/${string}`;
@@ -48,32 +46,32 @@ export const ADMIN_NAVIGATION_ITEMS = [
     },
 ] as const satisfies readonly AdminNavigationItem[];
 
-export function hasAnyRole(userRoles: readonly string[], allowedRoles: readonly string[]): boolean {
-    return userRoles.some((role) => allowedRoles.includes(role));
+export function hasAnyRole(userRoles: readonly string[] | null | undefined, allowedRoles: readonly string[]): boolean {
+    return !!userRoles && userRoles.some((role) => allowedRoles.includes(role));
 }
 
-export function canAccessTournamentAdmin(user: Pick<MeUser, "roles"> | null): boolean {
+export function canAccessTournamentAdmin(user: Pick<Me, "roles"> | null): boolean {
     return !!user && hasAnyRole(user.roles, TOURNAMENT_ADMIN_ROLES);
 }
 
-export function canAccessClubAdmin(user: Pick<MeUser, "roles"> | null): boolean {
+export function canAccessClubAdmin(user: Pick<Me, "roles"> | null): boolean {
     return !!user && hasAnyRole(user.roles, CLUB_ADMIN_ROLES);
 }
 
-export function canAccessTeamAdmin(user: Pick<MeUser, "roles"> | null): boolean {
+export function canAccessTeamAdmin(user: Pick<Me, "roles"> | null): boolean {
     return !!user && hasAnyRole(user.roles, TEAM_ADMIN_ROLES);
 }
 
-export function canAccessAdmin(user: Pick<MeUser, "roles"> | null): boolean {
+export function canAccessAdmin(user: Pick<Me, "roles"> | null): boolean {
     return !!user && hasAnyRole(user.roles, ADMIN_PAGE_ROLES);
 }
 
-export function getAccessibleAdminNavigation(user: Pick<MeUser, "roles"> | null): AdminNavigationItem[] {
+export function getAccessibleAdminNavigation(user: Pick<Me, "roles"> | null): AdminNavigationItem[] {
     if (!user) return [];
     return ADMIN_NAVIGATION_ITEMS.filter((item) => hasAnyRole(user.roles, item.roles));
 }
 
-export function canAccessAdminPath(user: Pick<MeUser, "roles"> | null, pathname: string): boolean {
+export function canAccessAdminPath(user: Pick<Me, "roles"> | null, pathname: string): boolean {
     const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/");
     if (!isAdminRoute) return true;
 
@@ -89,7 +87,7 @@ export function canAccessAdminPath(user: Pick<MeUser, "roles"> | null, pathname:
     return !!user && hasAnyRole(user.roles, item.roles);
 }
 
-export function getAdminRedirectPath(user: Pick<MeUser, "roles"> | null): string {
+export function getAdminRedirectPath(user: Pick<Me, "roles"> | null): string {
     return canAccessAdmin(user) ? "/admin" : "/";
 }
 

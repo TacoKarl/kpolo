@@ -26,7 +26,7 @@ export default async function profilePage () {
                 {/*{user.avatarUrl && <img src={user.avatarUrl} alt="Profilbillede" className="w-24 h-24 rounded-full" />}*/}
                 <p>Navn: {user.name}</p>
                 <p>Klub: {user.clubName ?? "Ingen klub"}</p>
-                <p>Rolle(r): {user.roles.join(", ") || "Ingen roller"}</p>
+                <p>Rolle(r): {user.roles?.join(", ") || "Ingen roller"}</p>
             </div>
 
             <LogoutButton />
