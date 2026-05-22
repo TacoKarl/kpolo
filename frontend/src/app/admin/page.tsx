@@ -1,89 +1,33 @@
-'use client';
-import { useId, useState } from "react";
-import AdminClubsPage from "@/app/admin/components/AdminClubsPage";
-import AdminTournamentsPage from "@/app/admin/components/AdminTournamentsPage";
-import AdminTeamsPage from "@/app/admin/components/AdminTeamsPage";
-
-type ActiveTab = "tournament" | "clubs" | "teams";
+"use client";
+import { useRouter } from "next/navigation";
+import { Card } from "@/components/Card";
+import { Button } from "@/components/Button";
 
 export default function AdminPage() {
-    const tabsId = useId();
-    const tournamentTabId = `${tabsId}-tab-tournament`;
-    const clubTabId = `${tabsId}-tab-clubs`;
-    const teamTabId = `${tabsId}-tab-teams`;
-    const tournamentPanelId = `${tabsId}-panel-tournament`;
-    const clubsPanelId = `${tabsId}-panel-clubs`;
-
-    const [activeTab, setActiveTab] = useState<ActiveTab>("tournament");
+    const router = useRouter();
 
     return (
         <div className="p-6">
-            <div
-                role="tablist"
-                aria-label="Turneringer og events"
-                className="flex w-full gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-1"
-            >
-                <button
-                    id={tournamentTabId}
-                    aria-controls={tournamentPanelId}
-                    type="button"
-                    role="tab"
-                    aria-selected={activeTab === "tournament"}
-                    className={[
-                        "flex-1 rounded-md px-3 py-2 text-sm font-medium transition",
-                        activeTab === "tournament"
-                            ? "bg-white text-zinc-900 shadow-sm "
-                            : "text-zinc-700 hover:bg-white/60 ",
-                    ].join(" ")}
-                    onClick={() => setActiveTab("tournament")}
-                >
-                    Turneringer
-                </button>
+            <h1 className="text-2xl font-semibold mb-4">Admin</h1>
 
-                <button
-                    id={clubTabId}
-                    aria-controls={clubsPanelId}
-                    type="button"
-                    role="tab"
-                    aria-selected={activeTab === "clubs"}
-                    className={[
-                        "flex-1 rounded-md px-3 py-2 text-sm font-medium transition",
-                        activeTab === "clubs"
-                            ? "bg-white text-zinc-900 shadow-sm "
-                            : "text-zinc-700 hover:bg-white/60 ",
-                    ].join(" ")}
-                    onClick={() => setActiveTab("clubs")}
-                >
-                    Klubber
-                </button>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card>
+                    <h3 className="text-lg font-semibold mb-2">Klubber</h3>
+                    <p className="text-sm text-zinc-600 mb-3">Administrer klubber: opret, rediger, inaktiver eller genopret klubber.</p>
+                    <Button onClick={() => router.push('/admin/clubs')} variant={'primary'}>Gå til Klubber</Button>
+                </Card>
 
-                <button
-                    id={teamTabId}
-                    aria-controls={teamTabId}
-                    type="button"
-                    role="tab"
-                    aria-selected={activeTab === "teams"}
-                    className={[
-                        "flex-1 rounded-md px-3 py-2 text-sm font-medium transition",
-                        activeTab === "teams"
-                            ? "bg-white text-zinc-900 shadow-sm"
-                            : "text-zinc-700 hover:bg-white/60",
-                    ].join(" ")}
-                    onClick={() => setActiveTab("teams")}
-                >
-                    Hold
-                </button>
-            </div>
-            <div className="mt-4">
-                {activeTab === "tournament" && (
-                    <AdminTournamentsPage/>
-                )}
-                {activeTab === "clubs" && (
-                    <AdminClubsPage/>
-                )}
-                {activeTab === "teams" && (
-                    <AdminTeamsPage/>
-                )}
+                <Card>
+                    <h3 className="text-lg font-semibold mb-2">Hold</h3>
+                    <p className="text-sm text-zinc-600 mb-3">Administrer hold: opret hold, tildel spillere og administrer holdstatus.</p>
+                    <Button onClick={() => router.push('/admin/teams')} variant={'primary'}>Gå til Hold</Button>
+                </Card>
+
+                <Card>
+                    <h3 className="text-lg font-semibold mb-2">Turneringer</h3>
+                    <p className="text-sm text-zinc-600 mb-3">Opret og rediger turneringer, divisioner og datoer.</p>
+                    <Button onClick={() => router.push('/admin/tournaments')} variant={'primary'}>Gå til Turneringer</Button>
+                </Card>
             </div>
         </div>
     );
