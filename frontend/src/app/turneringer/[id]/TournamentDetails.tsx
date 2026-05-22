@@ -6,21 +6,10 @@ import {
     GetTournamentMatchesDocument,
     type GetTournamentMatchesQuery,
 } from "@/generated/graphql";
-import { parseDateLike } from "@/app/lib/dateUtils";
+import { formatLongDate, parseDateLike, toDateKey } from "@/app/lib/dateUtils";
 
 type Tournament = NonNullable<GetTournamentMatchesQuery["tournament"]>;
 type Match = NonNullable<Tournament["matches"]>[number];
-
-function formatDate(value: string | null | undefined) {
-    const date = value ? parseDateLike(value) : null;
-    if (!date) return "Ukendt dato";
-
-    return new Intl.DateTimeFormat("da-DK", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-    }).format(date);
-}
 
 function formatTime(value: string | null | undefined) {
     const date = value ? parseDateLike(value) : null;
@@ -55,6 +44,7 @@ export function TournamentDetails({ tournamentId }: { tournamentId: string }) {
         skip: !tournamentId,
     });
     const [selectedDivision, setSelectedDivision] = useState("alle");
+    const [selectedTournamentDate, setSelectedTournamentDate] = useState("alle");
 
     const tournament = data?.tournament as Tournament | null | undefined;
 
@@ -84,17 +74,33 @@ export function TournamentDetails({ tournamentId }: { tournamentId: string }) {
         return ["alle", ...Array.from(divisions)];
     }, [matches]);
 
-    const filteredMatches =
-        selectedDivision === "alle"
-            ? matches
-            : matches.filter((match) => (match.division?.name ?? "Ukendt division") === selectedDivision);
+    const tournamentDateOptions = useMemo(() => {
+        const dateMap = new Map<string, string>();
+
+        for (const date of tournament?.dates ?? []) {
+            const dateKey = toDateKey(date.date);
+            if (!dateKey || dateMap.has(dateKey)) continue;
+            dateMap.set(dateKey, formatLongDate(date.date));
+        }
+
+        return [
+            { key: "alle", label: "Alle" },
+            ...Array.from(dateMap.entries()).map(([key, label]) => ({ key, label })),
+        ];
+    }, [tournament?.dates]);
+
+    const filteredMatches = matches.filter((match) => {
+        const divisionMatch =
+            selectedDivision === "alle" || (match.division?.name ?? "Ukendt division") === selectedDivision;
+
+        const matchDateKey = toDateKey(match.match_date);
+        const dateMatch = selectedTournamentDate === "alle" || matchDateKey === selectedTournamentDate;
+
+        return divisionMatch && dateMatch;
+    });
 
     const showDivisionColumn = selectedDivision === "alle";
     const title = tournament ? `${tournament.name}${tournament.season ? ` – ${tournament.season}` : ""}` : "Turnering";
-    const formattedDates = tournament?.dates
-        ?.map((date) => formatDate(String(date.date)))
-        .filter((date) => date !== "Ukendt dato") ?? [];
-
     if (loading) {
         return (
             <div className="min-h-screen bg-zinc-900 text-white font-sans flex items-center justify-center">
@@ -123,11 +129,6 @@ export function TournamentDetails({ tournamentId }: { tournamentId: string }) {
         <div className="min-h-screen bg-zinc-900 text-white font-sans">
             <div className="bg-zinc-800 py-6 px-8 border-b border-zinc-700">
                 <h1 className="text-2xl font-bold tracking-wide">{title}</h1>
-                {formattedDates.length > 0 && (
-                    <p className="mt-1 text-sm text-zinc-400">
-                        Datoer: {formattedDates.join(", ")}
-                    </p>
-                )}
             </div>
 
             <div className="px-8 py-4 flex gap-2 border-b border-zinc-700 bg-zinc-800 flex-wrap">
@@ -147,6 +148,23 @@ export function TournamentDetails({ tournamentId }: { tournamentId: string }) {
                 ))}
             </div>
 
+            <div className="px-8 py-4 flex gap-2 border-b border-zinc-700 bg-zinc-800 flex-wrap">
+                {tournamentDateOptions.map((date) => (
+                    <button
+                        key={date.key}
+                        type="button"
+                        onClick={() => setSelectedTournamentDate(date.key)}
+                        className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                            selectedTournamentDate === date.key
+                                ? "bg-white text-zinc-900"
+                                : "bg-zinc-700 text-white hover:bg-zinc-600"
+                        }`}
+                    >
+                        {date.label}
+                    </button>
+                ))}
+            </div>
+
             <div className="px-8 py-6 overflow-x-auto">
                 {filteredMatches.length > 0 ? (
                     <table className="w-full text-sm border-collapse">
@@ -154,6 +172,7 @@ export function TournamentDetails({ tournamentId }: { tournamentId: string }) {
                             <tr className="text-zinc-400 uppercase text-xs tracking-wider border-b border-zinc-700">
                                 <th className="text-left py-3 pr-6">Kamp nr.</th>
                                 <th className="text-left py-3 pr-6">Bane</th>
+                                <th className="text-left py-3 pr-6">Dato</th>
                                 <th className="text-left py-3 pr-6">Starttid</th>
                                 <th className="text-left py-3 pr-6">Ude</th>
                                 <th className="text-left py-3 pr-6">Hjemme</th>
@@ -165,6 +184,7 @@ export function TournamentDetails({ tournamentId }: { tournamentId: string }) {
                             {filteredMatches.map((match, index) => {
                                 const divisionName = match.division?.name ?? "Ukendt division";
                                 const startTime = formatTime(match.match_date);
+                                const matchDate = formatLongDate(match.match_date);
 
                                 return (
                                     <tr
@@ -175,6 +195,7 @@ export function TournamentDetails({ tournamentId }: { tournamentId: string }) {
                                     >
                                         <td className="py-3 pr-6">{index + 1}</td>
                                         <td className="py-3 pr-6">{match.field ? `Bane ${match.field}` : "-"}</td>
+                                        <td className="py-3 pr-6">{matchDate}</td>
                                         <td className="py-3 pr-6">{startTime}</td>
                                         <td className="py-3 pr-6 font-medium">{match.away_team.name}</td>
                                         <td className="py-3 pr-6 font-medium">{match.home_team.name}</td>

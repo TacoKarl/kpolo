@@ -70,6 +70,16 @@ export function formatDateHeading(value: DateLike): string {
         : "Ugyldig dato";
 }
 
+export function formatLongDate(value: DateLike): string {
+    const dateKey = toDateKey(value);
+    if (!dateKey) return "Ugyldig dato";
+
+    const date = parseDateLike(`${dateKey}T12:00:00`);
+    return date
+        ? date.toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" })
+        : "Ugyldig dato";
+}
+
 export function toDateInputValue(value: DateLike): string {
     return toDateKey(value) ?? "";
 }
