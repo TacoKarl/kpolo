@@ -7,10 +7,6 @@ import { getAccessibleAdminNavigation } from "@/app/lib/authorization";
 export default async function AdminPage() {
     const user = await getMe();
 
-    if (!user) {
-        redirect("/login");
-    }
-
     const navigationItems = getAccessibleAdminNavigation(user);
 
     if (navigationItems.length === 0) {
