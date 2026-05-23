@@ -4,13 +4,13 @@ import Link from 'next/link';
 import { Button } from "@/components/Button";
 import { useState } from "react";
 import "./navbar.css";
-import {MeUser} from "@/app/lib/getMe";
+import type { Me } from "@/generated/graphql";
 
 export default function NavbarClient({
                                          user,
                                          canSeeAdmin,
                                      }: {
-    user: MeUser | null;
+    user: Me | null;
     canSeeAdmin: boolean;
 }) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);

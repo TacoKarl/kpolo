@@ -64,3 +64,16 @@
 .danger:hover {
     background: #b91c1c;
 }
+
+/* --- INACTIVE --- */
+.inactive {
+    background-color: #e5e7eb !important;
+    color: #9ca3af !important;
+    cursor: not-allowed !important;
+}
+
+.inactive:hover {
+    background-color: #e5e7eb !important;
+    transform: none !important;
+}
+

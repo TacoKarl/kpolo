@@ -1,9 +1,8 @@
-// Navbar.tsx (SERVER COMPONENT)
+import type { Me } from "@/generated/graphql";
 import NavbarClient from "./navbarClient";
-import { type MeUser } from "@/app/lib/getMe";
 import { canAccessAdmin } from "@/app/lib/authorization";
 
-export default function Navbar({ user }: { user: MeUser | null }) {
+export default function Navbar({ user }: { user: Me | null }) {
     const canSeeAdmin = canAccessAdmin(user);
 
     return (

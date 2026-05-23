@@ -49,7 +49,7 @@ export function ConfirmDialog({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="absolute inset-0 bg-black/40" onClick={handleClose} />
-            <div className="relative z-10 w-full max-w-sm rounded border-2 border-blue-600 p-4 shadow-lg">
+            <div className="relative z-10 w-full max-w-sm rounded border-2 border-blue-600 bg-white p-4 shadow-lg">
                 <h4 className="text-lg font-semibold mb-2">{title}</h4>
                 <p className="mb-4 text-sm">{message}</p>
                 {normalizedExpected.length > 0 && (

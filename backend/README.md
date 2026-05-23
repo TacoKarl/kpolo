@@ -98,7 +98,7 @@ erDiagram
     User }o--o{ Role : has
     User ||--o{ TeamMembership : has
     User ||--o{ RefreshToken : has
-    User || -- o{ TournamentTeamUser : in 
+    User ||--o{ TournamentTeamUser : in 
     Club ||--o{ ClubLogo : has
     Club ||--o{ Team : has
     Team ||--o{ TeamMembership : has
@@ -210,6 +210,7 @@ erDiagram
     User ||--o{ RefreshToken : has
     Club ||--o{ ClubLogo : has
     Club ||--o{ Team : has
+    Club ||--o{ Fine : has
     Team ||--o{ TeamMembership : has
     Team ||--o{ TeamLogo : has
     Tournament ||--o{ Division : has
@@ -330,6 +331,15 @@ erDiagram
         int tournament_id
         DateTime date
     }
+
+    Fine {
+        int id
+        int club_id
+        strung reason
+        int amount
+        datetime date
+        paid boolean
+    }
     
 ```
 ```mermaid
@@ -343,6 +353,7 @@ erDiagram
     User ||--o{ TeamMembership : has
     User ||--o{ RefreshToken : has
     Club ||--o{ Team : has
+    Club ||--o{ Fine : has
     Team ||--o{ TeamMembership : has
     Tournament ||--o{ Match : has
     Tournament ||--o{ TournamentTeam : has
@@ -453,6 +464,15 @@ erDiagram
         int id
         int tournament_id
         DateTime date
+    }
+
+    Fine {
+        int id
+        int club_id
+        strung reason
+        int amount
+        datetime date
+        paid boolean
     }
     
 ```

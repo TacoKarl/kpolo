@@ -70,7 +70,7 @@ export default async function profilePage () {
                         <div className="info-box">
                             <span className="label">Roller</span>
                             <span>
-                                {user.roles.join(", ") || "Ingen roller"}
+                                {user.roles?.join(", ") || "Ingen roller"}
                             </span>
                         </div>
 

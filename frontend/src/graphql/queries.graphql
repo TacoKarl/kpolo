@@ -132,6 +132,45 @@ query GetUsers {
     }
 }
 
+query GetFines($clubId: ID, $includePaid: Boolean) {
+    fines(club_id: $clubId, includePaid: $includePaid) {
+        id
+        club_id
+        reason
+        amount
+        date
+        paid
+        club {
+            id
+            name
+        }
+    }
+}
+
+mutation CreateFine($fine: CreateFineInput!) {
+    createFine(fine: $fine) {
+        id
+        club_id
+        reason
+        amount
+        date
+        paid
+        club { id name }
+    }
+}
+
+mutation UpdateFine($fine: UpdateFineInput!) {
+    updateFine(fine: $fine) {
+        id
+        club_id
+        reason
+        amount
+        date
+        paid
+        club { id name }
+    }
+}
+
 mutation CreateClub($name: String!, $address: String!, $region: String!) {
     createClub(name: $name, address: $address, region: $region) {
         id

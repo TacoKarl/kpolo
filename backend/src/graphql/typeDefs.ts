@@ -16,6 +16,7 @@ export const typeDefs = gql`
         matches(tournamentId: ID): [Match!]!
         match(id: ID!): [Match!]!
         users: [User!]!
+        fines(club_id: ID, includePaid: Boolean): [Fine]
     }
     
     #########################
@@ -82,6 +83,16 @@ export const typeDefs = gql`
         tournament: Tournament!
         date: DateTime!
     }
+    
+    type Fine {
+        id: Int!
+        club_id: Int!
+        club: Club!
+        reason: String!
+        amount: Int!
+        date: DateTime!
+        paid: Boolean!
+    }
 
 scalar DateTime
 
@@ -90,15 +101,15 @@ scalar DateTime
         tournament: Tournament!
         division: Division
         home_team_id: Int!
+        home_team: Team!
         home_team_score: Int
         away_team_id: Int!
+        away_team: Team!
         away_team_score: Int
         winner_team_id: Int
+        winner_team: Team
         field:       Int
         match_date: String!
-        home_team: Team!
-        away_team: Team!
-        winner_team: Team
     }
 
     
@@ -128,6 +139,9 @@ scalar DateTime
         deleteTournamentDate(id: Int!): TournamentDate!
 
         generateTournamentPlan(tournamentId: Int!, fields: Int!, startTime: Int!): [Match!]
+
+        createFine(fine: CreateFineInput!): Fine!
+        updateFine(fine: UpdateFineInput!): Fine!
     }
     
     type LoginResponse {
@@ -187,7 +201,7 @@ scalar DateTime
         match_date:     DateTime!
     }
 
-        input UpdateMatchInput {
+    input UpdateMatchInput {
         id:             Int!
         tournament_id:  Int
         division_id:    Int!
@@ -198,6 +212,22 @@ scalar DateTime
         winner_team_id: Int
         field:          Int
         match_date:     DateTime
+    }
+
+    input CreateFineInput {
+        club_id: Int!
+        reason:  String!
+        amount:  Int!
+        date:    DateTime!
+        paid:    Boolean!
+    }
+    
+    input UpdateFineInput {
+        id:         Int!
+        club_id:    Int
+        reason:     String
+        amount:     Int
+        paid:       Boolean
     }
     
 `;

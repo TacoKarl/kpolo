@@ -167,8 +167,41 @@ const resolvers = {
                 orderBy: { email: "asc" },
             });
         },
+        fines: async (_: any, args: { club_id?: number; includePaid?: boolean } , context: Context) => {
+            /*
+            requireUser(context.user);
+
+            if(args.club_id){
+                requireRole(context.user, [UserRoles.SystemAdmin, UserRoles.ClubAdmin]);
+                requireClubMembership(context.user,args.club_id)
+            }
+            else{
+                requireRole(context.user, [UserRoles.SystemAdmin, UserRoles.EventManager]);
+            }
+
+            */
+            const where: any = {};
+
+            if (args.club_id) {
+                where.club_id = args.club_id;
+            }
+
+            // includePaid: false means show only unpaid fines
+            // includePaid: true means show all fines (no filter)
+            if (args.includePaid !== true) {
+                where.paid = false;
+            }
+
+            return prisma.fine.findMany({
+                where,
+                include: { club: true },
+                orderBy: { date: "asc" },
+            });
+
+        },
 
     },
+
     Club: {
         isActive: (club: { is_active: boolean }) => club.is_active,
         teams: async (club: { id: number }, args: { includeInactive?: boolean }) => {
@@ -695,6 +728,45 @@ const resolvers = {
                     winner_team: true,
                     division: true,
                 },
+            });
+        },
+
+        createFine: async (_: any, args: any) => {
+            const { fine } = args;
+            if (!fine) throw new Error("Invalid arguments");
+
+            return prisma.fine.create({
+                data: {
+                    club_id: fine.club_id,
+                    reason: fine.reason,
+                    amount: fine.amount,
+                    date: new Date(fine.date),
+                    paid: fine.paid ?? false,
+                },
+                include: {
+                    club: true
+                }
+            });
+        },
+
+
+        updateFine: async (_: any, args: any) => {
+            const { fine } = args;
+            if (!fine || !fine.id) throw new Error("Invalid arguments");
+
+            const updateData: any = {};
+            if (fine.club_id !== undefined) updateData.club_id = fine.club_id;
+            if (fine.reason !== undefined) updateData.reason = fine.reason;
+            if (fine.amount !== undefined) updateData.amount = fine.amount;
+            if (fine.paid !== undefined) updateData.paid = fine.paid;
+            if (fine.date !== undefined) updateData.date = new Date(fine.date);
+
+            return prisma.fine.update({
+                where: { id: fine.id },
+                data: updateData,
+                include: {
+                    club: true
+                }
             });
         },
 
