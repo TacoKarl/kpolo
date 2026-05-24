@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { Card } from "@/components/Card";
 import { getMe } from "@/app/lib/getMe";
 import { getAccessibleAdminNavigation } from "@/app/lib/authorization";
@@ -22,10 +22,10 @@ export default async function AdminPage() {
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 items-stretch">
                 {navigationItems.map((item) => (
-                    <Link key={item.href} href={item.href} className="block h-full">
-                        <Card>
+                    <Link key={item.href} href={item.href} className="flex h-full">
+                        <Card className="h-full w-full">
                             <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
                             <p className="text-sm text-zinc-600">{item.description}</p>
                         </Card>

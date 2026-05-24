@@ -6,10 +6,11 @@ interface CardProps {
     onClick?: () => void;
     variant?: 'form' | 'info' | 'blackSpace'; // Gør det muligt at tilføje ekstra margin udefra
     hoverable?: boolean;
+    className?: string;
 }
 
-export const Card = ({ children, onClick, variant = 'info', hoverable = true }: CardProps) => {
-    const cardClass = `${styles.card} ${styles[variant]} ${hoverable ? styles.hoverable : ''}`;
+export const Card = ({ children, onClick, variant = 'info', hoverable = true, className = '' }: CardProps) => {
+    const cardClass = `${styles.card} ${styles[variant]} ${hoverable ? styles.hoverable : ''} ${className}`;
     return (
         <div
             className={cardClass}
