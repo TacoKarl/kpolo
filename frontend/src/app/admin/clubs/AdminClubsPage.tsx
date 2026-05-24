@@ -174,61 +174,63 @@ export default function AdminClubsPage({ clubId, showCreateCard = true }: Props)
         <div className="admin-clubs-container">
             {/* Create New Club Section - Top */}
             {showCreateCard && (
-                <div className="admin-create-section">
-                    <Card>
-                        <h3 className="text-lg font-semibold mb-2">Opret ny klub</h3>
-                        <input
-                            placeholder="Klub navn"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            className="border p-2 rounded"
-                        />
+                <>
+                    <div className="admin-create-section">
+                        <Card>
+                            <h3 className="text-lg font-semibold mb-2">Opret ny klub</h3>
+                            <input
+                                placeholder="Klub navn"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                className="border p-2 rounded"
+                            />
 
-                        <input
-                            placeholder="Adresse"
-                            value={address}
-                            onChange={(e) => setAddress(e.target.value)}
-                            className="border p-2 rounded"
-                        />
+                            <input
+                                placeholder="Adresse"
+                                value={address}
+                                onChange={(e) => setAddress(e.target.value)}
+                                className="border p-2 rounded"
+                            />
 
-                        <select
-                            value={region}
-                            onChange={(e) => setRegion(e.target.value)}
-                            className="border p-2 rounded"
-                        >
-                            <option value="">Vælg region</option>
-                            <option value="Jylland">Jylland</option>
-                            <option value="Fyn">Fyn</option>
-                            <option value="Sjælland">Sjælland</option>
-                        </select>
+                            <select
+                                value={region}
+                                onChange={(e) => setRegion(e.target.value)}
+                                className="border p-2 rounded"
+                            >
+                                <option value="">Vælg region</option>
+                                <option value="Jylland">Jylland</option>
+                                <option value="Fyn">Fyn</option>
+                                <option value="Sjælland">Sjælland</option>
+                            </select>
 
-                        <select
-                            value={managerEmail}
-                            onChange={(e) => setManagerEmail(e.target.value)}
-                            className="border p-2 rounded"
-                            disabled={hasMounted && usersLoading}
-                        >
-                            <option value="">Vælg manager (email)</option>
-                            {users.map((u) => (
-                                <option key={u.id} value={u.email}>
-                                    {u.email}
-                                </option>
-                            ))}
-                        </select>
+                            <select
+                                value={managerEmail}
+                                onChange={(e) => setManagerEmail(e.target.value)}
+                                className="border p-2 rounded"
+                                disabled={hasMounted && usersLoading}
+                            >
+                                <option value="">Vælg manager (email)</option>
+                                {users.map((u) => (
+                                    <option key={u.id} value={u.email}>
+                                        {u.email}
+                                    </option>
+                                ))}
+                            </select>
 
-                        <Button
-                            onClick={handleCreateClub}
-                            disabled={creating}
-                            className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
-                        >
-                            Opret klub
-                        </Button>
-                    </Card>
-                </div>
+                            <Button
+                                onClick={handleCreateClub}
+                                disabled={creating}
+                                className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
+                            >
+                                Opret klub
+                            </Button>
+                        </Card>
+                    </div>
+
+                    {/* Visual Break - only show if there's a create section */}
+                    <div className="admin-divider"></div>
+                </>
             )}
-
-            {/* Visual Break */}
-            <div className="admin-divider"></div>
 
             {/* Select & Edit Club Section - Bottom */}
             <div className="admin-edit-section">
