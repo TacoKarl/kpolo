@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useApolloClient, useMutation, useQuery } from "@apollo/client/react";
 import {
     CreateTeamDocument,
+    GetClubDocument,
     GetClubMembersDocument,
     GetClubsWithTeamsDocument,
     GetTeamForEditDocument,
@@ -12,9 +13,10 @@ import {
 } from "@/generated/graphql";
 import { Toast } from "@/app/components/ui/Toast";
 import { ConfirmDialog } from "@/app/components/ui/ConfirmDialog";
-import {Card} from "@/components/Card";
-import {Button} from "@/components/Button";
-import formStyles from "@/styles/Forms.module.css";
+import { Card } from "@/components/Card";
+import { Button } from "@/components/Button";
+import "./AdminTeamsPage.css";
+import type { Me } from "@/generated/graphql";
 
 type EditTeamFormProps = {
     team: {
@@ -58,7 +60,7 @@ function EditTeamForm({
         editMemberIds.some((id) => !originalMemberIds.includes(id));
 
     return (
-        <div className="mt-8 flex flex-col gap-3 max-w-md">
+        <div className="flex flex-col gap-3 w-full">
             <h3 className="text-lg font-semibold">Rediger hold</h3>
 
             <div className="flex items-center gap-2">
@@ -216,23 +218,62 @@ function EditTeamForm({
     );
 }
 
-export default function AdminTeamsPage() {
+type Props = {
+    initialUser?: Me | null;
+    clubId?: string | number | null;
+};
+
+type TeamCard = {
+    id: string;
+    name: string;
+    isActive: boolean;
+    clubName: string;
+};
+
+export default function AdminTeamsPage({ clubId }: Props) {
     const client = useApolloClient();
+    const fixedClubId = clubId !== null && clubId !== undefined && clubId !== "" ? String(clubId) : null;
     const [showInactive, setShowInactive] = useState(false);
-    const { data: clubsData, loading: clubsLoading } = useQuery(GetClubsWithTeamsDocument, {
-        variables: { includeInactive: showInactive },
+
+    const { data: singleClubData, loading: singleClubLoading } = useQuery(GetClubDocument, {
+        variables: { id: fixedClubId!, includeInactive: showInactive },
+        skip: !fixedClubId,
     });
-    const clubs = clubsData?.clubs ?? [];
+
+    const { data: allClubsData, loading: allClubsLoading } = useQuery(GetClubsWithTeamsDocument, {
+        variables: { includeInactive: showInactive },
+        skip: !!fixedClubId,
+    });
+
+    const clubsLoading = fixedClubId ? singleClubLoading : allClubsLoading;
+    const clubs = useMemo(
+        () =>
+            fixedClubId
+                ? (singleClubData?.club ? [singleClubData.club] : [])
+                : (allClubsData?.clubs ?? []),
+        [fixedClubId, singleClubData, allClubsData]
+    );
+
+    const flattenedTeams = useMemo<TeamCard[]>(() => {
+        return clubs.flatMap((club) =>
+            (club.teams ?? []).map((team) => ({
+                id: team.id,
+                name: team.name,
+                isActive: team.isActive,
+                clubName: club.name,
+            }))
+        );
+    }, [clubs]);
 
     const [name, setName] = useState("");
-    const [clubId, setClubId] = useState("");
+    const [selectedClubId, setSelectedClubId] = useState(fixedClubId ?? "");
     const [memberIds, setMemberIds] = useState<number[]>([]);
     const [toastOpen, setToastOpen] = useState(false);
     const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
 
     const { data: membersData, loading: membersLoading } = useQuery(GetClubMembersDocument, {
-        variables: { id: clubId, includeInactive: showInactive },
-        skip: !clubId,
+        variables: { id: selectedClubId, includeInactive: showInactive },
+        skip: !selectedClubId,
     });
     const members = membersData?.club?.members ?? [];
 
@@ -247,6 +288,8 @@ export default function AdminTeamsPage() {
     const editTeam = editTeamData?.team;
     const editClubMembers = editTeam?.club?.members ?? [];
 
+    const clubsRefetchDocument = fixedClubId ? GetClubDocument : GetClubsWithTeamsDocument;
+
     const toggleMember = (userId: number) => {
         setMemberIds((prev) =>
             prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
@@ -254,17 +297,17 @@ export default function AdminTeamsPage() {
     };
 
     const handleCreateTeam = async () => {
-        if (!name || !clubId) return;
+        if (!name || !selectedClubId) return;
 
         await createTeam({
             variables: {
                 name,
-                clubId: Number(clubId),
+                clubId: Number(selectedClubId),
                 memberIds,
             },
         });
         await client.refetchQueries({
-            include: [GetClubsWithTeamsDocument, GetClubMembersDocument],
+            include: [clubsRefetchDocument],
         });
 
         setName("");
@@ -280,7 +323,7 @@ export default function AdminTeamsPage() {
             },
         });
         await client.refetchQueries({
-            include: [GetClubsWithTeamsDocument, GetTeamForEditDocument],
+            include: [clubsRefetchDocument, GetTeamForEditDocument],
         });
     };
 
@@ -292,7 +335,7 @@ export default function AdminTeamsPage() {
             },
         });
         await client.refetchQueries({
-            include: [GetClubsWithTeamsDocument, GetTeamForEditDocument],
+            include: [clubsRefetchDocument, GetTeamForEditDocument],
         });
     };
 
@@ -301,7 +344,7 @@ export default function AdminTeamsPage() {
             variables: { id, isActive: false },
         });
         await client.refetchQueries({
-            include: [GetClubsWithTeamsDocument],
+            include: [clubsRefetchDocument],
         });
         setSelectedTeamId(null);
     };
@@ -311,141 +354,147 @@ export default function AdminTeamsPage() {
             variables: { id, isActive: true },
         });
         await client.refetchQueries({
-            include: [GetClubsWithTeamsDocument],
+            include: [clubsRefetchDocument],
         });
         setSelectedTeamId(null);
     };
 
     return (
-        <div>
-            <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-semibold">Hold du bestyrer:</h3>
-                <label className="flex items-center gap-2 text-sm">
+        <div className="admin-teams-container">
+            <div className="admin-create-section">
+                <Card>
+                    <h3 className="text-lg font-semibold mb-2">Opret nyt hold</h3>
                     <input
-                        type="checkbox"
-                        checked={showInactive}
-                        onChange={(e) => setShowInactive(e.target.checked)}
+                        placeholder="Holdnavn"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="w-full border p-2 rounded"
                     />
-                    Vis inaktive
-                </label>
-            </div>
-            {clubsLoading ? (
-                <p>Loading...</p>
-            ) : (
-                <div className="grid grid-cols-3 gap-6">
-                    {clubs.map((club) => (
-                        <div key={club.id}>
-                            <h4 className={`font-medium mb-2 ${club.isActive ? "" : "text-gray-400"}`}>
-                                {club.name}
-                            </h4>
-                            <ul className="ml-4">
-                                {club.teams?.map((t) => (
-                                    <li key={t.id}>
-                                        <button
-                                            type="button"
-                                            onClick={() => setSelectedTeamId(t.id)}
-                                            className={`text-left hover:underline ${
-                                                t.isActive ? "" : "text-gray-400"
-                                            }`}
-                                        >
-                                            {t.name}
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
+
+                    {fixedClubId ? (
+                        <div className="w-full border p-2 rounded bg-gray-50 text-gray-700">
+                            {clubs[0]?.name ?? "Valgt klub"}
                         </div>
-                    ))}
-                </div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <Card>
-                <h3 className="text-lg font-semibold mb-2">Opret nyt hold</h3>
-                <input
-                    placeholder="Holdnavn"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className={formStyles.input}
-                />
-
-                <select
-                    value={clubId}
-                    onChange={(e) => {
-                        setClubId(e.target.value);
-                        setMemberIds([]);
-                    }}
-                    className={formStyles.select}
-                >
-                    <option value="">Vælg klub</option>
-                    {clubs.map((club) => (
-                        <option key={club.id} value={club.id}>
-                            {club.name}
-                        </option>
-                    ))}
-                </select>
-
-                <div className="border p-2 rounded">
-                    <div className="font-medium mb-2">Vælg spillere</div>
-                    {!clubId ? (
-                        <p className={"text-red-500"}>Vælg en klub for at se spillere.</p>
-                    ) : membersLoading ? (
-                        <p>Loading...</p>
-                    ) : members.length === 0 ? (
-                        <p>Ingen medlemmer i denne klub.</p>
                     ) : (
-                        <ul className="flex flex-col gap-1">
-                            {members.map((member) => {
-                                const memberId = Number(member.id);
-                                return (
-                                    <li key={member.id} className="flex items-center gap-2">
-                                        <input
-                                            type="checkbox"
-                                            checked={memberIds.includes(memberId)}
-                                            onChange={() => toggleMember(memberId)}
-                                        />
-                                        <span>{member.name} ({member.email})</span>
-                                    </li>
-                                );
-                            })}
-                        </ul>
+                        <select
+                            value={selectedClubId}
+                            onChange={(e) => {
+                                setSelectedClubId(e.target.value);
+                                setMemberIds([]);
+                            }}
+                            className="w-full border p-2 rounded"
+                        >
+                            <option value="">Vælg klub</option>
+                            {clubs.map((club) => (
+                                <option key={club.id} value={club.id}>
+                                    {club.name}
+                                </option>
+                            ))}
+                        </select>
                     )}
+
+                    <div className="w-full border p-2 rounded">
+                        <div className="font-medium mb-2">Vælg spillere</div>
+                        {!selectedClubId ? (
+                            <p className="text-red-500">Vælg en klub for at se spillere.</p>
+                        ) : membersLoading ? (
+                            <p>Loading...</p>
+                        ) : members.length === 0 ? (
+                            <p>Ingen medlemmer i denne klub.</p>
+                        ) : (
+                            <ul className="flex flex-col gap-1">
+                                {members.map((member) => {
+                                    const memberId = Number(member.id);
+                                    return (
+                                        <li key={member.id} className="flex items-center gap-2">
+                                            <input
+                                                type="checkbox"
+                                                checked={memberIds.includes(memberId)}
+                                                onChange={() => toggleMember(memberId)}
+                                            />
+                                            <span>
+                                                {member.name} ({member.email})
+                                            </span>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )}
+                    </div>
+
+                    <Button onClick={handleCreateTeam} disabled={creating} className="w-full">
+                        Opret hold
+                    </Button>
+                </Card>
+            </div>
+
+            <div className="admin-divider" />
+
+            <div className="admin-list-section">
+                <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-lg font-semibold">Vælg hold at redigere:</h3>
+                    <label className="flex items-center gap-2 text-sm">
+                        <input
+                            type="checkbox"
+                            checked={showInactive}
+                            onChange={(e) => setShowInactive(e.target.checked)}
+                        />
+                        Vis inaktive
+                    </label>
                 </div>
 
-                <Button
-                    onClick={handleCreateTeam}
-                    disabled={creating}
-                    variant={'primary'}
-                >
-                    Opret hold
-                </Button>
-                </Card>
-
-
-            {editTeam && (
-                <Card>
-                <EditTeamForm
-                    key={editTeam.id}
-                    team={{
-                        ...editTeam,
-                        members: editTeam.members ?? [], // fallback to empty array
-                    }}
-                    clubMembers={editClubMembers}
-                    updating={updating}
-                    togglingActive={togglingActive}
-                    onSaveName={handleSaveTeamName}
-                    onSaveMembers={handleSaveTeamMembers}
-                    onInactivate={handleInactivateTeam}
-                    onRestore={handleRestoreTeam}
-                />
-                </Card>
-
-            )}
-            <Toast
-                message="Hold Oprettet"
-                open={toastOpen}
-                onClose={() => setToastOpen(false)}
-            />
+                {clubsLoading ? (
+                    <p>Loading...</p>
+                ) : flattenedTeams.length === 0 ? (
+                    <p>Ingen hold at vise.</p>
+                ) : (
+                    <div className="admin-teams-grid">
+                        {flattenedTeams.map((team) => (
+                            <button
+                                key={team.id}
+                                type="button"
+                                onClick={() => setSelectedTeamId(team.id)}
+                                className={`admin-team-card ${
+                                    selectedTeamId === team.id ? "admin-team-card-selected" : ""
+                                } ${team.isActive ? "" : "admin-team-card-inactive"}`}
+                            >
+                                <div className="admin-team-card-name">{team.name}</div>
+                                <div className="admin-team-card-club">{team.clubName}</div>
+                            </button>
+                        ))}
+                    </div>
+                )}
             </div>
+
+            <div className="admin-divider" />
+
+            <div className="admin-edit-section">
+                <Card>
+                    {editTeam ? (
+                        <EditTeamForm
+                            key={editTeam.id}
+                            team={{
+                                ...editTeam,
+                                members: editTeam.members ?? [],
+                            }}
+                            clubMembers={editClubMembers}
+                            updating={updating}
+                            togglingActive={togglingActive}
+                            onSaveName={handleSaveTeamName}
+                            onSaveMembers={handleSaveTeamMembers}
+                            onInactivate={handleInactivateTeam}
+                            onRestore={handleRestoreTeam}
+                        />
+                    ) : (
+                        <div className="flex flex-col gap-2">
+                            <h3 className="text-lg font-semibold">Rediger hold</h3>
+                            <p>Vælg et hold fra listen for at redigere det.</p>
+                        </div>
+                    )}
+                </Card>
+            </div>
+
+            <Toast message="Hold Oprettet" open={toastOpen} onClose={() => setToastOpen(false)} />
         </div>
     );
 }

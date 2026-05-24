@@ -1,0 +1,123 @@
+.admin-teams-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+}
+
+.admin-create-section,
+.admin-list-section,
+.admin-edit-section {
+    width: 100%;
+    max-width: 50vw;
+    padding: 24px 0;
+}
+
+.admin-create-section,
+.admin-edit-section {
+    display: flex;
+    justify-content: center;
+}
+
+.admin-create-section > *,
+.admin-edit-section > * {
+    width: 100%;
+    max-width: 500px;
+}
+
+.admin-divider {
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(to right, transparent, #e5e5e5, transparent);
+    margin: 32px 0;
+}
+
+.admin-teams-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.admin-team-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+    background: white;
+    border: 2px solid #e5e5e5;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+}
+
+.admin-team-card:hover {
+    border-color: #1976d2;
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.15);
+}
+
+.admin-team-card-selected {
+    border-color: #1976d2;
+    background: #f0f7ff;
+}
+
+.admin-team-card-inactive {
+    opacity: 0.6;
+}
+
+.admin-team-card-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #000;
+}
+
+.admin-team-card-club {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #666;
+    letter-spacing: 0.5px;
+}
+
+@media (max-width: 1400px) {
+    .admin-teams-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .admin-create-section,
+    .admin-list-section,
+    .admin-edit-section {
+        max-width: 60vw;
+    }
+}
+
+@media (max-width: 900px) {
+    .admin-teams-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .admin-create-section,
+    .admin-list-section,
+    .admin-edit-section {
+        max-width: 70vw;
+    }
+}
+
+@media (max-width: 600px) {
+    .admin-teams-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-create-section,
+    .admin-list-section,
+    .admin-edit-section {
+        max-width: 90vw;
+        padding: 16px 0;
+    }
+
+    .admin-divider {
+        margin: 24px 0;
+    }
+}
+
