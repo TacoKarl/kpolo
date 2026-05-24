@@ -7,14 +7,14 @@ export default async function Page() {
 
     // System admin or other roles: full view
     const isSystemAdmin = initialUser?.roles?.includes(UserRoles.SystemAdmin) ?? false;
-    if (isSystemAdmin) return <AdminClubsPage initialUser={initialUser} />;
+    if (isSystemAdmin) return <AdminClubsPage canInactivateClubs={true} />;
 
     const isClubAdmin = initialUser?.roles?.includes(UserRoles.ClubAdmin) ?? false;
 
     if (isClubAdmin) {
         return (
             // pass clubId from initialUser (may be undefined)
-            <AdminClubsPage initialUser={initialUser} clubId={initialUser?.clubId} showCreateCard={false} />
+            <AdminClubsPage clubId={initialUser?.clubId} showCreateCard={false} canInactivateClubs={false} />
         );
     }
 

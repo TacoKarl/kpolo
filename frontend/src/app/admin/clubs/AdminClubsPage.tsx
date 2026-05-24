@@ -16,15 +16,14 @@ import {Card} from "@/components/Card";
 import {Button} from "@/components/Button";
 import "./AdminClubsPage.css";
 
-import type { Me } from "@/generated/graphql";
 
 type Props = {
-    initialUser?: Me | null;
     clubId?: string | number | null;
     showCreateCard?: boolean;
+    canInactivateClubs?: boolean;
 };
 
-export default function AdminClubsPage({ clubId, showCreateCard = true }: Props) {
+export default function AdminClubsPage({ clubId, showCreateCard = true, canInactivateClubs = false }: Props) {
     const client = useApolloClient();
     const hasMounted = useSyncExternalStore(
         () => () => {},
@@ -429,24 +428,28 @@ export default function AdminClubsPage({ clubId, showCreateCard = true }: Props)
                             </div>
                         </Card>
 
-                        {selectedClub.isActive ? (
-                            <button
-                                type="button"
-                                onClick={() => setConfirmInactivateOpen(true)}
-                                disabled={inactivating}
-                                className="bg-red-600 text-white p-2 rounded hover:bg-red-700"
-                            >
-                                Inaktivér klub
-                            </button>
-                        ) : (
-                            <button
-                                type="button"
-                                onClick={handleRestoreClub}
-                                disabled={togglingActive}
-                                className="bg-green-600 text-white p-2 rounded hover:bg-green-700"
-                            >
-                                Genopret klub
-                            </button>
+                        {canInactivateClubs && (
+                            <>
+                                {selectedClub.isActive ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => setConfirmInactivateOpen(true)}
+                                        disabled={inactivating}
+                                        className="bg-red-600 text-white p-2 rounded hover:bg-red-700"
+                                    >
+                                        Inaktivér klub
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={handleRestoreClub}
+                                        disabled={togglingActive}
+                                        className="bg-green-600 text-white p-2 rounded hover:bg-green-700"
+                                    >
+                                        Genopret klub
+                                    </button>
+                                )}
+                            </>
                         )}
                     </div>
                 )}
