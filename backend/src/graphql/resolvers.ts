@@ -770,6 +770,37 @@ const resolvers = {
             });
         },
 
+        setTeamActive: async (
+            _: any,
+            { id, isActive }: { id: number; isActive: boolean },
+            context: Context
+        ) => {
+            requireRole(context.user, [UserRoles.SystemAdmin, UserRoles.ClubAdmin]);
+
+            const team = await prisma.team.findUnique({ where: { id } });
+            if (!team) throw new Error("Team not found");
+
+            requireClubMembership(context.user, team.club_id);
+
+            return prisma.team.update({
+                where: { id },
+                data: { is_active: isActive },
+            });
+        },
+
+        setClubActive: async (
+            _: any,
+            { id, isActive }: { id: number; isActive: boolean },
+            context: Context
+        ) => {
+            requireRole(context.user, [UserRoles.SystemAdmin]);
+
+            return prisma.club.update({
+                where: { id },
+                data: { is_active: isActive },
+            });
+        },
+
         register: async (_: any, { email, name, password }: { email: string, name: string, password: string}) => {
 
             const normalizedEmail = email.toLowerCase().trim();
