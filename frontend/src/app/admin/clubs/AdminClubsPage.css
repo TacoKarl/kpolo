@@ -1,0 +1,148 @@
+.admin-clubs-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.admin-club-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+    background: white;
+    border: 2px solid #e5e5e5;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+}
+
+.admin-club-card:hover {
+    border-color: #1976d2;
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.15);
+}
+
+.admin-club-card-selected {
+    border-color: #1976d2;
+    background: #f0f7ff;
+}
+
+.admin-club-card-inactive {
+    opacity: 0.6;
+}
+
+.admin-club-card-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #000;
+}
+
+.admin-club-card-region {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #666;
+    letter-spacing: 0.5px;
+}
+
+.admin-club-card-address {
+    font-size: 13px;
+    color: #555;
+    line-height: 1.3;
+}
+
+.admin-club-card-contact {
+    font-size: 12px;
+    color: #777;
+}
+
+.admin-club-card-website {
+    font-size: 12px;
+    color: #1976d2;
+    word-break: break-word;
+}
+
+/* Layout Structure */
+.admin-clubs-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+}
+
+.admin-create-section {
+    width: 100%;
+    max-width: 50vw;
+    padding: 24px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.admin-create-section > * {
+    width: 100%;
+    max-width: 500px;
+}
+
+.admin-divider {
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(to right, transparent, #e5e5e5, transparent);
+    margin: 32px 0;
+}
+
+.admin-edit-section {
+    width: 100%;
+    max-width: 50vw;
+    padding: 24px 0;
+}
+
+/* Responsive */
+@media (max-width: 1400px) {
+    .admin-clubs-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .admin-create-section {
+        max-width: 60vw;
+    }
+
+    .admin-edit-section {
+        max-width: 60vw;
+    }
+}
+
+@media (max-width: 900px) {
+    .admin-clubs-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .admin-create-section {
+        max-width: 70vw;
+    }
+
+    .admin-edit-section {
+        max-width: 70vw;
+    }
+}
+
+@media (max-width: 600px) {
+    .admin-clubs-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-create-section {
+        max-width: 90vw;
+        padding: 16px 0;
+    }
+
+    .admin-edit-section {
+        max-width: 90vw;
+        padding: 16px 0;
+    }
+
+    .admin-divider {
+        margin: 24px 0;
+    }
+}
+
