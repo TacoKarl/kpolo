@@ -66,7 +66,7 @@ export default async function profilePage () {
                             <span className="label">Klub</span>
                             <span>
                                 {user.clubName ? (
-                                    <Link href={`/myClub/${user.clubId}`} className="club-link">
+                                    <Link href="/myClub" className="club-link">
                                         {user.clubName}
                                     </Link>
                                 ) : (

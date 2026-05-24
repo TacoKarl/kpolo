@@ -1,16 +1,16 @@
 'use client';
 
-import { useParams } from 'next/navigation';
 import { useQuery } from "@apollo/client/react";
 import { GetClubDocument } from "@/generated/graphql";
-import "../myClub.css"
+import "./myClub.css"
 
-export default function MyClubPage() {
-    const params = useParams();
-    const id = params.id as string;
+interface MyClubContentProps {
+    clubId: string;
+}
 
+export default function MyClubContent({ clubId }: MyClubContentProps) {
     const { data, loading, error } = useQuery(GetClubDocument, {
-        variables: { id }
+        variables: { id: clubId }
     });
 
     if (loading) return <p className="status">Loading...</p>;
