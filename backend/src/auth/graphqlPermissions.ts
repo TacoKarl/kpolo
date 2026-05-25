@@ -22,7 +22,7 @@ export function requireRole(user: User, roles: UserRoles[]){
 
 export function requireClubMembership(user: User, clubId: number){
     requireUser(user);
-    if (user!.clubId !== clubId || !user!.roles.includes(UserRoles.SystemAdmin)){
+    if (!user!.roles.includes(UserRoles.SystemAdmin) && user!.clubId !== clubId){
         throw new Error("User not in club");
     }
 }

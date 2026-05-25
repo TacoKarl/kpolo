@@ -82,6 +82,8 @@ query GetClub($id: ID!, $includeInactive: Boolean = false) {
         isActive
         region
         address
+        contact_info
+        website
         teams(includeInactive: $includeInactive) {
             id
             name

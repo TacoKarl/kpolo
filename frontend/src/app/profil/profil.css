@@ -108,3 +108,16 @@
 .profile-card h1 {
     margin-bottom: 10px;
 }
+
+/* CLUB LINK */
+
+.club-link {
+    color: #1976d2;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.club-link:hover {
+    color: #1565c0;
+    text-decoration: underline;
+}
