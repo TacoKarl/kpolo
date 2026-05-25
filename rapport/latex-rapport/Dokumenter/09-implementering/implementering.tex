@@ -83,11 +83,11 @@ const deviceId = cookies.get('kpolo_device_id')?.value;
 Så både backend og frontend kan parse cookies, men på forskellige måder afhængigt af, hvor i request-lifecycle de befinder sig.
 
 \subsubsection{Silent refresh flow}
-I \texttt{frontend/src/proxy.ts} er der en middleware, som beskytter routes som:
+\texttt{frontend/src/proxy.ts} indeholder middleware, som beskytter routes som:
 \begin{itemize}
     \item \texttt{/logout}
     \item \texttt{/admin/:path*}
-    \item \texttt{/profile/:path*}
+    \item \texttt{/profile}
 \end{itemize}
 
 Flowet er:
@@ -124,9 +124,15 @@ I \texttt{backend/src/server.ts} ved \texttt{POST /refresh} sker dette:
 \end{itemize}
 Det er altså en kombination af JWT-verifikation, cookie-læsning, database-check af hashed refresh token samt ny cookie-udstedelse.
 
-\subsection{Hvordan me-endpointet bruger cookie'en til at hente brugeridentitet}
+\subsection{RBAC og Me-query}
+Rollebaseret adgangskontrol (RBAC) er implementeret i både backend og frontend.
+Siden rollen ikke er indeholdt i nogen af tokens,
+foretages der et identitetsopslag, som kræver authentication, hver gang enten frontenden eller
+backenden skal foretage en handling, som er forbeholdt en rolle.
+I dette afsnit gennemgås, hvordan opslaget sker, og hvordan det bruges i både backend og frontend.
 
-\subsubsection{7) me er en GraphQL query, ikke et REST /me endpoint}
+\subsubsection{Backend middleware for RBAC}
+Ved konfigurationen af /graphql-endpointet i \texttt{server.ts}
 I koden er identitetsopslaget ikke et REST endpoint som \texttt{/me}, men en GraphQL query:
 \begin{verbatim}
 me: Me
