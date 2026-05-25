@@ -45,7 +45,7 @@ export async function seedMegaFakeData(prisma: PrismaClient) {
   console.log('Creating 20 clubs...');
   const clubs = [];
   const clubNames = [
-    'Copenhagen Kayak Polo Club', 'Aarhus Kayak Club', 'Odense Water Sports',
+    'CPH Kayakers', 'De Hvide fra Aarhus', 'Odense Water Sports',
     'Aalborg Maritime Club', 'Randers Paddling Society', 'Vejle Kayak Team',
     'Silkeborg Waterway Club', 'Kolding Kayak Association', 'Horsens Water Polo',
     'Svendborg Marine Society', 'Nyborg Aquatic Club', 'Slagelse Kayak Team',
@@ -196,13 +196,13 @@ export async function seedMegaFakeData(prisma: PrismaClient) {
   // Create tournaments
   console.log('Creating tournaments...');
   const tournaments = [];
-  const seasons = ['2024-2025', '2025-2026'];
+  const seasons = ['2024-2025', '2025-2026', '2026-2027'];
   
   for (const season of seasons) {
     const tournament = await prisma.tournament.create({
       data: {
         season,
-        name: `Danish Kayak Polo League ${season}`,
+        name: `Dansk Kajakpolo Turnering ${season}`,
       },
     });
     tournaments.push(tournament);
@@ -211,7 +211,7 @@ export async function seedMegaFakeData(prisma: PrismaClient) {
     const tournament2 = await prisma.tournament.create({
       data: {
         season,
-        name: `Regional Championship ${season}`,
+        name: `Det Regionale Mesterskab ${season}`,
       },
     });
     tournaments.push(tournament2);

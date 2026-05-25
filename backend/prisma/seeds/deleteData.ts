@@ -5,6 +5,7 @@ export async function deleteData(prisma: PrismaClient) {
     console.log('Deleting existing data...');
 
     // Delete in correct order due to foreign keys
+    await prisma.fine.deleteMany();
     await prisma.tournamentTeam.deleteMany();
     await prisma.match.deleteMany();
     await prisma.tournamentDate.deleteMany();
@@ -18,6 +19,7 @@ export async function deleteData(prisma: PrismaClient) {
     await prisma.user.deleteMany();
 
     // Reset sequences
+    await prisma.$executeRawUnsafe(`ALTER SEQUENCE "Fine_id_seq" RESTART WITH 1`);
     await prisma.$executeRawUnsafe(`ALTER SEQUENCE "Tournament_id_seq" RESTART WITH 1`);
     await prisma.$executeRawUnsafe(`ALTER SEQUENCE "Division_id_seq" RESTART WITH 1`);
     await prisma.$executeRawUnsafe(`ALTER SEQUENCE "Match_id_seq" RESTART WITH 1`);
