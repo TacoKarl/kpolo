@@ -4,9 +4,9 @@
 - [DONE] Krav er prioriteret ift. problemformuleringen
 - [Se Note 2] Ikke-funktionelle krav er testbare
 - [Vi håber] Krav afspejler detaljeret domæneforståelse
-- [] Accepttest tester både funktionelle og ikke-funktionelle krav
-- [] Accepttesten tester alle interessante scenarier
-- [] Testdata er entydigt formuleret (handlingssekvenser, testdata, forventet resultat, ...)
+- [DONE] Accepttest tester både funktionelle og ikke-funktionelle krav
+- [DONE] Accepttesten tester alle interessante scenarier
+- [DONE] Testdata er entydigt formuleret (handlingssekvenser, testdata, forventet resultat, ...)
 - [] Der er defineret korrigerende handlinger for evt. fejlende accepttests
 - [DONE] Den valgte arkitektur understøtter produktets mål
 - [DONE] Der er argumenteret for designvalg (blandt alternativer)
@@ -29,6 +29,6 @@
 - [Vi håber] Sikker/relevant brug af fagudrtyk/fagbegreber
 - [] Figurer har passende figurtekster, anvendes hensigtmæssigt og henvises til
 - [Basically DONE] Referencer er anvendt konsekvent og henviser til relevant litteratur, og der forligger en referenceliste
-- [] Diagrammertyper og semantik anvendes korrekt, med tilpas detaljeringrad og sammenhæng mellem diagrammer
+- [DONE] Diagrammertyper og semantik anvendes korrekt, med tilpas detaljeringrad og sammenhæng mellem diagrammer
 - [DONE] Brugere er løbende inddraget og feedback er anvendt til at justere mål og understøtte produktets udvikling
 - [DONE] Processen er udvalgt og anvendt i relation til typen af projekt (udviklingsprojekt, undersøgelsesprojekt, ...)
