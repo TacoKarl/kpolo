@@ -7,7 +7,7 @@
 - [DONE] Accepttest tester både funktionelle og ikke-funktionelle krav
 - [DONE] Accepttesten tester alle interessante scenarier
 - [DONE] Testdata er entydigt formuleret (handlingssekvenser, testdata, forventet resultat, ...)
-- [] Der er defineret korrigerende handlinger for evt. fejlende accepttests
+- [DONE Cirka] Der er defineret korrigerende handlinger for evt. fejlende accepttests
 - [DONE] Den valgte arkitektur understøtter produktets mål
 - [DONE] Der er argumenteret for designvalg (blandt alternativer)
 - [DONE] Der er anvendt en struktureret, målrettet tilgang/metode til fremstillingen af designet
@@ -21,8 +21,8 @@
 - [DONE] Den valgte arbejdsmetode er anvendt konsekvent i projektet
 - [Se Note 5] Resultater er sammenlignet med eksisterende løsninger (fx ydeevne)
 - [Se Note 6] Der redegøres -og perspektiveres for produktets effekt i dets indsatsområde (Hvad er konsekvensen af produktets brug?)
-- [] Diskussionen fremhæver vigtige resultater som behandles i konklusionen
-- [] Konklusionen relaterer projektets resultater til problemformuleringen
+- [DONE] Diskussionen fremhæver vigtige resultater som behandles i konklusionen
+- [DONE] Konklusionen relaterer projektets resultater til problemformuleringen
 - [DONE] Prioriteringen er begrundet fx. ud fra projektets mål
 - [Vi håber] Rapporten er kort, præcis og med en sammenhængende struktur (referencer, afsnitsrækkefølge)
 - [] Rapporten er ikke rodet
