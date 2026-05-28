@@ -31,7 +31,7 @@ import { typeDefs } from "./graphql/typeDefs.js";
 import resolvers from "./graphql/resolvers.js";
 import rateLimit from "express-rate-limit";
 import bcrypt from "bcrypt"
-import { PrismaClient, Role } from "./generated/prisma/index.js";
+import { PrismaClient } from "./generated/prisma/index.js";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { hashToken } from "./util/hash.js";
 import { User } from "./auth/graphqlPermissions.js";
@@ -96,8 +96,6 @@ app.post("/login", async (req, res) => {
         if (!valid) {
             return res.status(401).json({ error: "Email or Password does not match" });
         }
-
-        const userRoles = user.roles.map((r: Role) => r.role);
 
         const payload: TokenPayload = {
             userId: user.id,
@@ -221,33 +219,69 @@ app.use(
     "/graphql",
     expressMiddleware(apollo, {
         context: async ({ req, res }): Promise<Context> => {
-            const token = getAccessTokenFromRequest(req);
-            let decoded = null;
             let user: User | null = null;
-            if (token) {
+            const loadUser = async (userId: number) => {
+                const userDB = await prisma.user.findUnique({
+                    where: { id: userId },
+                    include: { roles: true },
+                });
+
+                if (!userDB) return null;
+
+                const userRoles: UserRoles[] = userDB.roles
+                    .map((entity) => entity.role)
+                    .filter((r): r is UserRoles => Object.values(UserRoles).includes(r as UserRoles));
+
+                return {
+                    id: userDB.id,
+                    clubId: userDB.club_id,
+                    roles: userRoles,
+                } satisfies User;
+            };
+
+            const accessToken = getAccessTokenFromRequest(req);
+            if (accessToken) {
                 try {
-                    decoded = verifyAccessToken(token);
-                    if (decoded){
-                        const userDB = await prisma.user.findUnique({
-                            where: { id: decoded.userId },
-                            include: { roles: true },
-                        });
-                        if (userDB){
-
-                            const userRoles: UserRoles[] = userDB.roles
-                                .map(entity => entity.role) // Extract "System Admin" strings
-                                .filter((r): r is UserRoles => Object.values(UserRoles).includes(r as UserRoles));
-
-                            user = {
-                                id: userDB.id,
-                                clubId: userDB.club_id,
-                                roles: userRoles
-                            }
-
-                        }
-                    }
+                    const decoded = verifyAccessToken(accessToken);
+                    user = await loadUser(decoded.userId);
                 } catch {
-                    user = null
+                    user = null;
+                }
+            }
+
+            if (!user) {
+                const refreshToken = getRefreshTokenFromRequest(req);
+                if (refreshToken) {
+                    try {
+                        const decodedRefresh = verifyRefreshToken(refreshToken);
+                        const databaseRefreshToken = await prisma.refreshToken.findUnique({
+                            where: {
+                                user_id_device_id: {
+                                    user_id: decodedRefresh.userId,
+                                    device_id: decodedRefresh.deviceId,
+                                },
+                            },
+                        });
+
+                        const refreshTokenIsValid =
+                            databaseRefreshToken &&
+                            databaseRefreshToken.expires_at > new Date() &&
+                            databaseRefreshToken.token_hash === hashToken(refreshToken);
+
+                        if (refreshTokenIsValid) {
+                            user = await loadUser(decodedRefresh.userId);
+
+                            if (user) {
+                                const newAccessToken = signAccessToken({
+                                    userId: user.id,
+                                    deviceId: decodedRefresh.deviceId,
+                                });
+                                setAccessTokenCookie(res, newAccessToken, isDev);
+                            }
+                        }
+                    } catch {
+                        user = null;
+                    }
                 }
             }
             

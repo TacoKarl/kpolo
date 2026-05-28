@@ -45,7 +45,7 @@ export async function seedMegaFakeData(prisma: PrismaClient) {
   console.log('Creating 20 clubs...');
   const clubs = [];
   const clubNames = [
-    'Copenhagen Kayak Polo Club', 'Aarhus Kayak Club', 'Odense Water Sports',
+    'CPH Kayakers', 'De Hvide fra Aarhus', 'Odense Water Sports',
     'Aalborg Maritime Club', 'Randers Paddling Society', 'Vejle Kayak Team',
     'Silkeborg Waterway Club', 'Kolding Kayak Association', 'Horsens Water Polo',
     'Svendborg Marine Society', 'Nyborg Aquatic Club', 'Slagelse Kayak Team',
@@ -196,13 +196,13 @@ export async function seedMegaFakeData(prisma: PrismaClient) {
   // Create tournaments
   console.log('Creating tournaments...');
   const tournaments = [];
-  const seasons = ['2024-2025', '2025-2026'];
+  const seasons = ['2024-2025', '2025-2026', '2026-2027'];
   
   for (const season of seasons) {
     const tournament = await prisma.tournament.create({
       data: {
         season,
-        name: `Danish Kayak Polo League ${season}`,
+        name: `Dansk Kajakpolo Turnering`,
       },
     });
     tournaments.push(tournament);
@@ -211,7 +211,7 @@ export async function seedMegaFakeData(prisma: PrismaClient) {
     const tournament2 = await prisma.tournament.create({
       data: {
         season,
-        name: `Regional Championship ${season}`,
+        name: `Det Regionale Mesterskab`,
       },
     });
     tournaments.push(tournament2);
@@ -350,6 +350,60 @@ export async function seedMegaFakeData(prisma: PrismaClient) {
   }
   console.log(`Created ${tournamentDateCount} tournament dates total`);
   console.log(`Created ${matchCount} matches total`);
+  // Create 12 fines across different clubs
+  console.log('Creating fines...');
+
+  function randomDateBetween(yearMin: number, yearMax: number) {
+    const year = yearMin + Math.floor(Math.random() * (yearMax - yearMin + 1));
+    const month = Math.floor(Math.random() * 12);
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const day = 1 + Math.floor(Math.random() * daysInMonth);
+    const hour = Math.floor(Math.random() * 24);
+    const minute = Math.floor(Math.random() * 60);
+    return new Date(Date.UTC(year, month, day, hour, minute, 0, 0));
+  }
+
+  function shuffle<T>(arr: T[]) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  const reasons = [
+    'Manglende indbetaling af årligt medlemskontingent',
+    'Bøde for ødelagt udstyr ved træning',
+    'Forsinket betaling af turneringsgebyr for hold',
+    'Overtrædelse af sikkerhedsregler ved klubarrangement',
+    'Parkering på forbudt område ved hallen',
+    'Skader forårsaget på klubbens både under kamp',
+    'Manglende aflevering af nøgle efter låsning',
+    'Bortkommen båd uden registrering og ansvar',
+    'Forsinket afmelding til træning uden grund',
+    'Uautoriseret udlevering af klubudstyr til gæstespiller',
+    'Manglende rengøring af klubfaciliteter efter brug',
+    'Bøde for overtrædelse af svømmehalsregler under træning',
+  ];
+
+  const clubCandidates = clubs.length >= 12 ? shuffle(clubs).slice(0, 12) : Array.from({ length: 12 }, (_, i) => clubs[i % clubs.length]);
+
+  const finesData = clubCandidates.map((club, idx) => {
+    const amount = 200 + Math.floor(Math.random() * (3000 - 200 + 1));
+    const date = randomDateBetween(2024, 2026);
+    const paid = idx < 9; // first 9 are paid
+    return {
+      club_id: club.id,
+      reason: reasons[idx % reasons.length],
+      amount,
+      date,
+      paid,
+    };
+  });
+
+  await prisma.fine.createMany({ data: finesData });
+  console.log(`Created ${finesData.length} fines`);
 
   console.log('FINISH seeding megaFakaData');
   console.log(`\n=== SUMMARY ===`);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import { useClubs } from "@/app/components/hooks/useClubs";
 import { useApolloClient, useMutation, useQuery } from "@apollo/client/react";
 import {
@@ -14,18 +14,34 @@ import { Toast } from "@/app/components/ui/Toast";
 import { ConfirmDialog } from "@/app/components/ui/ConfirmDialog";
 import {Card} from "@/components/Card";
 import {Button} from "@/components/Button";
+import "./AdminClubsPage.css";
 
-export default function AdminClubsPage() {
+
+type Props = {
+    clubId?: string | number | null;
+    showCreateCard?: boolean;
+    canInactivateClubs?: boolean;
+};
+
+export default function AdminClubsPage({ clubId, showCreateCard = true, canInactivateClubs = false }: Props) {
     const client = useApolloClient();
+    const hasMounted = useSyncExternalStore(
+        () => () => {},
+        () => true,
+        () => false
+    );
     const [showInactive, setShowInactive] = useState(false);
-    const { regions, loading, clubs } = useClubs(showInactive);
+    const { loading, clubs } = useClubs(showInactive, clubId ?? undefined);
+
 
     const [name, setName] = useState("");
     const [address, setAddress] = useState("");
     const [region, setRegion] = useState("");
     const [managerEmail, setManagerEmail] = useState("");
     const [toastOpen, setToastOpen] = useState(false);
-    const [selectedClubId, setSelectedClubId] = useState<string | null>(null);
+    const [selectedClubId, setSelectedClubId] = useState<string | null>(
+        clubId ? String(clubId) : null
+    );
     const [editName, setEditName] = useState(false);
     const [editAddress, setEditAddress] = useState(false);
     const [editRegion, setEditRegion] = useState(false);
@@ -41,7 +57,9 @@ export default function AdminClubsPage() {
     const [inactivateClub, { loading: inactivating }] = useMutation(SetClubActiveDocument);
     const [setClubActive, { loading: togglingActive }] = useMutation(SetClubActiveDocument);
 
-    const { data: usersData, loading: usersLoading } = useQuery(GetUsersDocument);
+    const { data: usersData, loading: usersLoading } = useQuery(GetUsersDocument, {
+        ssr: false,
+    });
     const users = usersData?.users ?? [];
 
     const handleCreateClub = async () => {
@@ -69,6 +87,12 @@ export default function AdminClubsPage() {
         ? clubs.find((club) => club.id === selectedClubId)
         : undefined;
 
+    // Derive the currently selected club via memo to avoid setting state inside an effect.
+    const memoSelectedClub = useMemo(() => {
+        if (!selectedClubId || !clubs) return undefined;
+        return clubs.find((c) => c.id === selectedClubId);
+    }, [selectedClubId, clubs]);
+
     const handleSelectClub = (clubId: string) => {
         const club = clubs.find((c) => c.id === clubId);
         if (!club) return;
@@ -82,9 +106,9 @@ export default function AdminClubsPage() {
         setEditRegion(false);
     };
 
-    const originalName = selectedClub?.name ?? "";
-    const originalAddress = selectedClub?.address ?? "";
-    const originalRegion = selectedClub?.region ?? "";
+    const originalName = selectedClub?.name ?? memoSelectedClub?.name ?? "";
+    const originalAddress = selectedClub?.address ?? memoSelectedClub?.address ?? "";
+    const originalRegion = selectedClub?.region ?? memoSelectedClub?.region ?? "";
     const isNameDirty = editNameValue !== originalName;
     const isAddressDirty = editAddressValue !== originalAddress;
     const isRegionDirty = editRegionValue !== originalRegion;
@@ -146,276 +170,289 @@ export default function AdminClubsPage() {
     };
 
     return (
-        <div>
-            <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-semibold">Klubber du bestyrer:</h3>
-                <label className="flex items-center gap-2 text-sm">
-                    <input
-                        type="checkbox"
-                        checked={showInactive}
-                        onChange={(e) => setShowInactive(e.target.checked)}
-                    />
-                    Vis inaktive
-                </label>
-            </div>
-            {loading ? (
-                <p>Loading...</p>
-            ) : (
-                <div className="grid grid-cols-3 gap-6">
-                    {Object.entries(regions).map(([region, clubs]) => (
-                        <div key={region}>
-                            <h4 className="font-medium capitalize mb-2">{region}</h4>
-                            <ul className="ml-4">
-                                {clubs.map((c) => (
-                                    <li key={c.id}>
+        <div className="admin-clubs-container">
+            {/* Create New Club Section - Top */}
+            {showCreateCard && (
+                <>
+                    <div className="admin-create-section">
+                        <Card>
+                            <h3 className="text-lg font-semibold mb-2">Opret ny klub</h3>
+                            <input
+                                placeholder="Klub navn"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                className="border p-2 rounded"
+                            />
+
+                            <input
+                                placeholder="Adresse"
+                                value={address}
+                                onChange={(e) => setAddress(e.target.value)}
+                                className="border p-2 rounded"
+                            />
+
+                            <select
+                                value={region}
+                                onChange={(e) => setRegion(e.target.value)}
+                                className="border p-2 rounded"
+                            >
+                                <option value="">Vælg region</option>
+                                <option value="Jylland">Jylland</option>
+                                <option value="Fyn">Fyn</option>
+                                <option value="Sjælland">Sjælland</option>
+                            </select>
+
+                            <select
+                                value={managerEmail}
+                                onChange={(e) => setManagerEmail(e.target.value)}
+                                className="border p-2 rounded"
+                                disabled={hasMounted && usersLoading}
+                            >
+                                <option value="">Vælg manager (email)</option>
+                                {users.map((u) => (
+                                    <option key={u.id} value={u.email}>
+                                        {u.email}
+                                    </option>
+                                ))}
+                            </select>
+
+                            <Button
+                                onClick={handleCreateClub}
+                                disabled={creating}
+                                className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
+                            >
+                                Opret klub
+                            </Button>
+                        </Card>
+                    </div>
+
+                    {/* Visual Break - only show if there's a create section */}
+                    <div className="admin-divider"></div>
+                </>
+            )}
+
+            {/* Select & Edit Club Section - Bottom */}
+            <div className="admin-edit-section">
+                <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-lg font-semibold">Vælg klub at redigere:</h3>
+                    <label className="flex items-center gap-2 text-sm">
+                        <input
+                            type="checkbox"
+                            checked={showInactive}
+                            onChange={(e) => setShowInactive(e.target.checked)}
+                        />
+                        Vis inaktive
+                    </label>
+                </div>
+                {loading ? (
+                    <p>Loading...</p>
+                ) : (
+                    <div className="admin-clubs-grid">
+                        {clubs.map((c) => (
+                            <button
+                                key={c.id}
+                                type="button"
+                                onClick={() => handleSelectClub(c.id)}
+                                className={`admin-club-card ${
+                                    selectedClubId === c.id ? "admin-club-card-selected" : ""
+                                } ${c.isActive ? "" : "admin-club-card-inactive"}`}
+                            >
+                                <div className="admin-club-card-name">{c.name}</div>
+                                <div className="admin-club-card-region">{c.region}</div>
+                                <div className="admin-club-card-address">{c.address}</div>
+                                {c.contact_info && (
+                                    <div className="admin-club-card-contact">{c.contact_info}</div>
+                                )}
+                                {c.website && (
+                                    <div className="admin-club-card-website">{c.website}</div>
+                                )}
+                            </button>
+                        ))}
+                    </div>
+                )}
+
+                {selectedClub && (
+                    <div className="flex flex-col gap-3">
+                        <Card>
+                            <h3 className="text-lg font-semibold">Rediger klub</h3>
+
+                            <div className="flex items-center gap-2">
+                                <input
+                                    value={editName ? editNameValue : (memoSelectedClub?.name ?? selectedClub?.name ?? "")}
+                                    readOnly={!editName}
+                                    onChange={(e) => setEditNameValue(e.target.value)}
+                                    className={`border p-2 rounded flex-1 ${
+                                        editName ? "" : "bg-gray-100 text-gray-500 cursor-not-allowed"
+                                    }`}
+                                />
+                                {!editName ? (
+                                    <Button
+                                        type="button"
+                                        onClick={() => {
+                                            setEditNameValue(originalName);
+                                            setEditName(true);
+                                        }}
+                                        className="text-blue-600 hover:underline"
+                                    >
+                                        Rediger
+                                    </Button>
+                                ) : (
+                                    <>
                                         <button
                                             type="button"
-                                            onClick={() => handleSelectClub(c.id)}
-                                            className={`text-left hover:underline ${
-                                                c.isActive ? "" : "text-gray-400"
+                                            onClick={() => {
+                                                setEditNameValue(originalName);
+                                                setEditName(false);
+                                            }}
+                                            className="border px-3 py-2 rounded transition hover:bg-gray-50 active:bg-gray-100"
+                                        >
+                                            Fortryd
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleSaveClubName}
+                                            disabled={updating || !isNameDirty}
+                                            className={`border px-3 py-2 rounded transition ${
+                                                updating || !isNameDirty
+                                                    ? "bg-gray-200 text-gray-500 border-gray-200 cursor-not-allowed"
+                                                    : "bg-green-600 text-white border-green-600 hover:bg-green-700"
                                             }`}
                                         >
-                                            {c.name}
+                                            Gem
                                         </button>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    ))}
-                </div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <Card>
-                <h3 className="text-lg font-semibold mb-2">Opret ny klub</h3>
-                <input
-                    placeholder="Klub navn"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="border p-2 rounded"
-                />
-
-                <input
-                    placeholder="Adresse"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    className="border p-2 rounded"
-                />
-
-                <select
-                    value={region}
-                    onChange={(e) => setRegion(e.target.value)}
-                    className="border p-2 rounded"
-                >
-                    <option value="">Vælg region</option>
-                    <option value="Jylland">Jylland</option>
-                    <option value="Fyn">Fyn</option>
-                    <option value="Sjælland">Sjælland</option>
-                </select>
-
-                <select
-                    value={managerEmail}
-                    onChange={(e) => setManagerEmail(e.target.value)}
-                    className="border p-2 rounded"
-                    disabled={usersLoading}
-                >
-                    <option value="">Vælg manager (email)</option>
-                    {users.map((u) => (
-                        <option key={u.id} value={u.email}>
-                            {u.email}
-                        </option>
-                    ))}
-                </select>
-
-                <Button
-                    onClick={handleCreateClub}
-                    disabled={creating}
-                    className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
-                >
-                    Opret klub
-                </Button>
-                </Card>
+                                    </>
+                                )}
+                            </div>
 
 
+                            <div className="flex items-center gap-2">
+                                <input
+                                    value={editAddress ? editAddressValue : (memoSelectedClub?.address ?? selectedClub?.address ?? "")}
+                                    readOnly={!editAddress}
+                                    onChange={(e) => setEditAddressValue(e.target.value)}
+                                    className={`border p-2 rounded flex-1 ${
+                                        editAddress ? "" : "bg-gray-100 text-gray-500 cursor-not-allowed"
+                                    }`}
+                                />
+                                {!editAddress ? (
+                                    <Button
+                                        type="button"
+                                        onClick={() => {
+                                            setEditAddressValue(originalAddress);
+                                            setEditAddress(true);
+                                        }}
+                                        className="text-blue-600 hover:underline"
+                                    >
+                                        Rediger
+                                    </Button>
+                                ) : (
+                                    <>
+                                        <Button
+                                            type="button"
+                                            onClick={() => {
+                                                setEditAddressValue(originalAddress);
+                                                setEditAddress(false);
+                                            }}
+                                            className="border px-3 py-2 rounded transition hover:bg-gray-50 active:bg-gray-100"
+                                        >
+                                            Fortryd
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            onClick={handleSaveClubAddress}
+                                            disabled={updating || !isAddressDirty}
+                                            className={`border px-3 py-2 rounded transition ${
+                                                updating || !isAddressDirty
+                                                    ? "bg-gray-200 text-gray-500 border-gray-200 cursor-not-allowed"
+                                                    : "bg-green-600 text-white border-green-600 hover:bg-green-700"
+                                            }`}
+                                        >
+                                            Gem
+                                        </Button>
+                                    </>
+                                )}
+                            </div>
 
-            {selectedClub && (
-                <div className="mt-8 flex flex-col gap-3 max-w-md">
-                    <Card>
-                    <h3 className="text-lg font-semibold">Rediger klub</h3>
 
-                    <div className="flex items-center gap-2">
-                        <input
-                            value={editNameValue}
-                            readOnly={!editName}
-                            onChange={(e) => setEditNameValue(e.target.value)}
-                            className={`border p-2 rounded flex-1 ${
-                                editName ? "" : "bg-gray-100 text-gray-500 cursor-not-allowed"
-                            }`}
-                        />
-                        {!editName ? (
-                            <Button
-                                type="button"
-                                onClick={() => {
-                                    setEditNameValue(originalName);
-                                    setEditName(true);
-                                }}
-                                className="text-blue-600 hover:underline"
-                            >
-                                Rediger
-                            </Button>
-                        ) : (
-                            <>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setEditNameValue(originalName);
-                                        setEditName(false);
-                                    }}
-                                    className="border px-3 py-2 rounded transition hover:bg-gray-50 active:bg-gray-100"
-                                >
-                                    Fortryd
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={handleSaveClubName}
-                                    disabled={updating || !isNameDirty}
-                                    className={`border px-3 py-2 rounded transition ${
-                                        updating || !isNameDirty
-                                            ? "bg-gray-200 text-gray-500 border-gray-200 cursor-not-allowed"
-                                            : "bg-green-600 text-white border-green-600 hover:bg-green-700"
+                            <div className="flex items-center gap-2">
+                                <select
+                                    value={editRegion ? editRegionValue : (memoSelectedClub?.region ?? selectedClub?.region ?? "")}
+                                    disabled={!editRegion}
+                                    onChange={(e) => setEditRegionValue(e.target.value)}
+                                    className={`border p-2 rounded flex-1 ${
+                                        editRegion ? "" : "bg-gray-100 text-gray-500 cursor-not-allowed"
                                     }`}
                                 >
-                                    Gem
-                                </button>
+                                    <option value="">Vælg region</option>
+                                    <option value="Jylland">Jylland</option>
+                                    <option value="Fyn">Fyn</option>
+                                    <option value="Sjælland">Sjælland</option>
+                                </select>
+                                {!editRegion ? (
+                                    <Button
+                                        type="button"
+                                        onClick={() => {
+                                            setEditRegionValue(originalRegion);
+                                            setEditRegion(true);
+                                        }}
+                                        className="text-blue-600 hover:underline"
+                                    >
+                                        Rediger
+                                    </Button>
+                                ) : (
+                                    <>
+                                        <Button
+                                            type="button"
+                                            onClick={() => {
+                                                setEditRegionValue(originalRegion);
+                                                setEditRegion(false);
+                                            }}
+                                            className="border px-3 py-2 rounded transition hover:bg-gray-50 active:bg-gray-100"
+                                        >
+                                            Fortryd
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            onClick={handleSaveClubRegion}
+                                            disabled={updating || !isRegionDirty}
+                                            className={`border px-3 py-2 rounded transition ${
+                                                updating || !isRegionDirty
+                                                    ? "bg-gray-200 text-gray-500 border-gray-200 cursor-not-allowed"
+                                                    : "bg-green-600 text-white border-green-600 hover:bg-green-700"
+                                            }`}
+                                        >
+                                            Gem
+                                        </Button>
+                                    </>
+                                )}
+                            </div>
+                        </Card>
+
+                        {canInactivateClubs && (
+                            <>
+                                {selectedClub.isActive ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => setConfirmInactivateOpen(true)}
+                                        disabled={inactivating}
+                                        className="bg-red-600 text-white p-2 rounded hover:bg-red-700"
+                                    >
+                                        Inaktivér klub
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={handleRestoreClub}
+                                        disabled={togglingActive}
+                                        className="bg-green-600 text-white p-2 rounded hover:bg-green-700"
+                                    >
+                                        Genopret klub
+                                    </button>
+                                )}
                             </>
                         )}
                     </div>
-
-
-                    <div className="flex items-center gap-2">
-                        <input
-                            value={editAddressValue}
-                            readOnly={!editAddress}
-                            onChange={(e) => setEditAddressValue(e.target.value)}
-                            className={`border p-2 rounded flex-1 ${
-                                editAddress ? "" : "bg-gray-100 text-gray-500 cursor-not-allowed"
-                            }`}
-                        />
-                        {!editAddress ? (
-                            <Button
-                                type="button"
-                                onClick={() => {
-                                    setEditAddressValue(originalAddress);
-                                    setEditAddress(true);
-                                }}
-                                className="text-blue-600 hover:underline"
-                            >
-                                Rediger
-                            </Button>
-                        ) : (
-                            <>
-                                <Button
-                                    type="button"
-                                    onClick={() => {
-                                        setEditAddressValue(originalAddress);
-                                        setEditAddress(false);
-                                    }}
-                                    className="border px-3 py-2 rounded transition hover:bg-gray-50 active:bg-gray-100"
-                                >
-                                    Fortryd
-                                </Button>
-                                <Button
-                                    type="button"
-                                    onClick={handleSaveClubAddress}
-                                    disabled={updating || !isAddressDirty}
-                                    className={`border px-3 py-2 rounded transition ${
-                                        updating || !isAddressDirty
-                                            ? "bg-gray-200 text-gray-500 border-gray-200 cursor-not-allowed"
-                                            : "bg-green-600 text-white border-green-600 hover:bg-green-700"
-                                    }`}
-                                >
-                                    Gem
-                                </Button>
-                            </>
-                        )}
-                    </div>
-
-
-                    <div className="flex items-center gap-2">
-                        <select
-                            value={editRegionValue}
-                            disabled={!editRegion}
-                            onChange={(e) => setEditRegionValue(e.target.value)}
-                            className={`border p-2 rounded flex-1 ${
-                                editRegion ? "" : "bg-gray-100 text-gray-500 cursor-not-allowed"
-                            }`}
-                        >
-                            <option value="">Vælg region</option>
-                            <option value="Jylland">Jylland</option>
-                            <option value="Fyn">Fyn</option>
-                            <option value="Sjælland">Sjælland</option>
-                        </select>
-                        {!editRegion ? (
-                            <Button
-                                type="button"
-                                onClick={() => {
-                                    setEditRegionValue(originalRegion);
-                                    setEditRegion(true);
-                                }}
-                                className="text-blue-600 hover:underline"
-                            >
-                                Rediger
-                            </Button>
-                        ) : (
-                            <>
-                                <Button
-                                    type="button"
-                                    onClick={() => {
-                                        setEditRegionValue(originalRegion);
-                                        setEditRegion(false);
-                                    }}
-                                    className="border px-3 py-2 rounded transition hover:bg-gray-50 active:bg-gray-100"
-                                >
-                                    Fortryd
-                                </Button>
-                                <Button
-                                    type="button"
-                                    onClick={handleSaveClubRegion}
-                                    disabled={updating || !isRegionDirty}
-                                    className={`border px-3 py-2 rounded transition ${
-                                        updating || !isRegionDirty
-                                            ? "bg-gray-200 text-gray-500 border-gray-200 cursor-not-allowed"
-                                            : "bg-green-600 text-white border-green-600 hover:bg-green-700"
-                                    }`}
-                                >
-                                    Gem
-                                </Button>
-                            </>
-                        )}
-                    </div>
-                    </Card>
-
-                    {selectedClub.isActive ? (
-                        <button
-                            type="button"
-                            onClick={() => setConfirmInactivateOpen(true)}
-                            disabled={inactivating}
-                            className="mt-2 bg-red-600 text-white p-2 rounded hover:bg-red-700"
-                        >
-                            Inaktivér klub
-                        </button>
-                    ) : (
-                        <button
-                            type="button"
-                            onClick={handleRestoreClub}
-                            disabled={togglingActive}
-                            className="mt-2 bg-green-600 text-white p-2 rounded hover:bg-green-700"
-                        >
-                            Genopret klub
-                        </button>
-                    )}
-                </div>
-            )}
+                )}
             </div>
             {selectedClub?.isActive && (
                 <ConfirmDialog

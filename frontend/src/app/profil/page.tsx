@@ -64,7 +64,15 @@ export default async function profilePage () {
 
                         <div className="info-box">
                             <span className="label">Klub</span>
-                            <span>{user.clubName ?? "Ingen klub"}</span>
+                            <span>
+                                {user.clubName ? (
+                                    <Link href="/myClub" className="club-link">
+                                        {user.clubName}
+                                    </Link>
+                                ) : (
+                                    "Ingen klub"
+                                )}
+                            </span>
                         </div>
 
                         <div className="info-box">

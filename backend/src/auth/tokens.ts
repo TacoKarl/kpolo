@@ -33,7 +33,7 @@ function parseTimeToMs(ttl: string): number {
 
 const accessTokenTtlStr = process.env.ACCESS_TOKEN_TTL ?? "15m";
 const refreshTokenTtlStr = process.env.REFRESH_TOKEN_TTL ?? "7d";
-//const accessTokenTtlMs = parseTimeToMs(accessTokenTtlStr);
+const accessTokenTtlMs = parseTimeToMs(accessTokenTtlStr);
 const refreshTokenTtlMs = parseTimeToMs(refreshTokenTtlStr);
 const accessTokenTtl = accessTokenTtlStr as SignOptions["expiresIn"];
 const refreshTokenTtl = refreshTokenTtlStr as SignOptions["expiresIn"];
@@ -61,7 +61,7 @@ export function setAccessTokenCookie(res: Response, token: string, isDev: boolea
         secure: !isDev,
         sameSite: "lax",
         path: "/",
-        maxAge: refreshTokenTtlMs,
+        maxAge: accessTokenTtlMs,
         domain: !isDev ? frontendDomain : undefined,
     });
 }
